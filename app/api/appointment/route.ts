@@ -55,24 +55,107 @@ export async function POST(request: NextRequest) {
     if (!process.env.RESEND_API_KEY) {
       console.error('RESEND_API_KEY is not set');
       return NextResponse.json(
-        { error: 'Email service not configured' },
+        { error: 'Email service not configured. Please set RESEND_API_KEY in environment variables.' },
         { status: 500 }
       );
     }
 
+    const fromEmail = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
+
+    // Validate email addresses
+    if (!fromEmail || !fromEmail.includes('@')) {
+      console.error('Invalid RESEND_FROM_EMAIL:', fromEmail);
+      return NextResponse.json(
+        { error: 'Invalid from email address. Use onboarding@resend.dev for testing or a verified domain.' },
+        { status: 500 }
+      );
+    }
+
+    if (!recipientEmail || !recipientEmail.includes('@')) {
+      console.error('Invalid recipient email:', recipientEmail);
+      return NextResponse.json(
+        { error: 'Invalid recipient email address.' },
+        { status: 500 }
+      );
+    }
+
+    console.log('Attempting to send email:', { from: fromEmail, to: recipientEmail, subject: emailSubject });
+
     const { data, error } = await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev',
+      from: fromEmail,
       to: recipientEmail,
       subject: emailSubject,
       text: emailBody,
     });
 
     if (error) {
-      console.error('Resend error:', error);
+      console.error('Resend API error:', JSON.stringify(error, null, 2));
+
+      // Provide more helpful error messages
+      let errorMessage = 'Failed to send email';
+      if (error.message) {
+        errorMessage = error.message;
+      } else if (typeof error === 'object') {
+        errorMessage = JSON.stringify(error);
+      }
+
       return NextResponse.json(
-        { error: 'Failed to send email', details: error },
+        {
+          error: errorMessage,
+          details: 'Check server logs for more details. Make sure RESEND_API_KEY is valid and RESEND_FROM_EMAIL is verified in Resend.',
+          resendError: error
+        },
         { status: 500 }
       );
+    }
+
+    console.log('Admin email sent successfully:', data?.id);
+
+    // Send thank you email to customer
+    const customerEmailSubjectTemplate = contactData.customerEmailSubject || 'Thank You for Booking Your Appointment';
+    const customerEmailBodyTemplate = contactData.customerEmailBody ||
+      `Dear {name},\n\n` +
+      `Thank you for booking an appointment with us!\n\n` +
+      `We have received your appointment request for: {service}\n\n` +
+      `Our team will contact you soon to confirm your appointment.\n\n` +
+      `Best regards,\nDr Baig's Clinic`;
+
+    const customerEmailSubject = customerEmailSubjectTemplate
+      .replace(/{name}/g, name)
+      .replace(/{email}/g, email)
+      .replace(/{phone}/g, phone)
+      .replace(/{service}/g, service)
+      .replace(/{message}/g, message || 'No message provided')
+      .replace(/{date}/g, new Date().toLocaleString());
+
+    const customerEmailBody = customerEmailBodyTemplate
+      .replace(/{name}/g, name)
+      .replace(/{email}/g, email)
+      .replace(/{phone}/g, phone)
+      .replace(/{service}/g, service)
+      .replace(/{message}/g, message || 'No message provided')
+      .replace(/{date}/g, new Date().toLocaleString());
+
+    // Send customer thank you email
+    if (email && email.includes('@')) {
+      try {
+        const customerEmailResult = await resend.emails.send({
+          from: fromEmail,
+          to: email,
+          subject: customerEmailSubject,
+          text: customerEmailBody,
+        });
+
+        if (customerEmailResult.error) {
+          console.error('Failed to send customer email:', customerEmailResult.error);
+          // Don't fail the request if customer email fails
+        } else {
+          console.log('Customer thank you email sent successfully:', customerEmailResult.data?.id);
+        }
+      } catch (customerEmailError) {
+        console.error('Error sending customer email:', customerEmailError);
+        // Don't fail the request if customer email fails
+      }
     }
 
     return NextResponse.json({

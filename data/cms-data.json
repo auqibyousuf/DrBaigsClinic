@@ -264,7 +264,7 @@
   },
   "footer": {
     "brandName": "Dr Baig's Clinic",
-    "logo": "/logo.png",
+    "logo": "/icon.svg",
     "description": "Your trusted partner for comprehensive skin and hair care solutions. Experience excellence in every treatment.",
     "services": [
       {
@@ -329,6 +329,8 @@
     "subtitle": "Start your journey to healthier skin and hair today",
     "email": "yauqib@gmail.com",
     "emailSubject": "New Appointment Booking Request - {service}",
-    "emailBody": "New Appointment Booking Request\n\nName: {name}\nEmail: {email}\nPhone: {phone}\nService: {service}\nMessage: {message}\n\nSubmitted on: {date}"
+    "emailBody": "New Appointment Booking Request\n\nName: {name}\nEmail: {email}\nPhone: {phone}\nService: {service}\nMessage: {message}\n\nSubmitted on: {date}",
+    "customerEmailSubject": "Thank You for Booking Your Appointment - Dr Baig's Clinic",
+    "customerEmailBody": "Dear {name},\n\nThank you for booking an appointment with Dr Baig's Clinic!\n\nWe have received your appointment request for:\nService: {service}\n\nOur team will contact you soon at {phone} or {email} to confirm your appointment time.\n\nIf you have any questions, please don't hesitate to reach out to us.\n\nBest regards,\nDr Baig's Clinic Team"
   }
 }
