@@ -24,7 +24,8 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const section = searchParams.get('section') as keyof CMSData | null;
 
-    const data = getCMSData();
+    // Try Supabase first, fallback to filesystem
+    const data = await getCMSData();
 
     if (section && data[section]) {
       return NextResponse.json({ [section]: data[section] });
@@ -33,8 +34,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(data);
   } catch (error) {
     console.error('Error fetching CMS data:', error);
+    // Provide more helpful error message
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
-      { error: 'Failed to fetch CMS data' },
+      {
+        error: 'Failed to fetch CMS data',
+        details: errorMessage,
+        note: 'Make sure data/cms-data.json exists in your project or Supabase is configured'
+      },
       { status: 500 }
     );
   }
@@ -60,34 +67,29 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      const updatedData = updateCMSData(section as keyof CMSData, sectionData);
+      const updatedData = await updateCMSData(section as keyof CMSData, sectionData);
 
       return NextResponse.json({
         success: true,
         message: `${section} updated successfully`,
         data: updatedData[section as keyof CMSData],
       });
-    } catch (fsError: any) {
-      // Handle filesystem write errors (e.g., on serverless hosting)
-      if (fsError?.message?.includes('READ_ONLY_FILESYSTEM') ||
-          fsError?.code === 'EACCES' ||
-          fsError?.code === 'EROFS' ||
-          process.env.VERCEL === '1' ||
-          process.env.NETLIFY === 'true') {
-        console.error('File system write error (serverless environment):', fsError);
-
-        // For serverless environments, we need to use a database or cloud storage
-        // For now, return a helpful error message
+    } catch (error: any) {
+      // Handle errors
+      if (error?.message?.includes('READ_ONLY_FILESYSTEM') ||
+          error?.code === 'EACCES' ||
+          error?.code === 'EROFS') {
+        console.error('File system write error:', error);
         return NextResponse.json(
           {
-            error: 'This hosting platform uses a read-only file system. To enable CMS updates, please set up a database (PostgreSQL, MongoDB, Supabase, etc.) or use cloud storage. The current setup works on traditional hosting (VPS, shared hosting) where file writes are allowed.',
+            error: 'This hosting platform uses a read-only file system. Please configure Supabase by adding SUPABASE_URL and SUPABASE_ANON_KEY to your environment variables.',
             code: 'READ_ONLY_FILESYSTEM',
-            suggestion: 'For serverless hosting, consider using Supabase (free tier), Vercel KV, or MongoDB Atlas. Contact your developer to set this up.'
+            suggestion: 'Add Supabase credentials to enable CMS updates on serverless hosting.'
           },
           { status: 503 }
         );
       }
-      throw fsError;
+      throw error;
     }
   } catch (error) {
     console.error('Error updating CMS data:', error);
@@ -111,32 +113,28 @@ export async function PUT(request: NextRequest) {
     const fullData = body as CMSData;
 
     try {
-      saveCMSData(fullData);
+      await saveCMSData(fullData);
 
       return NextResponse.json({
         success: true,
         message: 'CMS data updated successfully',
       });
-    } catch (fsError: any) {
-      // Handle filesystem write errors (e.g., on serverless hosting)
-      if (fsError?.message?.includes('READ_ONLY_FILESYSTEM') ||
-          fsError?.code === 'EACCES' ||
-          fsError?.code === 'EROFS' ||
-          process.env.VERCEL === '1' ||
-          process.env.NETLIFY === 'true') {
-        console.error('File system write error (serverless environment):', fsError);
-
-        // For serverless environments, we need to use a database or cloud storage
+    } catch (error: any) {
+      // Handle errors
+      if (error?.message?.includes('READ_ONLY_FILESYSTEM') ||
+          error?.code === 'EACCES' ||
+          error?.code === 'EROFS') {
+        console.error('File system write error:', error);
         return NextResponse.json(
           {
-            error: 'This hosting platform uses a read-only file system. To enable CMS updates, please set up a database (PostgreSQL, MongoDB, Supabase, etc.) or use cloud storage. The current setup works on traditional hosting (VPS, shared hosting) where file writes are allowed.',
+            error: 'This hosting platform uses a read-only file system. Please configure Supabase by adding SUPABASE_URL and SUPABASE_ANON_KEY to your environment variables.',
             code: 'READ_ONLY_FILESYSTEM',
-            suggestion: 'For serverless hosting, consider using Supabase (free tier), Vercel KV, or MongoDB Atlas. Contact your developer to set this up.'
+            suggestion: 'Add Supabase credentials to enable CMS updates on serverless hosting.'
           },
           { status: 503 }
         );
       }
-      throw fsError;
+      throw error;
     }
   } catch (error) {
     console.error('Error updating CMS data:', error);

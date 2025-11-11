@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get CMS data for email configuration
-    const cmsData = getCMSData();
+    const cmsData = await getCMSData();
     const contactData = cmsData.contact || {};
 
     // Get email configuration from CMS

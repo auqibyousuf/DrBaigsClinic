@@ -379,7 +379,14 @@ export default function AdminDashboard() {
         // Show detailed error message including suggestions for serverless hosting
         const errorMessage = errorData.error || 'Failed to save changes. Please try again.';
         const suggestion = errorData.suggestion ? ` ${errorData.suggestion}` : '';
-        showToast('error', errorMessage + suggestion);
+
+        // Only show the full error if it's a read-only filesystem error
+        // Otherwise show a simpler message
+        if (errorData.code === 'READ_ONLY_FILESYSTEM') {
+          showToast('error', errorMessage + suggestion);
+        } else {
+          showToast('error', errorMessage);
+        }
       }
     } catch (error) {
       console.error('Error saving:', error);
