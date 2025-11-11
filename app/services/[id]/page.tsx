@@ -8,217 +8,28 @@ import { getCMSData } from '@/lib/cms';
 
 export { generateMetadata };
 
-// Fallback services data (for backward compatibility)
-const fallbackServices: Record<string, Service & { features: string[]; duration?: string; price?: string }> = {
-  'hair-restoration': {
-    id: 'hair-restoration',
-    title: 'Hair Restoration',
-    description: 'Comprehensive hair restoration treatments designed to help you regain natural, healthy hair. Our advanced techniques address various causes of hair loss and thinning.',
-    image: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=1200',
-    features: [
-      'PRP (Platelet-Rich Plasma) Therapy',
-      'Hair Scalp Analysis & Diagnosis',
-      'Hair Loss Prevention Programs',
-      'Nutritional Counseling',
-      'Customized Treatment Plans',
-      'Regular Progress Monitoring',
-    ],
-    duration: '60-90 minutes',
-    price: 'Starting from $299',
-  },
-  'hair-transplantation': {
-    id: 'hair-transplantation',
-    title: 'Hair Transplantation',
-    description: 'State-of-the-art hair transplantation using FUE (Follicular Unit Extraction) and FUT techniques. Experience permanent, natural-looking results from our expert surgeons.',
-    image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=1200',
-    features: [
-      'FUE Hair Transplantation',
-      'FUT Strip Method',
-      'Advanced Grafting Techniques',
-      'Minimal Scarring',
-      'Natural Hairline Design',
-      'Post-Transplant Care',
-    ],
-    duration: '4-8 hours',
-    price: 'Starting from $2,999',
-  },
-  'hair-treatments': {
-    id: 'hair-treatments',
-    title: 'Hair Treatments',
-    description: 'A wide range of professional hair care treatments to improve hair health, strength, and appearance. From deep conditioning to therapeutic scalp treatments.',
-    image: 'https://images.unsplash.com/photo-1585747860715-2ba37e788b7d?w=1200',
-    features: [
-      'Scalp Detox Treatment',
-      'Hair Strengthening Therapy',
-      'Deep Conditioning Treatments',
-      'Keratin Smoothing',
-      'Hair Growth Stimulation',
-      'Damage Repair Treatments',
-    ],
-    duration: '45-75 minutes',
-    price: 'Starting from $149',
-  },
-  'skin-care': {
-    id: 'skin-care',
-    title: 'Professional Skin Care',
-    description: 'Expert skincare treatments tailored to your skin type. Achieve radiant, healthy skin with our comprehensive facial and skin treatment programs.',
-    image: 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=1200',
-    features: [
-      'Customized Facial Treatments',
-      'Hydrating Facials',
-      'Deep Cleansing',
-      'Exfoliation & Peeling',
-      'Skin Brightening',
-      'Moisturizing Therapies',
-    ],
-    duration: '60-90 minutes',
-    price: 'Starting from $179',
-  },
-  'acne-treatment': {
-    id: 'acne-treatment',
-    title: 'Acne Treatment',
-    description: 'Effective acne treatment solutions for all skin types. Our dermatologists create personalized treatment plans to clear your skin and prevent future breakouts.',
-    image: 'https://images.unsplash.com/photo-1571875257727-256c39da42af?w=1200',
-    features: [
-      'Acne Assessment & Diagnosis',
-      'Topical Treatment Plans',
-      'Chemical Peels for Acne',
-      'Light Therapy',
-      'Extraction Treatments',
-      'Maintenance Programs',
-    ],
-    duration: '45-60 minutes',
-    price: 'Starting from $199',
-  },
-  'anti-aging': {
-    id: 'anti-aging',
-    title: 'Anti-Aging Treatments',
-    description: 'Revolutionary anti-aging solutions to restore youthfulness and combat signs of aging. From non-invasive treatments to advanced procedures.',
-    image: 'https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?w=1200',
-    features: [
-      'Botox Injections',
-      'Dermal Fillers',
-      'Thread Lifting',
-      'RF Skin Tightening',
-      'Microneedling',
-      'Vitamin C Infusion',
-    ],
-    duration: '30-60 minutes',
-    price: 'Starting from $399',
-  },
-  'pigmentation': {
-    id: 'pigmentation',
-    title: 'Pigmentation Treatment',
-    description: 'Advanced solutions for hyperpigmentation, melasma, dark spots, and uneven skin tone. Restore your skin\'s natural radiance with targeted treatments.',
-    image: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=1200',
-    features: [
-      'Melasma Treatment',
-      'Dark Spot Removal',
-      'Chemical Peels',
-      'Laser Pigmentation Removal',
-      'Topical Lightening Agents',
-      'Sun Protection Guidance',
-    ],
-    duration: '45-75 minutes',
-    price: 'Starting from $249',
-  },
-  'hijama': {
-    id: 'hijama',
-    title: 'Hijama Therapy',
-    description: 'Traditional cupping therapy (Hijama) for detoxification, pain relief, and overall wellness. A holistic approach to health and healing.',
-    image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=1200',
-    features: [
-      'Wet Cupping (Hijama)',
-      'Dry Cupping',
-      'Pain Management',
-      'Detoxification',
-      'Stress Relief',
-      'Improved Blood Circulation',
-    ],
-    duration: '30-45 minutes',
-    price: 'Starting from $99',
-  },
-  'laser-therapy': {
-    id: 'laser-therapy',
-    title: 'Laser Therapy',
-    description: 'Cutting-edge laser treatments for various skin and hair concerns. Safe, effective, and performed by certified laser specialists.',
-    image: 'https://images.unsplash.com/photo-1559757148-5c350d0d4c09?w=1200',
-    features: [
-      'Laser Hair Removal',
-      'Laser Skin Resurfacing',
-      'Scar Reduction',
-      'Tattoo Removal',
-      'Vein Treatment',
-      'Wrinkle Reduction',
-    ],
-    duration: '15-60 minutes',
-    price: 'Starting from $299',
-  },
-  'prp-therapy': {
-    id: 'prp-therapy',
-    title: 'PRP Therapy',
-    description: 'Platelet-Rich Plasma therapy to stimulate natural hair growth and improve hair density. A natural, non-surgical solution for hair restoration.',
-    image: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=1200',
-    features: [
-      'Blood Draw & Processing',
-      'Platelet Concentration',
-      'Micro-injections',
-      'Hair Follicle Stimulation',
-      'Natural Growth Factors',
-      'Multiple Sessions Available',
-    ],
-    duration: '45-60 minutes',
-    price: 'Starting from $349',
-  },
-  'scalp-treatment': {
-    id: 'scalp-treatment',
-    title: 'Scalp Treatment',
-    description: 'Specialized scalp treatments for dandruff, psoriasis, seborrheic dermatitis, and other scalp conditions. Restore scalp health for better hair growth.',
-    image: 'https://images.unsplash.com/photo-1605497788044-5a32c7078486?w=1200',
-    features: [
-      'Scalp Diagnosis',
-      'Medicated Treatments',
-      'Deep Cleansing',
-      'Moisturizing Therapy',
-      'Exfoliation',
-      'Conditioning Treatments',
-    ],
-    duration: '45-75 minutes',
-    price: 'Starting from $149',
-  },
-  'hair-thickening': {
-    id: 'hair-thickening',
-    title: 'Hair Thickening',
-    description: 'Effective treatments to add volume and thickness to thinning or fine hair. Enhance your hair\'s natural appearance with our specialized programs.',
-    image: 'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=1200',
-    features: [
-      'Volume Enhancement',
-      'Hair Fiber Treatments',
-      'Scalp Stimulation',
-      'Nutritional Support',
-      'Thickening Products',
-      'Maintenance Programs',
-    ],
-    duration: '60-90 minutes',
-    price: 'Starting from $199',
-  },
-};
+export default async function ServicePage({ params }: { params: { id: string } }) {
+  // Fetch service data from Supabase only - no fallback
+  let service: (Service & { features: string[]; duration?: string; price?: string }) | null = null;
 
-export default function ServicePage({ params }: { params: { id: string } }) {
-  // Fetch service data from CMS
-  const cmsData = getCMSData();
-  const cmsService = cmsData.services?.items?.find((item: { id: string }) => item.id === params.id);
+  try {
+    const cmsData = await getCMSData();
+    const cmsService = cmsData.services?.items?.find((item: { id: string }) => item.id === params.id);
 
-  // Use CMS data if available, otherwise fallback to hardcoded data
-  const service = cmsService ? {
-    id: cmsService.id,
-    title: cmsService.title,
-    description: cmsService.description,
-    image: cmsService.image,
-    features: cmsService.features || [],
-    duration: cmsService.duration,
-    price: cmsService.price,
-  } : fallbackServices[params.id];
+    if (cmsService) {
+      service = {
+        id: cmsService.id,
+        title: cmsService.title,
+        description: cmsService.description,
+        image: cmsService.image,
+        features: cmsService.features || [],
+        duration: cmsService.duration,
+        price: cmsService.price,
+      };
+    }
+  } catch (error) {
+    console.error('Error fetching service from Supabase:', error);
+  }
 
   if (!service) {
     notFound();
