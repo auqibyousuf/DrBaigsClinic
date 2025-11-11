@@ -19,6 +19,54 @@
     letter-spacing: -0.02em;
     font-family: var(--font-poppins), var(--font-inter), sans-serif;
   }
+
+  /* Responsive Typography - Mobile First */
+  h1 {
+    @apply text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl;
+  }
+
+  h2 {
+    @apply text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl;
+  }
+
+  h3 {
+    @apply text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl;
+  }
+
+  h4 {
+    @apply text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl;
+  }
+
+  h5 {
+    @apply text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl;
+  }
+
+  h6 {
+    @apply text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl;
+  }
+
+  /* Base font size responsive scaling */
+  body {
+    font-size: 14px;
+  }
+
+  @media (min-width: 640px) {
+    body {
+      font-size: 15px;
+    }
+  }
+
+  @media (min-width: 768px) {
+    body {
+      font-size: 16px;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    body {
+      font-size: 16px;
+    }
+  }
 }
 
 @layer utilities {
@@ -48,6 +96,44 @@
     overflow: visible;
     clip: auto;
     white-space: normal;
+  }
+
+  /* WCAG 3.0 Compliance - Enhanced Focus Indicators */
+  *:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* High contrast mode support */
+  @media (prefers-contrast: high) {
+    * {
+      border-color: currentColor;
+    }
+  }
+
+  /* Reduced motion support */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  /* Minimum touch target size (WCAG 3.0) - Mobile */
+  @media (max-width: 767px) {
+    button,
+    a,
+    input[type="button"],
+    input[type="submit"],
+    [role="button"] {
+      min-height: 44px;
+      min-width: 44px;
+    }
   }
 }
 
