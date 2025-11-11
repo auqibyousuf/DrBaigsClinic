@@ -156,7 +156,7 @@ export default function AdminDashboard() {
       method: 'DELETE',
       credentials: 'include',
     });
-    router.push('/admin');
+    router.push('/logout-success');
   };
 
   const handleSectionChange = (sectionId: string) => {
