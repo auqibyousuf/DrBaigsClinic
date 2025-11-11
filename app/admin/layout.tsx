@@ -19,7 +19,7 @@ export default function AdminLayout({
       method: 'DELETE',
       credentials: 'include'
     });
-    router.push('/admin');
+    router.push('/logout-success');
   };
 
   // Close logout dropdown when clicking outside
@@ -69,17 +69,17 @@ export default function AdminLayout({
               </div>
               <div className="flex items-center space-x-2 sm:space-x-3 md:space-x-4 flex-shrink-0">
                 <a
-                  href="/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={async () => {
+                  href="/logout-success"
+                  onClick={async (e) => {
+                    e.preventDefault();
                     await fetch('/api/cms/auth', {
                       method: 'DELETE',
                       credentials: 'include'
                     });
+                    router.push('/logout-success');
                   }}
                   className="text-primary-600 hover:text-primary-700 dark:text-primary-400 text-xs sm:text-sm font-medium px-2 sm:px-3 py-1.5 sm:py-2 rounded-md hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-                  aria-label="View website in new tab"
+                  aria-label="View website"
                 >
                   <span className="hidden sm:inline">View Website</span>
                   <span className="sm:hidden">View</span>
