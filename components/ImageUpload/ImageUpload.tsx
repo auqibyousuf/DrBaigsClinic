@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
+import { useToast } from '@/components/ToastProvider';
 
 interface ImageUploadProps {
   value?: string;
@@ -14,6 +15,7 @@ export default function ImageUpload({ value, onChange, label, description }: Ima
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(value || null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { showToast } = useToast();
 
   // Sync preview with value prop
   useEffect(() => {
@@ -26,13 +28,13 @@ export default function ImageUpload({ value, onChange, label, description }: Ima
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      alert('Please select an image file');
+      showToast('error', 'Please select an image file');
       return;
     }
 
-    // Validate file size (5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      alert('File size must be less than 5MB');
+    // Validate file size (2MB for base64)
+    if (file.size > 2 * 1024 * 1024) {
+      showToast('error', 'File size must be less than 2MB for optimal performance');
       return;
     }
 
@@ -53,12 +55,13 @@ export default function ImageUpload({ value, onChange, label, description }: Ima
       if (data.success) {
         onChange(data.url);
         setPreview(data.url);
+        showToast('success', 'Image uploaded successfully');
       } else {
-        alert(data.error || 'Failed to upload image');
+        showToast('error', data.error || 'Failed to upload image');
       }
     } catch (error) {
       console.error('Upload error:', error);
-      alert('Failed to upload image. Please try again.');
+      showToast('error', 'Failed to upload image. Please try again.');
     } finally {
       setUploading(false);
       if (fileInputRef.current) {

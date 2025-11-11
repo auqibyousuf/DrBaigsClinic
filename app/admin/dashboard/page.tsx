@@ -376,7 +376,10 @@ export default function AdminDashboard() {
         showToast('success', 'Changes saved successfully!');
       } else {
         const errorData = await response.json().catch(() => ({}));
-        showToast('error', errorData.error || 'Failed to save changes. Please try again.');
+        // Show detailed error message including suggestions for serverless hosting
+        const errorMessage = errorData.error || 'Failed to save changes. Please try again.';
+        const suggestion = errorData.suggestion ? ` ${errorData.suggestion}` : '';
+        showToast('error', errorMessage + suggestion);
       }
     } catch (error) {
       console.error('Error saving:', error);

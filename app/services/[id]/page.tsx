@@ -4,10 +4,12 @@ import Section from '@/components/Section';
 import Button from '@/components/Button';
 import { Service } from '@/types';
 import { generateMetadata } from './metadata';
+import { getCMSData } from '@/lib/cms';
 
 export { generateMetadata };
 
-const services: Record<string, Service & { features: string[]; duration?: string; price?: string }> = {
+// Fallback services data (for backward compatibility)
+const fallbackServices: Record<string, Service & { features: string[]; duration?: string; price?: string }> = {
   'hair-restoration': {
     id: 'hair-restoration',
     title: 'Hair Restoration',
@@ -203,7 +205,20 @@ const services: Record<string, Service & { features: string[]; duration?: string
 };
 
 export default function ServicePage({ params }: { params: { id: string } }) {
-  const service = services[params.id];
+  // Fetch service data from CMS
+  const cmsData = getCMSData();
+  const cmsService = cmsData.services?.items?.find((item: { id: string }) => item.id === params.id);
+
+  // Use CMS data if available, otherwise fallback to hardcoded data
+  const service = cmsService ? {
+    id: cmsService.id,
+    title: cmsService.title,
+    description: cmsService.description,
+    image: cmsService.image,
+    features: cmsService.features || [],
+    duration: cmsService.duration,
+    price: cmsService.price,
+  } : fallbackServices[params.id];
 
   if (!service) {
     notFound();

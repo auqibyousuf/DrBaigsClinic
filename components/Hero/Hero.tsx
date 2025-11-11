@@ -33,7 +33,7 @@ const Hero: React.FC<HeroProps> = ({
       </div>
 
       {/* Content */}
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div className="max-w-[1366px] mx-auto px-4 sm:px-4 md:px-6 lg:px-8 xl:px-12 relative z-10 w-full">
         <div className="max-w-4xl mx-auto text-center">
           <ScrollReveal direction="fade" delay={100}>
             <h1 className="text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-4 sm:mb-6 leading-tight drop-shadow-lg px-2">

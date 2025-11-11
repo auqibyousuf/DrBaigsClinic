@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Hero from '@/components/Hero';
 import Section from '@/components/Section';
 import ServiceCard from '@/components/ServiceCard';
@@ -96,6 +96,7 @@ interface FormErrors {
 
 export default function Home() {
   const [showAllServices, setShowAllServices] = useState(false);
+  const [currentServiceIndex, setCurrentServiceIndex] = useState(0);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -107,13 +108,40 @@ export default function Home() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { showToast } = useToast();
 
-  const { data: heroData } = useCMSData('hero');
-  const { data: servicesData } = useCMSData('services');
-  const { data: aboutData } = useCMSData('about');
-  const { data: contactData } = useCMSData('contact');
+  const { data: heroData, loading: heroLoading, error: heroError } = useCMSData('hero');
+  const { data: servicesData, loading: servicesLoading, error: servicesError } = useCMSData('services');
+  const { data: aboutData, loading: aboutLoading, error: aboutError } = useCMSData('about');
+  const { data: contactData, loading: contactLoading, error: contactError } = useCMSData('contact');
+
+  // Debug logging
+  useEffect(() => {
+    if (heroError) console.error('Hero data error:', heroError);
+    if (servicesError) console.error('Services data error:', servicesError);
+    if (aboutError) console.error('About data error:', aboutError);
+    if (contactError) console.error('Contact data error:', contactError);
+
+    // Log data for debugging
+    console.log('Hero data:', heroData);
+    console.log('Services data:', servicesData);
+    console.log('About data:', aboutData);
+    console.log('Contact data:', contactData);
+  }, [heroData, servicesData, aboutData, contactData, heroError, servicesError, aboutError, contactError]);
 
   const services = servicesData?.items || defaultServices;
   const displayedServices = showAllServices ? services : services.slice(0, 8);
+
+  // Carousel navigation functions
+  const nextService = () => {
+    setCurrentServiceIndex((prev) => (prev + 1) % displayedServices.length);
+  };
+
+  const prevService = () => {
+    setCurrentServiceIndex((prev) => (prev - 1 + displayedServices.length) % displayedServices.length);
+  };
+
+  const goToService = (index: number) => {
+    setCurrentServiceIndex(index);
+  };
 
   const validateForm = () => {
     const newErrors: FormErrors = {};
@@ -318,15 +346,63 @@ export default function Home() {
         subtitle={servicesSubtitle}
         className="bg-gray-50 dark:bg-gray-900"
       >
-        {/* Mobile Slider */}
-        <div className="block md:hidden overflow-x-auto pb-4 px-4 -mx-4 scrollbar-hide" style={{ scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch' }}>
-          <div className="flex gap-4 px-4" style={{ width: 'max-content' }}>
-            {displayedServices.map((service: { id: string; title: string; description: string; image: string }, index: number) => (
-              <div key={service.id} className="flex-shrink-0 w-[280px]" style={{ scrollSnapAlign: 'start' }}>
-                <ServiceCard service={service} index={index} />
-              </div>
-            ))}
+        {/* Mobile Carousel */}
+        <div className="block md:hidden relative">
+          <div className="relative overflow-hidden px-12">
+            <div
+              className="flex transition-transform duration-300 ease-in-out"
+              style={{ transform: `translateX(-${currentServiceIndex * 100}%)` }}
+            >
+              {displayedServices.map((service: { id: string; title: string; description: string; image: string }, index: number) => (
+                <div key={service.id} className="w-full flex-shrink-0 px-2">
+                  <ServiceCard service={service} index={index} />
+                </div>
+              ))}
+            </div>
           </div>
+
+          {/* Navigation Arrows */}
+          {displayedServices.length > 1 && (
+            <>
+              <button
+                onClick={prevService}
+                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white dark:bg-gray-800 rounded-full shadow-lg flex items-center justify-center hover:bg-primary-50 dark:hover:bg-gray-700 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                aria-label="Previous service"
+              >
+                <svg className="w-5 h-5 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <button
+                onClick={nextService}
+                className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white dark:bg-gray-800 rounded-full shadow-lg flex items-center justify-center hover:bg-primary-50 dark:hover:bg-gray-700 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                aria-label="Next service"
+              >
+                <svg className="w-5 h-5 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </>
+          )}
+
+          {/* Dots Indicator */}
+          {displayedServices.length > 1 && (
+            <div className="flex justify-center gap-2 mt-6">
+              {displayedServices.map((_: any, index: number) => (
+                <button
+                  key={index}
+                  onClick={() => goToService(index)}
+                  className={`w-2 h-2 rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
+                    index === currentServiceIndex
+                      ? 'bg-primary-600 dark:bg-primary-400 w-6'
+                      : 'bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500'
+                  }`}
+                  aria-label={`Go to service ${index + 1}`}
+                  aria-current={index === currentServiceIndex ? 'true' : 'false'}
+                />
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Desktop Grid */}
@@ -337,17 +413,17 @@ export default function Home() {
         </div>
 
         {services.length > 8 && (
-          <div className="mt-8 sm:mt-10 text-center px-4 sm:px-0">
+          <div className="mt-6 sm:mt-8 md:mt-10 text-center px-4 sm:px-0">
             <Button
               onClick={() => setShowAllServices(!showAllServices)}
               variant="outline"
               size="lg"
-              className="mx-auto"
+              className="mx-auto text-xs sm:text-sm md:text-base px-3 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4"
             >
-              <span className="flex items-center space-x-2">
+              <span className="flex items-center space-x-1 sm:space-x-2">
                 <span>{showAllServices ? 'Show Less' : 'View All Services'}</span>
                 <svg
-                  className={`w-5 h-5 transition-transform duration-300 ${showAllServices ? 'rotate-180' : ''}`}
+                  className={`w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 transition-transform duration-300 ${showAllServices ? 'rotate-180' : ''}`}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -393,7 +469,7 @@ export default function Home() {
         className="bg-primary-600 dark:bg-primary-700 text-white"
       >
         <ScrollReveal direction="up" delay={0}>
-          <div className="max-w-3xl mx-auto px-4 sm:px-6">
+          <div className="max-w-3xl mx-auto px-4 sm:px-4 md:px-6 lg:px-8 xl:px-12">
             <div className="bg-white dark:bg-gray-800 rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-10 shadow-2xl border border-gray-100 dark:border-gray-700">
               <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5" noValidate aria-label="Appointment booking form">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -490,7 +566,7 @@ export default function Home() {
                     variant="primary"
                     size="md"
                     disabled={isSubmitting}
-                    className="w-full sm:w-auto mx-auto shadow-md hover:shadow-lg transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+                    className="w-full sm:w-auto mx-auto shadow-md hover:shadow-lg transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 text-xs sm:text-sm md:text-base px-4 py-2 sm:px-6 sm:py-3"
                   >
                     <span className="flex items-center justify-center space-x-2">
                       {isSubmitting ? (

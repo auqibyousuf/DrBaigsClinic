@@ -59,17 +59,40 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const updatedData = updateCMSData(section as keyof CMSData, sectionData);
+    try {
+      const updatedData = updateCMSData(section as keyof CMSData, sectionData);
 
-    return NextResponse.json({
-      success: true,
-      message: `${section} updated successfully`,
-      data: updatedData[section as keyof CMSData],
-    });
+      return NextResponse.json({
+        success: true,
+        message: `${section} updated successfully`,
+        data: updatedData[section as keyof CMSData],
+      });
+    } catch (fsError: any) {
+      // Handle filesystem write errors (e.g., on serverless hosting)
+      if (fsError?.message?.includes('READ_ONLY_FILESYSTEM') ||
+          fsError?.code === 'EACCES' ||
+          fsError?.code === 'EROFS' ||
+          process.env.VERCEL === '1' ||
+          process.env.NETLIFY === 'true') {
+        console.error('File system write error (serverless environment):', fsError);
+
+        // For serverless environments, we need to use a database or cloud storage
+        // For now, return a helpful error message
+        return NextResponse.json(
+          {
+            error: 'This hosting platform uses a read-only file system. To enable CMS updates, please set up a database (PostgreSQL, MongoDB, Supabase, etc.) or use cloud storage. The current setup works on traditional hosting (VPS, shared hosting) where file writes are allowed.',
+            code: 'READ_ONLY_FILESYSTEM',
+            suggestion: 'For serverless hosting, consider using Supabase (free tier), Vercel KV, or MongoDB Atlas. Contact your developer to set this up.'
+          },
+          { status: 503 }
+        );
+      }
+      throw fsError;
+    }
   } catch (error) {
     console.error('Error updating CMS data:', error);
     return NextResponse.json(
-      { error: 'Failed to update CMS data' },
+      { error: error instanceof Error ? error.message : 'Failed to update CMS data' },
       { status: 500 }
     );
   }
@@ -87,16 +110,38 @@ export async function PUT(request: NextRequest) {
     const body = await request.json();
     const fullData = body as CMSData;
 
-    saveCMSData(fullData);
+    try {
+      saveCMSData(fullData);
 
-    return NextResponse.json({
-      success: true,
-      message: 'CMS data updated successfully',
-    });
+      return NextResponse.json({
+        success: true,
+        message: 'CMS data updated successfully',
+      });
+    } catch (fsError: any) {
+      // Handle filesystem write errors (e.g., on serverless hosting)
+      if (fsError?.message?.includes('READ_ONLY_FILESYSTEM') ||
+          fsError?.code === 'EACCES' ||
+          fsError?.code === 'EROFS' ||
+          process.env.VERCEL === '1' ||
+          process.env.NETLIFY === 'true') {
+        console.error('File system write error (serverless environment):', fsError);
+
+        // For serverless environments, we need to use a database or cloud storage
+        return NextResponse.json(
+          {
+            error: 'This hosting platform uses a read-only file system. To enable CMS updates, please set up a database (PostgreSQL, MongoDB, Supabase, etc.) or use cloud storage. The current setup works on traditional hosting (VPS, shared hosting) where file writes are allowed.',
+            code: 'READ_ONLY_FILESYSTEM',
+            suggestion: 'For serverless hosting, consider using Supabase (free tier), Vercel KV, or MongoDB Atlas. Contact your developer to set this up.'
+          },
+          { status: 503 }
+        );
+      }
+      throw fsError;
+    }
   } catch (error) {
     console.error('Error updating CMS data:', error);
     return NextResponse.json(
-      { error: 'Failed to update CMS data' },
+      { error: error instanceof Error ? error.message : 'Failed to update CMS data' },
       { status: 500 }
     );
   }
