@@ -203,7 +203,7 @@ export default function Home() {
 
     try {
       // Get service name
-      const selectedService = services.find(s => s.id === formData.service);
+      const selectedService = services.find((s: { id: string; title: string }) => s.id === formData.service);
       const serviceName = selectedService ? selectedService.title : 'Unknown Service';
 
       // Send appointment request to API
@@ -321,7 +321,7 @@ export default function Home() {
         {/* Mobile Slider */}
         <div className="block md:hidden overflow-x-auto pb-4 px-4 -mx-4 scrollbar-hide" style={{ scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch' }}>
           <div className="flex gap-4 px-4" style={{ width: 'max-content' }}>
-            {displayedServices.map((service, index) => (
+            {displayedServices.map((service: { id: string; title: string; description: string; image: string }, index: number) => (
               <div key={service.id} className="flex-shrink-0 w-[280px]" style={{ scrollSnapAlign: 'start' }}>
                 <ServiceCard service={service} index={index} />
               </div>
@@ -331,7 +331,7 @@ export default function Home() {
 
         {/* Desktop Grid */}
         <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 md:gap-6 px-4 sm:px-0">
-          {displayedServices.map((service, index) => (
+          {displayedServices.map((service: { id: string; title: string; description: string; image: string }, index: number) => (
             <ServiceCard key={service.id} service={service} index={index} />
           ))}
         </div>
@@ -458,7 +458,7 @@ export default function Home() {
                       as="select"
                       options={[
                         { value: '', label: 'Select a service' },
-                        ...services.map(s => ({ value: s.id, label: s.title }))
+                        ...services.map((s: { id: string; title: string }) => ({ value: s.id, label: s.title }))
                       ]}
                       icon={
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

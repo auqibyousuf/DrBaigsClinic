@@ -59,12 +59,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const updatedData = updateCMSData(section, sectionData);
+    const updatedData = updateCMSData(section as keyof CMSData, sectionData);
 
     return NextResponse.json({
       success: true,
       message: `${section} updated successfully`,
-      data: updatedData[section],
+      data: updatedData[section as keyof CMSData],
     });
   } catch (error) {
     console.error('Error updating CMS data:', error);

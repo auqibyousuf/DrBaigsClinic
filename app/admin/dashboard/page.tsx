@@ -2,15 +2,61 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import ImageUpload from '@/components/ImageUpload';
 import type { CMSData } from '@/lib/cms';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 type CMSDataSection = keyof CMSData;
 
+interface NavItem {
+  id: string;
+  label: string;
+  href: string;
+  icon: string;
+}
+
+interface ServiceItem {
+  id?: string;
+  title: string;
+  description: string;
+  image: string;
+  features?: string[];
+  duration?: string;
+  price?: string;
+}
+
+interface AboutFeature {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+}
+
+interface EditorProps {
+  data: Partial<CMSData[keyof CMSData]>;
+  onSave: (section: CMSDataSection, sectionData: Partial<CMSData[keyof CMSData]>) => Promise<void>;
+  saving: boolean;
+}
+
 export default function AdminDashboard() {
   const [activeSection, setActiveSection] = useState<string>('header');
-  const [data, setData] = useState<CMSData>({});
+  const [data, setData] = useState<Partial<CMSData>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [sectionLoading, setSectionLoading] = useState(false);
@@ -178,79 +224,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header */}
-      <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                CMS Admin Panel
-              </h1>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Manage your website content
-              </p>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Link
-                href="/"
-                target="_blank"
-                onClick={async () => {
-                  // Destroy session when navigating to website
-                  await fetch('/api/cms/auth', {
-                    method: 'DELETE',
-                    credentials: 'include'
-                  });
-                }}
-                className="text-primary-600 hover:text-primary-700 dark:text-primary-400 text-sm font-medium"
-              >
-                View Website →
-              </Link>
-              <div className="relative">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    const dropdown = document.getElementById('admin-dropdown');
-                    if (dropdown) {
-                      dropdown.classList.toggle('hidden');
-                    }
-                  }}
-                  className="flex items-center space-x-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                  <span>Admin</span>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-                <div
-                  id="admin-dropdown"
-                  className="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50"
-                >
-                  <div className="py-2">
-                    <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">Admin Panel</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Manage your website</p>
-                    </div>
-                    <button
-                      onClick={handleLogout}
-                      className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-2 transition-colors"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                      </svg>
-                      <span>Logout</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
-
+    <>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Sidebar */}
@@ -290,22 +264,22 @@ export default function AdminDashboard() {
                 </div>
               ) : (
                 <>
-                  {activeSection === 'header' && <HeaderEditor data={data.header} onSave={handleSave} saving={saving} />}
-                  {activeSection === 'hero' && <HeroEditor data={data.hero} onSave={handleSave} saving={saving} />}
-                  {activeSection === 'services' && <ServicesEditor data={data.services} onSave={handleSave} saving={saving} />}
-                  {activeSection === 'about' && <AboutEditor data={data.about} onSave={handleSave} saving={saving} />}
-                  {activeSection === 'footer' && <FooterEditor data={data.footer} onSave={handleSave} saving={saving} />}
-                  {activeSection === 'contact' && <ContactEditor data={data.contact} onSave={handleSave} saving={saving} />}
+                  {activeSection === 'header' && <HeaderEditor data={data.header || {}} onSave={handleSave} saving={saving} />}
+                  {activeSection === 'hero' && <HeroEditor data={data.hero || {}} onSave={handleSave} saving={saving} />}
+                  {activeSection === 'services' && <ServicesEditor data={data.services || {}} onSave={handleSave} saving={saving} />}
+                  {activeSection === 'about' && <AboutEditor data={data.about || {}} onSave={handleSave} saving={saving} />}
+                  {activeSection === 'footer' && <FooterEditor data={data.footer || {}} onSave={handleSave} saving={saving} />}
+                  {activeSection === 'contact' && <ContactEditor data={data.contact || {}} onSave={handleSave} saving={saving} />}
                 </>
               )}
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 
-  async function handleSave(section: CMSDataSection, sectionData: any) {
+  async function handleSave(section: CMSDataSection, sectionData: Partial<CMSData[keyof CMSData]>) {
     setSaving(true);
     try {
       const response = await fetch('/api/cms', {
@@ -317,7 +291,7 @@ export default function AdminDashboard() {
 
       if (response.ok) {
         const result = await response.json();
-        setData((prev) => ({ ...prev, [section]: result.data }));
+        setData((prev) => ({ ...prev, [section]: result.data } as Partial<CMSData>));
         alert('Saved successfully!');
       } else {
         alert('Failed to save. Please try again.');
@@ -331,17 +305,121 @@ export default function AdminDashboard() {
   }
 }
 
+// Sortable Item Component for Navigation
+interface SortableNavItemProps {
+  item: NavItem;
+  index: number;
+  onUpdate: (index: number, item: NavItem) => void;
+  onDelete: (index: number) => void;
+}
+
+function SortableNavItem({ item, index, onUpdate, onDelete }: SortableNavItemProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: item.id || `nav-${index}` });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="mb-3 p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-all"
+    >
+      <div className="flex items-start space-x-3">
+        <div
+          {...attributes}
+          {...listeners}
+          className="cursor-grab active:cursor-grabbing p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+        >
+          <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
+          </svg>
+        </div>
+        <div className="flex-1 grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Menu Label</label>
+            <input
+              type="text"
+              placeholder="e.g., Home, Services, About"
+              value={item.label || ''}
+              onChange={(e) => onUpdate(index, { ...item, label: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Link URL</label>
+            <input
+              type="text"
+              placeholder="e.g., /, #services, /about"
+              value={item.href || ''}
+              onChange={(e) => onUpdate(index, { ...item, href: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
+            />
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={() => onDelete(index)}
+          className="text-red-600 hover:text-red-700 dark:text-red-400 p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // Editor Components
-function HeaderEditor({ data, onSave, saving }: any) {
-  const [formData, setFormData] = useState(data || {});
+function HeaderEditor({ data, onSave, saving }: EditorProps) {
+  const [formData, setFormData] = useState<Partial<CMSData['header']>>(data as Partial<CMSData['header']> || {});
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   useEffect(() => {
-    setFormData(data || {});
+    setFormData(data as Partial<CMSData['header']> || {});
   }, [data]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSave('header', formData);
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      const navItems = (formData.navItems || []) as NavItem[];
+      const oldIndex = navItems.findIndex((item, idx) => (item.id || `nav-${idx}`) === active.id);
+      const newIndex = navItems.findIndex((item, idx) => (item.id || `nav-${idx}`) === over.id);
+      const newItems = arrayMove(navItems, oldIndex, newIndex);
+      setFormData({ ...formData, navItems: newItems as CMSData['header']['navItems'] });
+    }
+  };
+
+  const updateNavItem = (index: number, updatedItem: NavItem) => {
+    const newItems = [...((formData.navItems || []) as NavItem[])];
+    newItems[index] = { ...updatedItem, id: updatedItem.id || `nav-${Date.now()}` };
+    setFormData({ ...formData, navItems: newItems as CMSData['header']['navItems'] });
+  };
+
+  const deleteNavItem = (index: number) => {
+    const newItems = ((formData.navItems || []) as NavItem[]).filter((_, i) => i !== index);
+    setFormData({ ...formData, navItems: newItems as CMSData['header']['navItems'] });
   };
 
   return (
@@ -383,7 +461,7 @@ function HeaderEditor({ data, onSave, saving }: any) {
           value={formData.ctaButton?.text || ''}
           onChange={(e) => setFormData({
             ...formData,
-            ctaButton: { ...formData.ctaButton, text: e.target.value }
+            ctaButton: { ...formData.ctaButton, text: e.target.value, href: formData.ctaButton?.href || '' }
           })}
           placeholder="e.g., Book Appointment"
           className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
@@ -400,7 +478,7 @@ function HeaderEditor({ data, onSave, saving }: any) {
           value={formData.ctaButton?.href || ''}
           onChange={(e) => setFormData({
             ...formData,
-            ctaButton: { ...formData.ctaButton, href: e.target.value }
+            ctaButton: { text: formData.ctaButton?.text || '', href: e.target.value }
           })}
           placeholder="e.g., #contact or /appointment"
           className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
@@ -410,54 +488,27 @@ function HeaderEditor({ data, onSave, saving }: any) {
 
       <div>
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Navigation Items</h3>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Manage the menu items in your header navigation</p>
-        {(formData.navItems || []).map((item: any, index: number) => (
-          <div key={index} className="mb-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900/50">
-            <div className="grid grid-cols-2 gap-4 mb-3">
-              <div>
-                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Menu Label</label>
-                <input
-                  type="text"
-                  placeholder="e.g., Home, Services, About"
-                  value={item.label || ''}
-                  onChange={(e) => {
-                    const newItems = [...(formData.navItems || [])];
-                    newItems[index].label = e.target.value;
-                    setFormData({ ...formData, navItems: newItems });
-                  }}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Link URL</label>
-                <input
-                  type="text"
-                  placeholder="e.g., /, #services, /about"
-                  value={item.href || ''}
-                  onChange={(e) => {
-                    const newItems = [...(formData.navItems || [])];
-                    newItems[index].href = e.target.value;
-                    setFormData({ ...formData, navItems: newItems });
-                  }}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                const newItems = (formData.navItems || []).filter((_: any, i: number) => i !== index);
-                setFormData({ ...formData, navItems: newItems });
-              }}
-              className="text-red-600 hover:text-red-700 text-sm font-medium flex items-center space-x-1"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
-              <span>Remove Item</span>
-            </button>
-          </div>
-        ))}
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Drag and drop to reorder menu items</p>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={((formData.navItems || []) as NavItem[]).map((item, idx) => item.id || `nav-${idx}`)}
+            strategy={verticalListSortingStrategy}
+          >
+            {((formData.navItems || []) as NavItem[]).map((item, index) => (
+              <SortableNavItem
+                key={item.id || `nav-${index}`}
+                item={item}
+                index={index}
+                onUpdate={updateNavItem}
+                onDelete={deleteNavItem}
+              />
+            ))}
+          </SortableContext>
+        </DndContext>
         <button
           type="button"
           onClick={() => {
@@ -500,11 +551,11 @@ function HeaderEditor({ data, onSave, saving }: any) {
   );
 }
 
-function HeroEditor({ data, onSave, saving }: any) {
-  const [formData, setFormData] = useState(data || {});
+function HeroEditor({ data, onSave, saving }: EditorProps) {
+  const [formData, setFormData] = useState<Partial<CMSData['hero']>>(data as Partial<CMSData['hero']> || {});
 
   useEffect(() => {
-    setFormData(data || {});
+    setFormData(data as Partial<CMSData['hero']> || {});
   }, [data]);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -609,16 +660,159 @@ function HeroEditor({ data, onSave, saving }: any) {
   );
 }
 
-function ServicesEditor({ data, onSave, saving }: any) {
-  const [formData, setFormData] = useState(data || {});
+// Sortable Service Item Component
+interface SortableServiceItemProps {
+  service: ServiceItem;
+  index: number;
+  onUpdate: (index: number, service: ServiceItem) => void;
+  onDelete: (index: number) => void;
+}
+
+function SortableServiceItem({ service, index, onUpdate, onDelete }: SortableServiceItemProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: service.id || `service-${index}` });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="p-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900/50 shadow-sm hover:shadow-md transition-all mb-3"
+    >
+      <div className="flex items-start gap-3">
+        {/* Enhanced Drag Handle */}
+        <div
+          {...attributes}
+          {...listeners}
+          className="flex-shrink-0 cursor-grab active:cursor-grabbing p-3 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-primary-400 dark:hover:border-primary-600 transition-all group"
+          title="Drag to reorder"
+        >
+          <div className="flex flex-col gap-1">
+            <svg className="w-4 h-4 text-gray-400 group-hover:text-primary-600 dark:group-hover:text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
+            </svg>
+            <svg className="w-4 h-4 text-gray-400 group-hover:text-primary-600 dark:group-hover:text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
+            </svg>
+          </div>
+        </div>
+        <div className="flex-1 space-y-3 min-w-0">
+          <div>
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Service Title <span className="text-red-500">*</span></label>
+            <input
+              type="text"
+              placeholder="e.g., Hair Restoration, Skin Care"
+              value={service.title || ''}
+              onChange={(e) => onUpdate(index, { ...service, title: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Description <span className="text-red-500">*</span></label>
+            <textarea
+              placeholder="e.g., Advanced hair restoration treatments..."
+              value={service.description || ''}
+              onChange={(e) => onUpdate(index, { ...service, description: e.target.value })}
+              rows={2}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Service Image</label>
+            <ImageUpload
+              value={service.image || ''}
+              onChange={(url) => onUpdate(index, { ...service, image: url })}
+              label=""
+              description="Upload an image for this service"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Duration</label>
+              <input
+                type="text"
+                placeholder="e.g., 60-90 minutes"
+                value={service.duration || ''}
+                onChange={(e) => onUpdate(index, { ...service, duration: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Price</label>
+              <input
+                type="text"
+                placeholder="e.g., Starting from $299"
+                value={service.price || ''}
+                onChange={(e) => onUpdate(index, { ...service, price: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
+              />
+            </div>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={() => onDelete(index)}
+          className="flex-shrink-0 text-red-600 hover:text-red-700 dark:text-red-400 p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
+          title="Delete service"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ServicesEditor({ data, onSave, saving }: EditorProps) {
+  const [formData, setFormData] = useState<Partial<CMSData['services']>>(data as Partial<CMSData['services']> || {});
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   useEffect(() => {
-    setFormData(data || {});
+    setFormData(data as Partial<CMSData['services']> || {});
   }, [data]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSave('services', formData);
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      const items = (formData.items || []) as ServiceItem[];
+      const oldIndex = items.findIndex((item, idx) => (item.id || `service-${idx}`) === active.id);
+      const newIndex = items.findIndex((item, idx) => (item.id || `service-${idx}`) === over.id);
+      const newItems = arrayMove(items, oldIndex, newIndex);
+      setFormData({ ...formData, items: newItems as CMSData['services']['items'] });
+    }
+  };
+
+  const updateService = (index: number, updatedService: ServiceItem) => {
+    const newItems = [...((formData.items || []) as ServiceItem[])];
+    newItems[index] = updatedService;
+    setFormData({ ...formData, items: newItems as CMSData['services']['items'] });
+  };
+
+  const deleteService = (index: number) => {
+    const newItems = ((formData.items || []) as ServiceItem[]).filter((_, i) => i !== index);
+    setFormData({ ...formData, items: newItems as CMSData['services']['items'] });
   };
 
   return (
@@ -658,95 +852,28 @@ function ServicesEditor({ data, onSave, saving }: any) {
 
       <div>
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Service Items</h3>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Add, edit, or remove services from your website</p>
-        <div className="space-y-4 max-h-96 overflow-y-auto">
-          {(formData.items || []).map((service: any, index: number) => (
-            <div key={index} className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Service Title <span className="text-red-500">*</span></label>
-                  <input
-                    type="text"
-                    placeholder="e.g., Hair Restoration, Skin Care"
-                    value={service.title || ''}
-                    onChange={(e) => {
-                      const newItems = [...(formData.items || [])];
-                      newItems[index].title = e.target.value;
-                      setFormData({ ...formData, items: newItems });
-                    }}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Description <span className="text-red-500">*</span></label>
-                  <textarea
-                    placeholder="e.g., Advanced hair restoration treatments to help you regain confidence..."
-                    value={service.description || ''}
-                    onChange={(e) => {
-                      const newItems = [...(formData.items || [])];
-                      newItems[index].description = e.target.value;
-                      setFormData({ ...formData, items: newItems });
-                    }}
-                    rows={3}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Service Image</label>
-                  <ImageUpload
-                    value={service.image || ''}
-                    onChange={(url) => {
-                      const newItems = [...(formData.items || [])];
-                      newItems[index].image = url;
-                      setFormData({ ...formData, items: newItems });
-                    }}
-                    label=""
-                    description="Upload an image for this service"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Duration</label>
-                    <input
-                      type="text"
-                      placeholder="e.g., 60-90 minutes"
-                      value={service.duration || ''}
-                      onChange={(e) => {
-                        const newItems = [...(formData.items || [])];
-                        newItems[index].duration = e.target.value;
-                        setFormData({ ...formData, items: newItems });
-                      }}
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Price</label>
-                    <input
-                      type="text"
-                      placeholder="e.g., Starting from $299"
-                      value={service.price || ''}
-                      onChange={(e) => {
-                        const newItems = [...(formData.items || [])];
-                        newItems[index].price = e.target.value;
-                        setFormData({ ...formData, items: newItems });
-                      }}
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    />
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const newItems = (formData.items || []).filter((_: any, i: number) => i !== index);
-                    setFormData({ ...formData, items: newItems });
-                  }}
-                  className="text-red-600 hover:text-red-700 text-sm"
-                >
-                  Remove Service
-                </button>
-              </div>
-            </div>
-          ))}
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Drag and drop to reorder services</p>
+        <div className="max-h-96 overflow-y-auto">
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={((formData.items || []) as ServiceItem[]).map((item, idx) => item.id || `service-${idx}`)}
+              strategy={verticalListSortingStrategy}
+            >
+              {((formData.items || []) as ServiceItem[]).map((service, index) => (
+                <SortableServiceItem
+                  key={service.id || `service-${index}`}
+                  service={service}
+                  index={index}
+                  onUpdate={updateService}
+                  onDelete={deleteService}
+                />
+              ))}
+            </SortableContext>
+          </DndContext>
         </div>
         <button
           type="button"
@@ -795,11 +922,11 @@ function ServicesEditor({ data, onSave, saving }: any) {
   );
 }
 
-function AboutEditor({ data, onSave, saving }: any) {
-  const [formData, setFormData] = useState(data || {});
+function AboutEditor({ data, onSave, saving }: EditorProps) {
+  const [formData, setFormData] = useState<Partial<CMSData['about']>>(data as Partial<CMSData['about']> || {});
 
   useEffect(() => {
-    setFormData(data || {});
+    setFormData(data as Partial<CMSData['about']> || {});
   }, [data]);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -845,7 +972,7 @@ function AboutEditor({ data, onSave, saving }: any) {
       <div>
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Feature Cards</h3>
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Add feature cards that showcase your clinic's strengths</p>
-        {(formData.features || []).map((feature: any, index: number) => (
+        {((formData.features || []) as AboutFeature[]).map((feature, index) => (
           <div key={index} className="mb-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900/50">
             <div className="mb-2">
               <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Feature Title <span className="text-red-500">*</span></label>
@@ -854,8 +981,8 @@ function AboutEditor({ data, onSave, saving }: any) {
                 placeholder="e.g., Expert Team, Advanced Technology"
                 value={feature.title || ''}
                 onChange={(e) => {
-                  const newFeatures = [...(formData.features || [])];
-                  newFeatures[index].title = e.target.value;
+                  const newFeatures = [...((formData.features || []) as AboutFeature[])];
+                  (newFeatures[index] as AboutFeature).title = e.target.value;
                   setFormData({ ...formData, features: newFeatures });
                 }}
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
@@ -867,8 +994,8 @@ function AboutEditor({ data, onSave, saving }: any) {
                 placeholder="e.g., Board-certified specialists with years of experience..."
                 value={feature.description || ''}
                 onChange={(e) => {
-                  const newFeatures = [...(formData.features || [])];
-                  newFeatures[index].description = e.target.value;
+                  const newFeatures = [...((formData.features || []) as AboutFeature[])];
+                  (newFeatures[index] as AboutFeature).description = e.target.value;
                   setFormData({ ...formData, features: newFeatures });
                 }}
                 rows={3}
@@ -878,7 +1005,7 @@ function AboutEditor({ data, onSave, saving }: any) {
             <button
               type="button"
               onClick={() => {
-                const newFeatures = (formData.features || []).filter((_: any, i: number) => i !== index);
+                const newFeatures = ((formData.features || []) as AboutFeature[]).filter((_, i) => i !== index);
                 setFormData({ ...formData, features: newFeatures });
               }}
               className="text-red-600 hover:text-red-700 text-sm font-medium flex items-center space-x-1"
@@ -932,16 +1059,41 @@ function AboutEditor({ data, onSave, saving }: any) {
   );
 }
 
-function FooterEditor({ data, onSave, saving }: any) {
-  const [formData, setFormData] = useState(data || {});
+function FooterEditor({ data, onSave, saving }: EditorProps) {
+  const [formData, setFormData] = useState<Partial<CMSData['footer']>>(data as Partial<CMSData['footer']> || {});
 
   useEffect(() => {
-    setFormData(data || {});
+    setFormData(data as Partial<CMSData['footer']> || {});
   }, [data]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSave('footer', formData);
+  };
+
+  const updateSocialMediaItem = (index: number, field: 'name' | 'url' | 'icon', value: string) => {
+    const socialMedia = (formData.socialMedia || []) as CMSData['footer']['socialMedia'];
+    const newItems = [...socialMedia];
+    if (newItems[index]) {
+      newItems[index] = { ...newItems[index], [field]: value };
+    }
+    setFormData({ ...formData, socialMedia: newItems });
+  };
+
+  const addSocialMediaItem = () => {
+    const socialMedia = (formData.socialMedia || []) as CMSData['footer']['socialMedia'];
+    setFormData({
+      ...formData,
+      socialMedia: [...socialMedia, { id: `social-${Date.now()}`, name: '', url: '', icon: '' }],
+    });
+  };
+
+  const removeSocialMediaItem = (index: number) => {
+    const socialMedia = (formData.socialMedia || []) as CMSData['footer']['socialMedia'];
+    setFormData({
+      ...formData,
+      socialMedia: socialMedia.filter((_, i) => i !== index),
+    });
   };
 
   return (
@@ -999,7 +1151,7 @@ function FooterEditor({ data, onSave, saving }: any) {
               value={formData.contact?.address || ''}
               onChange={(e) => setFormData({
                 ...formData,
-                contact: { ...formData.contact, address: e.target.value }
+                contact: { address: e.target.value, phone: formData.contact?.phone || '', email: formData.contact?.email || '' }
               })}
               rows={2}
               className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
@@ -1013,7 +1165,7 @@ function FooterEditor({ data, onSave, saving }: any) {
               value={formData.contact?.phone || ''}
               onChange={(e) => setFormData({
                 ...formData,
-                contact: { ...formData.contact, phone: e.target.value }
+                contact: { address: formData.contact?.address || '', phone: e.target.value, email: formData.contact?.email || '' }
               })}
               className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             />
@@ -1026,7 +1178,7 @@ function FooterEditor({ data, onSave, saving }: any) {
               value={formData.contact?.email || ''}
               onChange={(e) => setFormData({
                 ...formData,
-                contact: { ...formData.contact, email: e.target.value }
+                contact: { address: formData.contact?.address || '', phone: formData.contact?.phone || '', email: e.target.value }
               })}
               className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             />
@@ -1036,47 +1188,74 @@ function FooterEditor({ data, onSave, saving }: any) {
 
       <div>
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Social Media Links</h3>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Add your social media profile URLs</p>
-        <div className="space-y-3">
-          <div>
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Facebook URL</label>
-            <input
-              type="text"
-              placeholder="e.g., https://facebook.com/yourpage"
-              value={formData.socialMedia?.facebook || ''}
-              onChange={(e) => setFormData({
-                ...formData,
-                socialMedia: { ...formData.socialMedia, facebook: e.target.value }
-              })}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Instagram URL</label>
-            <input
-              type="text"
-              placeholder="e.g., https://instagram.com/yourpage"
-              value={formData.socialMedia?.instagram || ''}
-              onChange={(e) => setFormData({
-                ...formData,
-                socialMedia: { ...formData.socialMedia, instagram: e.target.value }
-              })}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Twitter/X URL</label>
-            <input
-              type="text"
-              placeholder="e.g., https://twitter.com/yourpage"
-              value={formData.socialMedia?.twitter || ''}
-              onChange={(e) => setFormData({
-                ...formData,
-                socialMedia: { ...formData.socialMedia, twitter: e.target.value }
-              })}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            />
-          </div>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Add your social media platforms with custom names, URLs, and icons</p>
+        <div className="space-y-4">
+          {((formData.socialMedia || []) as CMSData['footer']['socialMedia']).map((item, index) => (
+            <div key={item.id || `social-${index}`} className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900/50">
+              <div className="flex items-center justify-between mb-3">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Social Media #{index + 1}
+                </label>
+                <button
+                  type="button"
+                  onClick={() => removeSocialMediaItem(index)}
+                  className="text-red-600 hover:text-red-700 dark:text-red-400 p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
+                  title="Remove this social media link"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              </div>
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                    Platform Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g., Facebook, Instagram, Twitter, LinkedIn, etc."
+                    value={item.name || ''}
+                    onChange={(e) => updateSocialMediaItem(index, 'name', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                    URL <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g., https://facebook.com/yourpage"
+                    value={item.url || ''}
+                    onChange={(e) => updateSocialMediaItem(index, 'url', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                    Custom Icon (Optional)
+                  </label>
+                  <ImageUpload
+                    value={item.icon || ''}
+                    onChange={(url) => updateSocialMediaItem(index, 'icon', url)}
+                    label=""
+                    description="Upload a custom icon for this platform (optional)"
+                  />
+                </div>
+              </div>
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={addSocialMediaItem}
+            className="w-full text-primary-600 hover:text-primary-700 dark:text-primary-400 text-sm font-medium flex items-center justify-center space-x-2 px-4 py-3 border-2 border-dashed border-primary-300 dark:border-primary-700 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            <span>Add More Social Media</span>
+          </button>
         </div>
       </div>
 
@@ -1119,11 +1298,11 @@ function FooterEditor({ data, onSave, saving }: any) {
   );
 }
 
-function ContactEditor({ data, onSave, saving }: any) {
-  const [formData, setFormData] = useState(data || {});
+function ContactEditor({ data, onSave, saving }: EditorProps) {
+  const [formData, setFormData] = useState<Partial<CMSData['contact']>>(data as Partial<CMSData['contact']> || {});
 
   useEffect(() => {
-    setFormData(data || {});
+    setFormData(data as Partial<CMSData['contact']> || {});
   }, [data]);
 
   const handleSubmit = (e: React.FormEvent) => {
