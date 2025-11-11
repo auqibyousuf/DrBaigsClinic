@@ -41,12 +41,23 @@ Server checks: "Does the cookie match CMS_AUTH_TOKEN?"
       Allow access    Deny access
 ```
 
-## Why Only You Can Access:
+## How Multiple Users Can Access:
 
-1. **Only you know the password** → Stored in `.env.local` (not in code)
-2. **Only the server knows the token** → Stored in `.env.local` (not in code)
-3. **Cookie is encrypted** → Can't be easily stolen
-4. **Token is random** → Can't be guessed
+**Important:** This is a **shared password system** - multiple people can use it!
+
+1. **You set ONE password** → Stored in `.env.local` (not in code)
+2. **Share the password** with trusted team members/staff
+3. **Everyone uses the same password** to log in
+4. **Everyone gets the same token** → Stored in `.env.local` (not in code)
+5. **All authorized users can access** the admin panel
+
+**Example:**
+- You set password: `Clinic2024!`
+- Staff member logs in with `Clinic2024!` → Gets token cookie ✅
+- Another staff member logs in with `Clinic2024!` → Gets token cookie ✅
+- Both can now edit content!
+
+**Note:** This is a shared system - everyone who knows the password can access. If you need individual user accounts, you'd need a database system.
 
 ## Real-World Analogy:
 
@@ -90,5 +101,10 @@ npm run dev
    - `CMS_AUTH_TOKEN` = Your generated token
 3. Redeploy
 
-That's it! The token ensures only authorized users (you) can access the admin panel.
+That's it! The token ensures only authorized users (people who know the password) can access the admin panel.
 
+**For Multiple Users:**
+- Share the password with your team members
+- Everyone uses the same password to log in
+- Everyone gets the same token cookie
+- All authorized users can edit content

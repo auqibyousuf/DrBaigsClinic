@@ -1130,6 +1130,46 @@ function ContactEditor({ data, onSave, saving }: any) {
       </div>
 
       <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Email Template Configuration</h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+          Customize the email subject and body that will be sent when someone books an appointment.
+          Use placeholders: {'{name}'}, {'{email}'}, {'{phone}'}, {'{service}'}, {'{message}'}, {'{date}'}
+        </p>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Email Subject <span className="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          value={formData.emailSubject || ''}
+          onChange={(e) => setFormData({ ...formData, emailSubject: e.target.value })}
+          placeholder="e.g., New Appointment Booking Request - {service}"
+          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+        />
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+          Subject line for appointment emails. Use {'{service}'} to include the selected service name.
+        </p>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Email Body Template <span className="text-red-500">*</span>
+        </label>
+        <textarea
+          value={formData.emailBody || ''}
+          onChange={(e) => setFormData({ ...formData, emailBody: e.target.value })}
+          rows={10}
+          placeholder="e.g., New Appointment Booking Request&#10;&#10;Name: {name}&#10;Email: {email}&#10;Phone: {phone}&#10;Service: {service}&#10;Message: {message}&#10;&#10;Submitted on: {date}"
+          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent font-mono text-sm"
+        />
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+          Email body template. Available placeholders: {'{name}'}, {'{email}'}, {'{phone}'}, {'{service}'}, {'{message}'}, {'{date}'}
+        </p>
+      </div>
+
+      <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
         <button
           type="submit"
           disabled={saving}

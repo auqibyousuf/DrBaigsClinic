@@ -80,6 +80,8 @@ export interface CMSData {
     title: string;
     subtitle: string;
     email: string;
+    emailSubject?: string;
+    emailBody?: string;
   };
 }
 
