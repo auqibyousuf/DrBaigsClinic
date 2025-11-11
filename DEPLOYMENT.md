@@ -165,4 +165,3 @@ For Vercel-specific issues, check:
 
 For Next.js issues:
 - [Next.js Documentation](https://nextjs.org/docs)
-

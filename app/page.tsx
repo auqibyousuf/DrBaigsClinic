@@ -202,27 +202,30 @@ export default function Home() {
     setIsSubmitting(true);
 
     try {
-      // Prepare email data
+      // Get service name
       const selectedService = services.find(s => s.id === formData.service);
       const serviceName = selectedService ? selectedService.title : 'Unknown Service';
 
-      const emailSubject = encodeURIComponent(`Appointment Booking Request - ${serviceName}`);
-      const emailBody = encodeURIComponent(
-        `New Appointment Booking Request\n\n` +
-        `Name: ${formData.name}\n` +
-        `Email: ${formData.email}\n` +
-        `Phone: ${formData.phone}\n` +
-        `Service: ${serviceName}\n` +
-        `Message: ${formData.message || 'No message provided'}\n\n` +
-        `Submitted on: ${new Date().toLocaleString()}`
-      );
+      // Send appointment request to API
+      const response = await fetch('/api/appointment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          phone: formData.phone.trim(),
+          service: serviceName,
+          message: formData.message.trim() || '',
+        }),
+      });
 
-      // Open email client with mailto link
-      const contactEmail = contactData?.email || 'yauqib@gmail.com';
-      window.location.href = `mailto:${contactEmail}?subject=${emailSubject}&body=${emailBody}`;
+      const data = await response.json();
 
-      // Simulate sending (you can replace this with actual API call)
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to submit appointment request');
+      }
 
       showToast('success', 'Thank you! Your appointment request has been submitted successfully. We will contact you soon.');
 
@@ -236,7 +239,8 @@ export default function Home() {
       });
       setErrors({});
     } catch (error) {
-      showToast('error', 'Failed to submit your appointment request. Please try again or contact us directly.');
+      console.error('Appointment submission error:', error);
+      showToast('error', error instanceof Error ? error.message : 'Failed to submit your appointment request. Please try again or contact us directly.');
     } finally {
       setIsSubmitting(false);
     }

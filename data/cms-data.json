@@ -327,6 +327,8 @@
   "contact": {
     "title": "Book Your Appointment",
     "subtitle": "Start your journey to healthier skin and hair today",
-    "email": "yauqib@gmail.com"
+    "email": "yauqib@gmail.com",
+    "emailSubject": "New Appointment Booking Request - {service}",
+    "emailBody": "New Appointment Booking Request\n\nName: {name}\nEmail: {email}\nPhone: {phone}\nService: {service}\nMessage: {message}\n\nSubmitted on: {date}"
   }
 }
