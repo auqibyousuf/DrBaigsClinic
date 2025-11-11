@@ -1,0 +1,237 @@
+# Authentication Guide - How CMS_AUTH_TOKEN Works
+
+## 🔐 How Authentication Works
+
+The CMS uses a **two-step authentication system**:
+
+1. **Password Login** → You enter your password
+2. **Token Cookie** → Server gives you a secret token cookie
+3. **Token Verification** → Every API request checks if you have the correct token
+
+## 📝 Step-by-Step Authentication Flow
+
+### Step 1: You Log In
+```
+You → Enter Password → /api/cms/auth (POST)
+```
+
+### Step 2: Server Checks Password
+```
+Server compares your password with CMS_PASSWORD
+✅ Correct → Sets cookie with CMS_AUTH_TOKEN
+❌ Wrong → Returns error
+```
+
+### Step 3: Cookie is Set
+```
+Server sets a cookie named "cms-auth" 
+Cookie value = CMS_AUTH_TOKEN
+Cookie expires in 7 days
+```
+
+### Step 4: Future Requests
+```
+Every API request → Server checks cookie
+Cookie matches CMS_AUTH_TOKEN? → ✅ Authorized
+Cookie doesn't match? → ❌ Unauthorized
+```
+
+## 🛠️ How to Set Up Your Token
+
+### Option 1: Create `.env.local` File (Local Development)
+
+1. **Create the file** in your project root:
+   ```bash
+   cd /Users/auqib/code/personal/DrBaigsClinic
+   touch .env.local
+   ```
+
+2. **Add your credentials**:
+   ```env
+   CMS_PASSWORD=YourSecurePassword123!
+   CMS_AUTH_TOKEN=your-unique-secret-token-here
+   ```
+
+3. **Generate a secure token** (recommended):
+   ```bash
+   # On Mac/Linux:
+   openssl rand -hex 32
+   
+   # Example output:
+   # a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6
+   ```
+
+4. **Use the generated token**:
+   ```env
+   CMS_PASSWORD=MyStrongPassword123!
+   CMS_AUTH_TOKEN=a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6
+   ```
+
+### Option 2: Set in Vercel (Production)
+
+1. Go to your Vercel project dashboard
+2. Navigate to **Settings** → **Environment Variables**
+3. Add:
+   - **Name**: `CMS_PASSWORD`
+   - **Value**: Your secure password
+   - **Environment**: Production, Preview, Development
+4. Add:
+   - **Name**: `CMS_AUTH_TOKEN`
+   - **Value**: Your generated token (use `openssl rand -hex 32`)
+   - **Environment**: Production, Preview, Development
+
+## 🔒 How It Ensures Only You Can Access
+
+### The Security Mechanism
+
+1. **Only You Know the Password**
+   - Password is stored in `.env.local` (never committed to git)
+   - Only you have access to this file
+   - Server checks password before giving you the token
+
+2. **Token is Secret**
+   - Token is stored in `.env.local` (never committed to git)
+   - Only the server knows what the correct token should be
+   - Cookie is `httpOnly` (JavaScript can't read it)
+   - Cookie is `secure` in production (only sent over HTTPS)
+
+3. **Cookie Verification**
+   - Every API request checks: `Does the cookie match CMS_AUTH_TOKEN?`
+   - If YES → You're authorized ✅
+   - If NO → Access denied ❌
+
+### Why This Works
+
+```
+┌─────────────────────────────────────────┐
+│  Someone tries to access admin panel    │
+└─────────────────────────────────────────┘
+                    │
+                    ▼
+         ┌──────────────────────┐
+         │  Do they have cookie?│
+         └──────────────────────┘
+                    │
+        ┌───────────┴───────────┐
+        │                       │
+        ▼                       ▼
+   ┌─────────┐           ┌──────────┐
+   │   YES   │           │    NO    │
+   └─────────┘           └──────────┘
+        │                       │
+        ▼                       ▼
+┌───────────────┐      ┌──────────────┐
+│ Check if token│      │  Redirect to │
+│ matches env   │      │  login page  │
+└───────────────┘      └──────────────┘
+        │
+   ┌────┴────┐
+   │         │
+   ▼         ▼
+┌─────┐  ┌──────┐
+│ YES │  │  NO │
+└─────┘  └──────┘
+   │         │
+   ▼         ▼
+✅ Allow   ❌ Deny
+```
+
+## 🎯 Example: Complete Setup
+
+### 1. Generate Your Token
+```bash
+openssl rand -hex 32
+# Output: 7f3a9b2c1d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b
+```
+
+### 2. Create `.env.local`
+```env
+CMS_PASSWORD=DrBaigsClinic2024!
+CMS_AUTH_TOKEN=7f3a9b2c1d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b
+```
+
+### 3. Restart Your Dev Server
+```bash
+# Stop the server (Ctrl+C)
+# Then restart:
+npm run dev
+```
+
+### 4. Test Login
+- Go to `http://localhost:3000/admin`
+- Enter password: `DrBaigsClinic2024!`
+- You should be logged in!
+
+## 🚨 Security Best Practices
+
+### ✅ DO:
+- Use a **strong, unique password** (12+ characters, mix of letters, numbers, symbols)
+- Generate a **long, random token** (32+ characters)
+- Keep `.env.local` **private** (never commit to git)
+- Use **different tokens** for development and production
+- Set tokens in **Vercel environment variables** for production
+
+### ❌ DON'T:
+- Use simple passwords like "admin123" in production
+- Share your `.env.local` file
+- Commit `.env.local` to git (it's already in `.gitignore`)
+- Use the same token for multiple projects
+- Share your token with others
+
+## 🔍 How to Verify It's Working
+
+### Check 1: Login Works
+1. Go to `/admin`
+2. Enter your password
+3. Should redirect to `/admin/dashboard`
+
+### Check 2: Cookie is Set
+1. Open browser DevTools (F12)
+2. Go to **Application** → **Cookies**
+3. Look for cookie named `cms-auth`
+4. Value should match your `CMS_AUTH_TOKEN`
+
+### Check 3: API Requests Work
+1. Open browser DevTools → **Network** tab
+2. Make a change in admin panel
+3. Check the API request
+4. Should return `200 OK` (not `401 Unauthorized`)
+
+### Check 4: Logout Works
+1. Click logout
+2. Cookie should be deleted
+3. Try accessing `/admin/dashboard` directly
+4. Should redirect to login page
+
+## 🐛 Troubleshooting
+
+### "Unauthorized" Error
+- **Check**: Is `.env.local` file created?
+- **Check**: Are environment variables set correctly?
+- **Check**: Did you restart the dev server after creating `.env.local`?
+- **Check**: Is the cookie being set? (Check DevTools → Application → Cookies)
+
+### Can't Login
+- **Check**: Password matches `CMS_PASSWORD` exactly (case-sensitive)
+- **Check**: No extra spaces in `.env.local`
+- **Check**: Server console for error messages
+
+### Cookie Not Working
+- **Check**: Browser allows cookies
+- **Check**: Not in incognito/private mode
+- **Check**: `credentials: 'include'` in fetch requests (already added)
+
+## 📚 Summary
+
+**CMS_AUTH_TOKEN** is your secret key that:
+1. Only you know (stored in `.env.local`)
+2. Gets set as a cookie when you log in with the correct password
+3. Is checked on every API request to verify you're authorized
+4. Works without a database (perfect for static sites!)
+
+**Think of it like:**
+- **Password** = Your house key (to get in)
+- **Token** = Your ID badge (to prove you belong inside)
+
+Both are needed, and both are secret! 🔐
+
