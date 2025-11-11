@@ -100,15 +100,28 @@ export function getCMSData(): CMSData {
 
 export function saveCMSData(data: CMSData): void {
   try {
+    // Try to write to filesystem - works on traditional hosting (VPS, shared hosting, etc.)
     // Ensure data directory exists
     const dataDir = path.dirname(DATA_FILE);
     if (!fs.existsSync(dataDir)) {
       fs.mkdirSync(dataDir, { recursive: true });
     }
 
+    // Attempt to write the file
     fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf8');
-  } catch (error) {
+  } catch (error: any) {
+    // If filesystem write fails (e.g., on serverless hosting like Vercel, Netlify, etc.)
+    // We'll let the API route handle it with better error messaging
     console.error('Error saving CMS data:', error);
+
+    // Check if it's a permission error (read-only filesystem)
+    if (error?.code === 'EACCES' || error?.code === 'EROFS' || error?.message?.includes('read-only')) {
+      throw new Error('READ_ONLY_FILESYSTEM: File system is read-only. This is common on serverless hosting platforms. The API will handle this automatically.');
+    }
+
+    if (error instanceof Error) {
+      throw error;
+    }
     throw new Error('Failed to save CMS data');
   }
 }

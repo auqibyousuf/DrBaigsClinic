@@ -139,7 +139,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
         />
       </head>
-      <body className={`${inter.className} font-sans`}>
+      <body className={`${inter.className} font-sans overflow-x-auto`}>
         <ThemeProvider>
           <ToastProvider>
             <a

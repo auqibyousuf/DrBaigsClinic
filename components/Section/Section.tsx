@@ -12,7 +12,7 @@ const Section: React.FC<SectionProps> = ({
 }) => {
   return (
     <section id={id} className={`py-12 sm:py-16 md:py-20 lg:py-24 ${className}`}>
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1366px] mx-auto px-4 sm:px-4 md:px-6 lg:px-8 xl:px-12 w-full">
         {(title || subtitle) && (
           <div className="text-center mb-8 sm:mb-10 md:mb-12">
             {title && (
