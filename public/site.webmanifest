@@ -1,0 +1,16 @@
+{
+  "name": "Glow Clinic - Skin & Hair Care",
+  "short_name": "Glow Clinic",
+  "description": "Premium skin and hair care solutions",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0ea5e9",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
