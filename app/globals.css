@@ -197,6 +197,11 @@ input, textarea, select {
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Disable textarea resizing */
+textarea {
+  resize: none;
+}
+
 /* Override browser autocomplete/autofill background colors */
 /* This prevents browsers from adding their default yellow/white autofill backgrounds */
 input:-webkit-autofill,
