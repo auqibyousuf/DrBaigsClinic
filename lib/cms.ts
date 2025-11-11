@@ -65,11 +65,12 @@ export interface CMSData {
       phone: string;
       email: string;
     };
-    socialMedia: {
-      facebook: string;
-      instagram: string;
-      twitter: string;
-    };
+    socialMedia: Array<{
+      id: string;
+      name: string;
+      url: string;
+      icon?: string;
+    }>;
     copyright: string;
     legalLinks: Array<{
       name: string;

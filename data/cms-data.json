@@ -307,11 +307,26 @@
       "phone": "+1 (234) 567-890",
       "email": "info@glowclinic.com"
     },
-    "socialMedia": {
-      "facebook": "#",
-      "instagram": "#",
-      "twitter": "#"
-    },
+    "socialMedia": [
+      {
+        "id": "social-1",
+        "name": "Facebook",
+        "url": "#",
+        "icon": ""
+      },
+      {
+        "id": "social-2",
+        "name": "Instagram",
+        "url": "#",
+        "icon": ""
+      },
+      {
+        "id": "social-3",
+        "name": "Twitter",
+        "url": "#",
+        "icon": ""
+      }
+    ],
     "copyright": "Glow Clinic",
     "legalLinks": [
       {
