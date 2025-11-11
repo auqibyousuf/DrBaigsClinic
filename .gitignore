@@ -34,3 +34,14 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# CMS uploads (user-uploaded images)
+/public/uploads/*
+!/public/uploads/README.md
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
