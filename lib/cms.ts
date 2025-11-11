@@ -82,6 +82,8 @@ export interface CMSData {
     email: string;
     emailSubject?: string;
     emailBody?: string;
+    customerEmailSubject?: string;
+    customerEmailBody?: string;
   };
 }
 

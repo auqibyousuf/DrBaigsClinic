@@ -224,7 +224,10 @@ export default function Home() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to submit appointment request');
+        // Provide more detailed error message
+        const errorMessage = data.error || data.message || 'Failed to submit appointment request';
+        const errorDetails = data.details ? ` ${data.details}` : '';
+        throw new Error(`${errorMessage}${errorDetails}`);
       }
 
       showToast('success', 'Thank you! Your appointment request has been submitted successfully. We will contact you soon.');
