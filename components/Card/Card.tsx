@@ -1,15 +1,11 @@
 import Image from 'next/image';
 import { CardProps } from '@/types/component.types';
 
-const Card: React.FC<CardProps> = ({
-  title,
-  description,
-  image,
-  children,
-  className = '',
-}) => {
+const Card: React.FC<CardProps> = ({ title, description, image, children, className = '' }) => {
   return (
-    <article className={`bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 ${className}`}>
+    <article
+      className={`bg-white dark:bg-gray-800 rounded-2xl shadow-rest hover:shadow-hover transition-shadow duration-300 overflow-hidden border border-gray-100 dark:border-gray-700 ${className}`}
+    >
       {image && (
         <div className="relative h-48 w-full" aria-hidden="true">
           <Image

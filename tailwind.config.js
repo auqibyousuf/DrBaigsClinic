@@ -17,30 +17,72 @@ module.exports = {
     },
     extend: {
       colors: {
+        // 2026 health-tech indigo — vivid, saturated, distinctly modern (not the
+        // generic Tailwind "sky" blue, and not the safe teal we tried before).
+        // `DEFAULT`/`foreground` (used as bare `bg-primary` etc. by shadcn/ui
+        // components) sit alongside our own numbered scale (`bg-primary-600`)
+        // in the same object — both resolve from the same CSS variables
+        // defined in :root / .dark in app/globals.css.
         primary: {
-          50: '#f0f9ff',
-          100: '#e0f2fe',
-          200: '#bae6fd',
-          300: '#7dd3fc',
-          400: '#38bdf8',
-          500: '#0ea5e9',
-          600: '#0284c7',
-          700: '#0369a1',
-          800: '#075985',
-          900: '#0c4a6e',
+          DEFAULT: 'var(--primary)',
+          foreground: 'var(--primary-foreground)',
+          50: '#eef0ff',
+          100: '#e0e4ff',
+          200: '#c6ccff',
+          300: '#a3aaff',
+          400: '#7c7ff5',
+          500: '#5b5fe6',
+          600: '#4640d0',
+          700: '#3730a8',
+          800: '#2d2a86',
+          900: '#25236b',
+          950: '#17153f',
         },
+        // Fresh mint/emerald — the "health" half of the pairing, used for
+        // secondary CTAs and highlights only, never as a competing dominant color.
         accent: {
-          50: '#fdf4ff',
-          100: '#fae8ff',
-          200: '#f5d0fe',
-          300: '#f0abfc',
-          400: '#e879f9',
-          500: '#d946ef',
-          600: '#c026d3',
-          700: '#a21caf',
-          800: '#86198f',
-          900: '#701a75',
+          DEFAULT: 'var(--accent)',
+          foreground: 'var(--accent-foreground)',
+          50: '#ecfdf5',
+          100: '#d1fae5',
+          200: '#a7f3d0',
+          300: '#6ee7b7',
+          400: '#34d399',
+          500: '#10b77f',
+          600: '#059666',
+          700: '#047850',
+          800: '#065f43',
+          900: '#054e38',
         },
+        // shadcn/ui semantic tokens — bridge to the CSS variables in
+        // app/globals.css (:root / .dark), needed because our tailwind.config.js
+        // is loaded via Tailwind v4's `@config` compatibility directive rather
+        // than v4's native `@theme` CSS block.
+        background: 'var(--background)',
+        foreground: 'var(--foreground)',
+        card: { DEFAULT: 'var(--card)', foreground: 'var(--card-foreground)' },
+        popover: { DEFAULT: 'var(--popover)', foreground: 'var(--popover-foreground)' },
+        secondary: { DEFAULT: 'var(--secondary)', foreground: 'var(--secondary-foreground)' },
+        muted: { DEFAULT: 'var(--muted)', foreground: 'var(--muted-foreground)' },
+        destructive: { DEFAULT: 'var(--destructive)', foreground: '#ffffff' },
+        border: 'var(--border)',
+        input: 'var(--input)',
+        ring: 'var(--ring)',
+      },
+      borderRadius: {
+        // Bridges shadcn's `--radius` variable (app/globals.css) to the
+        // `rounded-*` sizes its generated components use.
+        lg: 'var(--radius)',
+        md: 'calc(var(--radius) - 2px)',
+        sm: 'calc(var(--radius) - 4px)',
+        xl: 'calc(var(--radius) + 4px)',
+      },
+      boxShadow: {
+        // Governed 3-tier elevation scale, tinted to the new primary — used
+        // everywhere instead of ad hoc shadow-*.
+        rest: '0 1px 3px 0 rgb(37 35 107 / 0.08), 0 1px 2px -1px rgb(37 35 107 / 0.08)',
+        hover: '0 8px 20px -4px rgb(37 35 107 / 0.18), 0 4px 8px -4px rgb(37 35 107 / 0.12)',
+        elevated: '0 20px 40px -8px rgb(37 35 107 / 0.22), 0 8px 16px -8px rgb(37 35 107 / 0.14)',
       },
       animation: {
         'fade-in': 'fadeIn 0.6s ease-in-out',

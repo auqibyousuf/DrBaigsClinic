@@ -26,6 +26,15 @@ import { useRouter } from 'next/navigation';
 import ImageUpload from '@/components/ImageUpload';
 import { useToast } from '@/components/ToastProvider';
 import type { CMSData } from '@/lib/cms';
+import ServiceDetailEditor from '@/components/admin/ServiceDetailEditor';
+import DoctorsEditor from '@/components/admin/DoctorsEditor';
+import BookingSettingsEditor from '@/components/admin/BookingSettingsEditor';
+import AppointmentsView from '@/components/admin/AppointmentsView';
+import PrescriptionsListView from '@/components/admin/PrescriptionsListView';
+import PatientsView from '@/components/admin/PatientsView';
+import IconPicker from '@/components/admin/IconPicker';
+import VariableReference from '@/components/admin/VariableReference';
+import { AdminInput, AdminTextarea } from '@/components/admin/AdminField';
 
 type CMSDataSection = keyof CMSData;
 
@@ -251,6 +260,105 @@ export default function AdminDashboard() {
         </svg>
       ),
     },
+    {
+      id: 'serviceDetails',
+      name: 'Service Details',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+          />
+        </svg>
+      ),
+    },
+    {
+      id: 'doctors',
+      name: 'Doctors',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+          />
+        </svg>
+      ),
+    },
+    {
+      id: 'appointments',
+      name: 'Appointments',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+          />
+        </svg>
+      ),
+    },
+    {
+      id: 'prescriptions',
+      name: 'Prescriptions',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+          />
+        </svg>
+      ),
+    },
+    {
+      id: 'patients',
+      name: 'Patients',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 100-8 4 4 0 000 8zm6 3c0 2-3 2-3 2s-3 0-3-2 3-2 3-2 3 0 3 2z"
+          />
+        </svg>
+      ),
+    },
+    {
+      id: 'templates',
+      name: 'Templates',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+          />
+        </svg>
+      ),
+    },
+    {
+      id: 'bookingSettings',
+      name: 'Booking Settings',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+          />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+      ),
+    },
   ];
 
   if (loading) {
@@ -351,6 +459,29 @@ export default function AdminDashboard() {
                   {activeSection === 'contact' && (
                     <ContactEditor data={data.contact || {}} onSave={handleSave} saving={saving} />
                   )}
+                  {activeSection === 'serviceDetails' && (
+                    <ServiceDetailEditor data={data.services || {}} onSave={handleSave} saving={saving} />
+                  )}
+                  {activeSection === 'doctors' && (
+                    <DoctorsEditor data={data.doctors || {}} onSave={handleSave} saving={saving} />
+                  )}
+                  {activeSection === 'bookingSettings' && (
+                    <BookingSettingsEditor
+                      data={data.bookingSettings || {}}
+                      onSave={handleSave}
+                      saving={saving}
+                    />
+                  )}
+                  {activeSection === 'appointments' && (
+                    <AppointmentsView doctors={data.doctors?.items || []} />
+                  )}
+                  {activeSection === 'prescriptions' && (
+                    <PrescriptionsListView doctors={data.doctors?.items || []} />
+                  )}
+                  {activeSection === 'patients' && <PatientsView />}
+                  {activeSection === 'templates' && (
+                    <TemplatesEditor data={data.contact || {}} onSave={handleSave} saving={saving} />
+                  )}
                 </>
               )}
             </div>
@@ -449,7 +580,7 @@ function SortableNavItem({
             />
           </svg>
         </div>
-        <div className="flex-1 grid grid-cols-2 gap-4">
+        <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
             <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
               Menu Label
@@ -473,7 +604,7 @@ function SortableNavItem({
             </label>
             <input
               type="text"
-              placeholder="e.g., #services, #about, #contact"
+              placeholder="e.g., /#services, /#about, /#contact"
               value={item.href || ''}
               onChange={(e) => onUpdate(index, { ...item, href: e.target.value })}
               disabled={!isEditLinks}
@@ -485,6 +616,10 @@ function SortableNavItem({
               </p>
             )}
           </div>
+          <IconPicker
+            value={item.icon}
+            onChange={(name) => onUpdate(index, { ...item, icon: name })}
+          />
         </div>
         <button
           type="button"
@@ -1004,7 +1139,10 @@ function ServicesEditor({ data, onSave, saving }: EditorProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave('services', formData);
+    // Drop any service left with a blank title — an untitled entry can't be
+    // shown as a real option in the public booking dropdown.
+    const items = ((formData.items || []) as ServiceItem[]).filter((s) => s.title?.trim());
+    onSave('services', { ...formData, items } as Partial<CMSData['services']>);
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -1648,142 +1786,193 @@ function ContactEditor({ data, onSave, saving }: EditorProps) {
         </p>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Section Title <span className="text-red-500">*</span>
-        </label>
-        <input
-          type="text"
-          value={formData.title || ''}
-          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-          placeholder="e.g., Book Your Appointment"
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-        />
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          Main heading for the contact section
-        </p>
-      </div>
+      <AdminInput
+        label="Section Title"
+        required
+        value={formData.title || ''}
+        onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+        placeholder="e.g., Book Your Appointment"
+        hint="Main heading for the contact section"
+      />
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Section Subtitle
-        </label>
-        <textarea
-          value={formData.subtitle || ''}
-          onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
-          rows={2}
-          placeholder="e.g., Start your journey to healthier skin and hair today"
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-        />
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          Supporting text that encourages users to book
-        </p>
-      </div>
+      <AdminTextarea
+        label="Section Subtitle"
+        value={formData.subtitle || ''}
+        onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
+        rows={2}
+        placeholder="e.g., Start your journey to healthier skin and hair today"
+        hint="Supporting text that encourages users to book"
+      />
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Email Address for Appointments <span className="text-red-500">*</span>
-        </label>
-        <input
-          type="email"
-          value={formData.email || ''}
-          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-          placeholder="e.g., appointments@clinic.com"
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-        />
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          Email address where appointment booking requests will be sent
-        </p>
-      </div>
+      <AdminInput
+        label="Email Address for Appointments"
+        required
+        type="email"
+        value={formData.email || ''}
+        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+        placeholder="e.g., appointments@clinic.com"
+        hint="Email address where appointment booking requests will be sent"
+      />
+
+      <AdminInput
+        label="Front-Desk WhatsApp/SMS Number"
+        type="tel"
+        value={formData.notificationPhone || ''}
+        onChange={(e) => setFormData({ ...formData, notificationPhone: e.target.value })}
+        placeholder="e.g., +91XXXXXXXXXX"
+        hint="Receives a WhatsApp/SMS alert for every new booking and the daily appointments digest, in addition to each doctor's own number (set per-doctor in the Doctors tab)."
+      />
 
       <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          Email Template Configuration
+        <button
+          type="submit"
+          disabled={saving}
+          className="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 px-4 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 transition-colors"
+        >
+          {saving ? (
+            <>
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              <span>Saving Changes...</span>
+            </>
+          ) : (
+            <>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+              <span>Save Changes</span>
+            </>
+          )}
+        </button>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-3 text-center">
+          Looking for the email/SMS/WhatsApp message templates? They moved to their own{' '}
+          <span className="font-medium">Templates</span> tab in the sidebar.
+        </p>
+      </div>
+    </form>
+  );
+}
+
+function TemplatesEditor({ data, onSave, saving }: EditorProps) {
+  const [formData, setFormData] = useState<Partial<CMSData['contact']>>(
+    (data as Partial<CMSData['contact']>) || {}
+  );
+
+  useEffect(() => {
+    setFormData((data as Partial<CMSData['contact']>) || {});
+  }, [data]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSave('contact', formData);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="border-b border-gray-200 dark:border-gray-700 pb-4 mb-6">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Templates</h2>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          Every message sent automatically by the booking system — email, SMS, and WhatsApp — in
+          one place.
+        </p>
+      </div>
+
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+          Email Templates
         </h3>
         <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-          Customize the email subject and body that will be sent when someone books an appointment.
-          Use placeholders: {'{name}'}, {'{email}'}, {'{phone}'}, {'{service}'}, {'{message}'},{' '}
-          {'{date}'}
+          Customize the emails sent when someone books an appointment — one to the clinic/doctor,
+          one to the patient as their confirmation.
         </p>
+        <VariableReference />
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Email Subject <span className="text-red-500">*</span>
-        </label>
-        <input
-          type="text"
-          value={formData.emailSubject || ''}
-          onChange={(e) => setFormData({ ...formData, emailSubject: e.target.value })}
-          placeholder="e.g., New Appointment Booking Request - {service}"
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-        />
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          Subject line for appointment emails. Use {'{service}'} to include the selected service
-          name.
-        </p>
-      </div>
+      <AdminInput
+        label="Email Subject"
+        required
+        value={formData.emailSubject || ''}
+        onChange={(e) => setFormData({ ...formData, emailSubject: e.target.value })}
+        placeholder="e.g., New Appointment Booking - {doctor}"
+        hint="Subject line for the clinic/doctor's booking-alert email."
+      />
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Email Body Template <span className="text-red-500">*</span>
-        </label>
-        <textarea
-          value={formData.emailBody || ''}
-          onChange={(e) => setFormData({ ...formData, emailBody: e.target.value })}
-          rows={10}
-          placeholder="e.g., New Appointment Booking Request&#10;&#10;Name: {name}&#10;Email: {email}&#10;Phone: {phone}&#10;Service: {service}&#10;Message: {message}&#10;&#10;Submitted on: {date}"
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent font-mono text-sm"
-        />
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          Email body template. Available placeholders: {'{name}'}, {'{email}'}, {'{phone}'},{' '}
-          {'{service}'}, {'{message}'}, {'{date}'}
-        </p>
-      </div>
+      <AdminTextarea
+        label="Email Body Template"
+        required
+        mono
+        value={formData.emailBody || ''}
+        onChange={(e) => setFormData({ ...formData, emailBody: e.target.value })}
+        rows={10}
+        placeholder="e.g., New Appointment Booking Request&#10;&#10;Name: {name}&#10;Email: {email}&#10;Phone: {phone}&#10;Doctor: {doctor}&#10;Date: {date}&#10;Time: {time}&#10;Reason: {reason}&#10;&#10;Submitted on: {submittedAt}"
+        hint="Sent to the clinic (and the assigned doctor, if they have an email set)."
+      />
 
       <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
           Customer Thank You Email Template
         </h3>
         <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-          Customize the thank you email that will be sent to customers after they book an
-          appointment. Use placeholders: {'{name}'}, {'{email}'}, {'{phone}'}, {'{service}'},{' '}
-          {'{message}'}, {'{date}'}
+          Customize the confirmation email sent to the patient after they book. Make sure to
+          include {'{doctor}'}, {'{date}'}, {'{time}'}, and {'{patientId}'} so they know when their
+          appointment is and can look up their visit history later.
         </p>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Customer Email Subject <span className="text-red-500">*</span>
-        </label>
-        <input
-          type="text"
-          value={formData.customerEmailSubject || ''}
-          onChange={(e) => setFormData({ ...formData, customerEmailSubject: e.target.value })}
-          placeholder="e.g., Thank You for Booking Your Appointment - Dr Baig's Clinic"
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-        />
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          Subject line for customer thank you emails.
+      <AdminInput
+        label="Customer Email Subject"
+        required
+        value={formData.customerEmailSubject || ''}
+        onChange={(e) => setFormData({ ...formData, customerEmailSubject: e.target.value })}
+        placeholder="e.g., Your Appointment is Confirmed - Dr Baig's Clinic"
+        hint="Subject line for customer confirmation emails."
+      />
+
+      <AdminTextarea
+        label="Customer Email Body Template"
+        required
+        mono
+        value={formData.customerEmailBody || ''}
+        onChange={(e) => setFormData({ ...formData, customerEmailBody: e.target.value })}
+        rows={10}
+        placeholder="e.g., Dear {name},&#10;&#10;Your appointment with {doctor} is confirmed for {date} at {time}.&#10;&#10;Manage or reschedule your booking: {manageLink}&#10;&#10;Your Patient ID is {patientId} — save this to view your visit history and prescriptions.&#10;&#10;Best regards,&#10;Dr Baig's Clinic Team"
+      />
+
+      <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+          SMS / WhatsApp Templates
+        </h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+          These send over WhatsApp when configured, falling back to plain SMS automatically —
+          keep them short and plain text (no formatting, unlike email). Leave either blank to use
+          the built-in default wording.
         </p>
+        <VariableReference />
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Customer Email Body Template <span className="text-red-500">*</span>
-        </label>
-        <textarea
-          value={formData.customerEmailBody || ''}
-          onChange={(e) => setFormData({ ...formData, customerEmailBody: e.target.value })}
-          rows={10}
-          placeholder="e.g., Dear {name},&#10;&#10;Thank you for booking an appointment with Dr Baig's Clinic!&#10;&#10;We have received your appointment request for: {service}&#10;&#10;Our team will contact you soon at {phone} or {email} to confirm your appointment time.&#10;&#10;Best regards,&#10;Dr Baig's Clinic Team"
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent font-mono text-sm"
-        />
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          Customer email body template. Available placeholders: {'{name}'}, {'{email}'}, {'{phone}'}
-          , {'{service}'}, {'{message}'}, {'{date}'}
-        </p>
-      </div>
+      <AdminTextarea
+        label="Patient Confirmation (SMS/WhatsApp)"
+        mono
+        value={formData.patientSmsTemplate || ''}
+        onChange={(e) => setFormData({ ...formData, patientSmsTemplate: e.target.value })}
+        rows={4}
+        placeholder="e.g., Hi {name}, your appointment with {doctor} at Dr Baig's Clinic is confirmed for {date} at {time}. Manage your booking: {manageLink}"
+        hint="Sent to the patient right after they book. If {patientId} isn't included here and the patient has one, it's appended automatically as a second line."
+      />
+
+      <AdminTextarea
+        label="Clinic/Doctor Alert (SMS/WhatsApp)"
+        mono
+        value={formData.adminSmsTemplate || ''}
+        onChange={(e) => setFormData({ ...formData, adminSmsTemplate: e.target.value })}
+        rows={4}
+        placeholder="e.g., New appointment: {name} ({phone}) with {doctor} on {date} at {time}. Reason: {reason}"
+        hint="Sent to the notification phone (set in the Contact tab) and to the assigned doctor (if they have a phone set in the Doctors tab)."
+      />
 
       <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
         <button

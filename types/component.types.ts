@@ -9,6 +9,9 @@ export interface ButtonProps {
   className?: string;
   type?: 'button' | 'submit' | 'reset';
   disabled?: boolean;
+  icon?: ReactNode;
+  iconPosition?: 'left' | 'right';
+  title?: string;
 }
 
 export interface CardProps {
@@ -32,6 +35,7 @@ export interface HeroProps {
   subtitle: string;
   ctaText?: string;
   ctaHref?: string;
+  onCtaClick?: () => void;
   backgroundImage?: string;
 }
 

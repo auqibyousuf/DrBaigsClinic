@@ -53,3 +53,21 @@ export async function getCMSContact() {
     return null;
   }
 }
+
+export async function getCMSDoctors() {
+  try {
+    const data = await getCMSData();
+    return data.doctors || { items: [] };
+  } catch {
+    return { items: [] };
+  }
+}
+
+export async function getCMSBookingSettings() {
+  try {
+    const data = await getCMSData();
+    return data.bookingSettings || { closedDates: [], closedWeekdays: [] };
+  } catch {
+    return { closedDates: [], closedWeekdays: [] };
+  }
+}

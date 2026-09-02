@@ -36,7 +36,8 @@ export async function getCMSDataFromSupabase(): Promise<CMSData | null> {
     .single();
 
   if (error) {
-    console.error('Error fetching from Supabase:', error);
+    // Don't log here — getCMSData() throttles and logs a single consolidated
+    // warning instead of one per parallel CMS fetch (a page load fires ~7).
     throw new Error(`Failed to fetch CMS data from Supabase: ${error.message}`);
   }
 
@@ -45,6 +46,35 @@ export async function getCMSDataFromSupabase(): Promise<CMSData | null> {
   }
 
   return data.data as CMSData;
+}
+
+// Get just one section of CMS data from Supabase, using Postgres JSON-path
+// selection (`data->section`) so only that slice is pulled over the wire —
+// not the whole blob (which includes every base64-embedded image across
+// every section). Used for cache-miss single-section requests.
+export async function getCMSSectionFromSupabase<K extends keyof CMSData>(
+  section: K
+): Promise<CMSData[K] | null> {
+  if (!isSupabaseConfigured()) {
+    throw new Error('Supabase is not configured. Please set SUPABASE_URL and SUPABASE_ANON_KEY in environment variables.');
+  }
+
+  const supabase = getSupabaseClient();
+  if (!supabase) {
+    throw new Error('Failed to initialize Supabase client');
+  }
+
+  const { data, error } = await supabase
+    .from('cms_data')
+    .select(`section:data->${String(section)}`)
+    .eq('id', 'main')
+    .single();
+
+  if (error) {
+    throw new Error(`Failed to fetch CMS section from Supabase: ${error.message}`);
+  }
+
+  return (data as unknown as { section: CMSData[K] } | null)?.section ?? null;
 }
 
 // Save CMS data to Supabase
