@@ -1,58 +1,83 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 import { useCMSData } from '@/lib/cms-client';
+import Logo from '@/components/Logo';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
+  const pathname = usePathname();
   const { data: footerData } = useCMSData('footer');
   const { data: servicesData } = useCMSData('services');
 
+  // The /admin section has its own self-contained layout — no public footer there.
+  if (pathname?.startsWith('/admin')) {
+    return null;
+  }
+
   const brandName = footerData?.brandName || "Dr Baig's Clinic";
-  const logo = footerData?.logo || '/logo.png';
+  const logo = footerData?.logo || '/icon.svg';
   const description =
     footerData?.description ||
     'Your trusted partner for comprehensive skin and hair care solutions. Experience excellence in every treatment.';
 
-  // Generate services links from CMS services data, fallback to footer.services if available
-  const services =
-    (servicesData?.items || []).map((service: { id: string; title: string }) => ({
-      name: service.title,
-      href: `/services/${service.id}`,
-    })) ||
-    footerData?.services ||
-    [];
-  const quickLinks = footerData?.quickLinks || [
-    { name: 'About Us', href: '#about' },
-    { name: 'Services', href: '#services' },
-    { name: 'Contact', href: '#contact' },
-    { name: 'Blog', href: '/blog' },
-  ];
-  const contact = footerData?.contact || {
-    address: '123 Health Street\nCity, State 12345',
-    phone: '+1 (234) 567-890',
-    email: 'info@glowclinic.com',
-  };
-  const socialMedia = footerData?.socialMedia || [];
+  // Generate services links from CMS services data, fallback to footer.services if available.
+  // (Array.prototype.map always returns an array, so `|| footerData?.services` below it
+  // would never actually trigger — the fallback has to be chosen before mapping.)
+  const rawServiceItems = Array.isArray(servicesData?.items) && servicesData.items.length
+    ? servicesData.items
+    : Array.isArray(footerData?.services)
+      ? footerData.services
+      : [];
+  const services = rawServiceItems
+    .filter((service: unknown) => service && typeof service === 'object')
+    .map((service: { id?: string; title?: string; name?: string; href?: string }) => ({
+      name: service.title || service.name || '',
+      href: service.id ? `/services/${service.id}` : service.href || '#',
+    }));
+  const quickLinks = Array.isArray(footerData?.quickLinks) && footerData.quickLinks.length
+    ? footerData.quickLinks
+    : [
+        { name: 'About Us', href: '#about' },
+        { name: 'Services', href: '#services' },
+        { name: 'Contact', href: '#contact' },
+      ];
+  const contact = footerData?.contact && typeof footerData.contact === 'object'
+    ? footerData.contact
+    : {
+        address: '123 Health Street\nCity, State 12345',
+        phone: '+1 (234) 567-890',
+        email: 'info@glowclinic.com',
+      };
+  // One branch per line as "Label: street details" — split into distinct
+  // labeled entries instead of one run-on block of text.
+  const addressBranches: { label: string | null; details: string }[] = String(contact.address || '')
+    .split('\n')
+    .map((line: string) => line.trim())
+    .filter(Boolean)
+    .map((line: string) => {
+      const separatorIndex = line.indexOf(':');
+      if (separatorIndex === -1) return { label: null, details: line };
+      return { label: line.slice(0, separatorIndex).trim(), details: line.slice(separatorIndex + 1).trim() };
+    });
+  const socialMedia = Array.isArray(footerData?.socialMedia) ? footerData.socialMedia : [];
   const copyright = footerData?.copyright || 'Glow Clinic';
-  const legalLinks = footerData?.legalLinks || [
-    { name: 'Privacy Policy', href: '#' },
-    { name: 'Terms of Service', href: '#' },
-  ];
+  const legalLinks = Array.isArray(footerData?.legalLinks) && footerData.legalLinks.length
+    ? footerData.legalLinks
+    : [
+        { name: 'Privacy Policy', href: '#' },
+        { name: 'Terms of Service', href: '#' },
+      ];
 
   return (
     <footer
-      className="relative bg-gray-900 dark:bg-gray-950 text-gray-300 dark:text-gray-400 overflow-hidden"
+      className="relative bg-gray-50 dark:bg-gray-950 text-gray-600 dark:text-gray-400 border-t border-gray-200 dark:border-transparent overflow-hidden"
       role="contentinfo"
       aria-label="Site footer"
     >
-      {/* Decorative elements */}
       <div className="absolute top-0 left-0 w-full h-1 bg-primary-600"></div>
-      <div className="absolute inset-0 opacity-5">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-primary-500 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-primary-400 rounded-full blur-3xl"></div>
-      </div>
 
       <div className="max-w-[1366px] mx-auto px-4 sm:px-4 md:px-6 lg:px-8 xl:px-12 py-12 sm:py-16 relative z-10 w-full">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-6 lg:gap-8 xl:gap-10 items-start justify-items-center lg:justify-items-start">
@@ -60,34 +85,26 @@ const Footer = () => {
           <div className="lg:col-span-1">
             <div className="flex items-center space-x-3 mb-4">
               {logo && (
-                <div className="w-10 h-9 flex items-center justify-center flex-shrink-0">
-                  <img
-                    src={logo}
-                    alt={`${brandName} Logo`}
-                    className="w-full h-full object-contain"
-                    onError={(e) => {
-                      // Hide if image fails to load
-                      e.currentTarget.style.display = 'none';
-                    }}
-                  />
+                <div className="w-9 h-9 flex items-center justify-center flex-shrink-0">
+                  <Logo src={logo} />
                 </div>
               )}
-              <h3 className="text-lg sm:text-xl font-bold text-white dark:text-gray-100 leading-tight">
+              <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white leading-tight">
                 {brandName}
               </h3>
             </div>
-            <p className="text-gray-400 dark:text-gray-500 mb-6 leading-relaxed text-sm">
+            <p className="text-gray-600 dark:text-gray-400 mb-6 leading-relaxed text-sm">
               {description}
             </p>
             <nav aria-label="Social media links">
               <ul className="flex flex-wrap gap-3" role="list">
                 {socialMedia.map(
-                  (item: { id: string; name: string; url: string; icon?: string }) =>
-                    item.url && (
-                      <li key={item.id}>
+                  (item: { id?: string; name?: string; url?: string; icon?: string }, index: number) =>
+                    item?.url && (
+                      <li key={item.id || `social-${index}`}>
                         <a
                           href={item.url}
-                          className="w-10 h-10 flex items-center justify-center rounded-lg bg-gray-800 dark:bg-gray-700 text-gray-400 dark:text-gray-500 hover:text-white dark:hover:text-white hover:bg-primary-600 dark:hover:bg-primary-600 transition-all duration-300 transform hover:scale-110 hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-gray-900"
+                          className="w-10 h-10 flex items-center justify-center rounded-lg bg-gray-200 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:text-white dark:hover:text-white hover:bg-primary-600 dark:hover:bg-primary-600 transition-all duration-300 transform hover:scale-110 hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-gray-50 dark:focus:ring-offset-gray-950"
                           aria-label={`Visit our ${item.name} page`}
                           target="_blank"
                           rel="noopener noreferrer"
@@ -108,8 +125,9 @@ const Footer = () => {
           </div>
 
           {/* Services */}
+          {services.length > 0 && (
           <nav aria-label="Service links" className="lg:col-span-1 w-full">
-            <h4 className="text-white dark:text-gray-100 font-bold text-lg mb-4">Services</h4>
+            <h4 className="text-gray-900 dark:text-white font-bold text-lg mb-4">Services</h4>
             <div className="flex flex-row gap-x-4" role="list">
               {Array.from({ length: Math.ceil(services.length / 6) }).map((_, columnIndex) => {
                 const columnServices = services.slice(columnIndex * 6, (columnIndex + 1) * 6);
@@ -122,7 +140,7 @@ const Footer = () => {
                           <Link
                             key={`service-${index}-${service.name}`}
                             href={service.href}
-                            className="text-gray-400 text-xs hover:text-primary-400 dark:hover:text-primary-400 transition-all duration-300  block py-1 hover:translate-x-1 group whitespace-nowrap"
+                            className="text-gray-600 dark:text-gray-400 text-xs hover:text-primary-600 dark:hover:text-primary-400 transition-all duration-300  block py-1 hover:translate-x-1 group whitespace-nowrap"
                           >
                             <span className="flex items-center">
                               <svg
@@ -149,24 +167,25 @@ const Footer = () => {
               })}
             </div>
           </nav>
+          )}
 
           {/* Quick Links */}
           <nav
             aria-label="Quick links"
-            className="lg:col-span-1 w-full flex flex-col items-center lg:items-start lg:ml-12"
+            className="lg:col-span-1 w-full flex flex-col items-start lg:ml-12"
           >
-            <h4 className="text-white dark:text-gray-100 font-bold text-lg mb-4 text-center lg:text-left w-full">
+            <h4 className="text-gray-900 dark:text-white font-bold text-lg mb-4 text-left w-full">
               Quick Links
             </h4>
             <ul className="space-y-2 w-full" role="list">
               {quickLinks.map((link: { name: string; href: string }, index: number) => (
                 <li
                   key={`quicklink-${index}-${link.name}`}
-                  className="flex justify-center lg:justify-start"
+                  className="flex justify-start"
                 >
                   <Link
                     href={link.href}
-                    className="text-gray-400 text-xs hover:text-primary-400 transition-all duration-300 inline-block hover:translate-x-1 group"
+                    className="text-gray-600 dark:text-gray-400 text-xs hover:text-primary-600 dark:hover:text-primary-400 transition-all duration-300 inline-block hover:translate-x-1 group"
                   >
                     <span className="flex items-center">
                       <svg
@@ -192,38 +211,52 @@ const Footer = () => {
 
           {/* Contact Info */}
           <address className="not-italic lg:col-span-1 w-full">
-            <h4 className="text-white dark:text-gray-100 font-bold text-lg mb-4">Contact</h4>
+            <h4 className="text-gray-900 dark:text-white font-bold text-lg mb-4">Contact</h4>
             <ul className="space-y-3 lg:space-y-3" role="list">
-              <li className="flex items-start text-gray-400 dark:text-gray-500">
-                <svg
-                  className="w-5 h-5 mr-3 mt-0.5 text-primary-400 dark:text-primary-500 flex-shrink-0"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                  />
-                </svg>
-                <span style={{ whiteSpace: 'pre-line' }}>{contact.address}</span>
-              </li>
+              {addressBranches.length > 0 && (
+                <li className="flex items-start text-gray-600 dark:text-gray-400">
+                  <svg
+                    className="w-5 h-5 mr-3 mt-0.5 text-primary-600 dark:text-primary-400 flex-shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                  </svg>
+                  <div className="space-y-2">
+                    {addressBranches.map((branch, i) => (
+                      <div key={i}>
+                        {branch.label && (
+                          <p className="font-semibold text-gray-800 dark:text-gray-200 text-xs">
+                            {branch.label}
+                          </p>
+                        )}
+                        <p>{branch.details}</p>
+                      </div>
+                    ))}
+                  </div>
+                </li>
+              )}
+              {contact.phone && (
               <li>
                 <a
                   href={`tel:${contact.phone.replace(/\s/g, '')}`}
-                  className="flex items-center text-gray-400 dark:text-gray-500 hover:text-primary-400 dark:hover:text-primary-400 transition-colors group focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-gray-900 rounded"
+                  className="flex items-center text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors group focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-gray-50 dark:focus:ring-offset-gray-950 rounded"
                 >
                   <svg
-                    className="w-5 h-5 mr-3 text-primary-400 dark:text-primary-500 flex-shrink-0"
+                    className="w-5 h-5 mr-3 text-primary-600 dark:text-primary-400 flex-shrink-0"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -239,13 +272,15 @@ const Footer = () => {
                   {contact.phone}
                 </a>
               </li>
+              )}
+              {contact.email && (
               <li>
                 <a
                   href={`mailto:${contact.email}`}
-                  className="flex items-center text-gray-400 dark:text-gray-500 hover:text-primary-400 dark:hover:text-primary-400 transition-colors group focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-gray-900 rounded"
+                  className="flex items-center text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors group focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-gray-50 dark:focus:ring-offset-gray-950 rounded"
                 >
                   <svg
-                    className="w-5 h-5 mr-3 text-primary-400 dark:text-primary-500 flex-shrink-0"
+                    className="w-5 h-5 mr-3 text-primary-600 dark:text-primary-400 flex-shrink-0"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -261,12 +296,13 @@ const Footer = () => {
                   {contact.email}
                 </a>
               </li>
+              )}
             </ul>
           </address>
         </div>
 
-        <div className="border-t border-gray-700/50 dark:border-gray-800/50 mt-12 pt-8">
-          <div className="flex flex-col md:flex-row justify-between items-center text-gray-400 dark:text-gray-500 text-sm">
+        <div className="border-t border-gray-200 dark:border-gray-800/50 mt-12 pt-8">
+          <div className="flex flex-col md:flex-row justify-between items-center text-gray-500 dark:text-gray-400 text-sm">
             <p>
               &copy; {currentYear} {copyright}. All rights reserved.
             </p>
@@ -276,7 +312,7 @@ const Footer = () => {
                   <li key={`legal-${index}-${link.name}`}>
                     <a
                       href={link.href}
-                      className="hover:text-primary-400 dark:hover:text-primary-400 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-gray-900 rounded"
+                      className="hover:text-primary-600 dark:hover:text-primary-400 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-gray-50 dark:focus:ring-offset-gray-950 rounded"
                     >
                       {link.name}
                     </a>

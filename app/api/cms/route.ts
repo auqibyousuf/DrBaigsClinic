@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getCMSData, saveCMSData, updateCMSData, CMSData } from '@/lib/cms';
+import { getCMSData, getCMSSection, saveCMSData, updateCMSData, CMSData } from '@/lib/cms';
 
 // Simple authentication check (in production, use proper auth)
 function isAuthenticated(request: NextRequest): boolean {
@@ -24,13 +24,17 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const section = searchParams.get('section') as keyof CMSData | null;
 
-    // Try Supabase first, fallback to filesystem
-    const data = await getCMSData();
-
-    if (section && data[section]) {
-      return NextResponse.json({ [section]: data[section] });
+    // A section-scoped request only ever needs that one slice — served
+    // from the warm cache when we have one, or a single JSON-path Supabase
+    // query otherwise, instead of pulling the entire CMS blob (every
+    // section's base64 images included) just to answer e.g. "who are the
+    // doctors?".
+    if (section) {
+      const sectionData = await getCMSSection(section);
+      return NextResponse.json({ [section]: sectionData });
     }
 
+    const data = await getCMSData();
     return NextResponse.json(data);
   } catch (error) {
     console.error('Error fetching CMS data:', error);

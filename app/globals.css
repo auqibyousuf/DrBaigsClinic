@@ -1,71 +1,214 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+/* Keeps our existing tailwind.config.js (colors, screens, shadows,
+   animations, darkMode) working as-is under Tailwind v4's compatibility
+   layer — avoids hand-porting ~40 files' worth of primary-50..950 /
+   accent-50..900 / shadow-rest|hover|elevated utility usages into v4's
+   native @theme CSS syntax. */
+@config "../tailwind.config.js";
 
 @layer base {
   html {
     scroll-behavior: smooth;
+    @apply font-sans;
   }
 
   body {
-    @apply bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 antialiased;
+    @apply dark:bg-gray-900 dark:text-gray-100 antialiased bg-background text-foreground;
     font-feature-settings: 'rlig' 1, 'calt' 1;
     transition: background-color 0.3s ease, color 0.3s ease;
-    font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    font-family: var(--font-body), -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   }
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-bold;
     letter-spacing: -0.02em;
-    font-family: var(--font-poppins), var(--font-inter), sans-serif;
+    font-family: var(--font-heading), var(--font-body), sans-serif;
   }
 
-  /* Responsive Typography - Mobile First */
+  /* Fluid typography — clamps instead of breakpoint jumps, and a more
+     restrained ceiling than before (h1 used to reach text-7xl/112px on
+     desktop, which read as oversized and left excess whitespace around it). */
   h1 {
-    @apply text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl;
+    font-size: var(--text-5xl);
   }
 
   h2 {
-    @apply text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl;
+    font-size: var(--text-4xl);
   }
 
   h3 {
-    @apply text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl;
+    font-size: var(--text-3xl);
   }
 
   h4 {
-    @apply text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl;
+    font-size: var(--text-2xl);
   }
 
   h5 {
-    @apply text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl;
+    font-size: var(--text-xl);
   }
 
   h6 {
-    @apply text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl;
+    font-size: var(--text-lg);
   }
 
-  /* Base font size responsive scaling */
+  /* 17px baseline — a notch above the WCAG-minimum 16px for stronger mobile legibility */
   body {
-    font-size: 14px;
+    font-size: 17px;
+    line-height: 1.65;
   }
 
-  @media (min-width: 640px) {
-    body {
-      font-size: 15px;
-    }
+  p {
+    @apply leading-relaxed;
+  }
+  .theme {
+    --font-heading: var(--font-sans);
+    --font-sans: var(--font-sans);
+  }
+  :root {
+    /* Remapped from shadcn's generic neutral defaults to our 2026 indigo/mint
+       brand (tailwind.config.js primary/accent scales) — otherwise every
+       shadcn primitive renders in stock gray instead of our identity. */
+    --background: #ffffff;
+    --foreground: #111827;
+    --card: #ffffff;
+    --card-foreground: #111827;
+    --popover: #ffffff;
+    --popover-foreground: #111827;
+    --primary: #4640d0;
+    --primary-foreground: #ffffff;
+    --secondary: #ecfdf5;
+    --secondary-foreground: #047850;
+    --muted: #f3f4f6;
+    --muted-foreground: #6b7280;
+    --accent: #10b77f;
+    --accent-foreground: #ffffff;
+    --destructive: #dc2626;
+    --border: #e5e7eb;
+    --input: #e5e7eb;
+    --ring: #5b5fe6;
+    --chart-1: oklch(0.87 0 0);
+    --chart-2: oklch(0.556 0 0);
+    --chart-3: oklch(0.439 0 0);
+    --chart-4: oklch(0.371 0 0);
+    --chart-5: oklch(0.269 0 0);
+    --radius: 1rem;
+
+    /* Fluid spacing/type scale — clamp(min, viewport-relative, max) so
+       sizing scales continuously with the viewport instead of jumping at
+       breakpoints. Prefer these over sm:/md:/lg: overrides for anything
+       that just needs to grow smoothly between mobile and desktop. */
+    --space-2xs: clamp(0.375rem, 0.3rem + 0.35vw, 0.5rem);
+    --space-xs: clamp(0.5rem, 0.4rem + 0.5vw, 0.75rem);
+    --space-sm: clamp(0.75rem, 0.6rem + 0.6vw, 1rem);
+    --space-md: clamp(1rem, 0.85rem + 0.75vw, 1.5rem);
+    --space-lg: clamp(1.5rem, 1.2rem + 1.2vw, 2.5rem);
+    --space-xl: clamp(2rem, 1.5rem + 2vw, 3.5rem);
+    --space-2xl: clamp(2.5rem, 1.8rem + 2.8vw, 5rem);
+
+    --text-xs: clamp(0.75rem, 0.72rem + 0.1vw, 0.8125rem);
+    --text-sm: clamp(0.8125rem, 0.78rem + 0.15vw, 0.9375rem);
+    --text-base: clamp(0.9375rem, 0.88rem + 0.25vw, 1.0625rem);
+    --text-lg: clamp(1.0625rem, 0.98rem + 0.35vw, 1.25rem);
+    --text-xl: clamp(1.25rem, 1.1rem + 0.6vw, 1.625rem);
+    --text-2xl: clamp(1.5rem, 1.3rem + 0.9vw, 2rem);
+    --text-3xl: clamp(1.75rem, 1.45rem + 1.3vw, 2.5rem);
+    --text-4xl: clamp(2rem, 1.6rem + 1.8vw, 3rem);
+    --text-5xl: clamp(2.25rem, 1.7rem + 2.5vw, 3.75rem);
+
+    --modal-w-sm: clamp(22rem, 55vw, 32rem);
+    --modal-w-md: clamp(24rem, 70vw, 44rem);
+    --modal-w-lg: clamp(26rem, 85vw, 58rem);
+
+    /* Form field sizing — comfortable but compact, scales gently rather
+       than jumping between breakpoints. */
+    --field-py: clamp(0.5rem, 0.46rem + 0.2vw, 0.625rem);
+    --field-px: clamp(0.625rem, 0.56rem + 0.3vw, 0.8125rem);
+    --field-pl-icon: clamp(2rem, 1.85rem + 0.75vw, 2.375rem);
+    --field-radius: 0.75rem;
+    --sidebar: oklch(0.985 0 0);
+    --sidebar-foreground: oklch(0.145 0 0);
+    --sidebar-primary: oklch(0.205 0 0);
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.97 0 0);
+    --sidebar-accent-foreground: oklch(0.205 0 0);
+    --sidebar-border: oklch(0.922 0 0);
+    --sidebar-ring: oklch(0.708 0 0);
+  }
+  .dark {
+    --background: #111827;
+    --foreground: #f3f4f6;
+    --card: #1f2937;
+    --card-foreground: #f3f4f6;
+    --popover: #1f2937;
+    --popover-foreground: #f3f4f6;
+    --primary: #7c7ff5;
+    --primary-foreground: #17153f;
+    --secondary: #065f43;
+    --secondary-foreground: #d1fae5;
+    --muted: #1f2937;
+    --muted-foreground: #9ca3af;
+    --accent: #34d399;
+    --accent-foreground: #054e38;
+    --destructive: #f87171;
+    --border: rgba(255, 255, 255, 0.1);
+    --input: rgba(255, 255, 255, 0.15);
+    --ring: #7c7ff5;
+    --chart-1: oklch(0.87 0 0);
+    --chart-2: oklch(0.556 0 0);
+    --chart-3: oklch(0.439 0 0);
+    --chart-4: oklch(0.371 0 0);
+    --chart-5: oklch(0.269 0 0);
+    --sidebar: oklch(0.205 0 0);
+    --sidebar-foreground: oklch(0.985 0 0);
+    --sidebar-primary: oklch(0.488 0.243 264.376);
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.269 0 0);
+    --sidebar-accent-foreground: oklch(0.985 0 0);
+    --sidebar-border: oklch(1 0 0 / 10%);
+    --sidebar-ring: oklch(0.556 0 0);
+  }
+  * {
+    @apply border-border outline-ring/50;
+  }
+  /* Interactive-element pointer cursor — browsers default <button> and
+     similar controls to `cursor: default`, not `pointer`, so this has to be
+     set explicitly everywhere a click/tap does something. */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  a[href],
+  label[for],
+  select,
+  summary,
+  input[type="checkbox"]:not(:disabled),
+  input[type="radio"]:not(:disabled),
+  [data-slot="select-trigger"]:not([data-disabled]),
+  [data-slot="select-item"]:not([data-disabled]),
+  [data-slot="dialog-close"],
+  [data-slot="tabs-trigger"],
+  .cursor-pointer {
+    cursor: pointer;
   }
 
-  @media (min-width: 768px) {
-    body {
-      font-size: 16px;
-    }
+  button:disabled,
+  [role="button"][aria-disabled="true"],
+  [data-slot="select-trigger"][data-disabled],
+  [data-slot="select-item"][data-disabled],
+  input:disabled,
+  select:disabled,
+  textarea:disabled {
+    cursor: not-allowed;
   }
+}
 
-  @media (min-width: 1024px) {
-    body {
-      font-size: 16px;
-    }
+@layer utilities {
+  /* Typographic "eyebrow" accent — small tracked uppercase label used above
+     section headings for a distinct, font-driven UI moment. */
+  .eyebrow {
+    font-family: var(--font-body), sans-serif;
+    @apply inline-block text-xs sm:text-sm font-bold uppercase tracking-[0.15em] text-primary-600 dark:text-primary-400 mb-2 sm:mb-3;
   }
 }
 
@@ -98,11 +241,15 @@
     white-space: normal;
   }
 
-  /* WCAG 3.0 Compliance - Enhanced Focus Indicators */
+  /* WCAG 3.0 Compliance - Enhanced Focus Indicators.
+     Outlines automatically follow an element's own border-radius in
+     evergreen browsers — forcing border-radius here (previously a flat 4px)
+     overrode that and made the ring look square on pill/rounded-xl
+     controls, so we just let it inherit instead. */
   *:focus-visible {
     outline: 2px solid #2563eb;
     outline-offset: 2px;
-    border-radius: 4px;
+    border-radius: inherit;
   }
 
   /* High contrast mode support */
@@ -124,17 +271,10 @@
     }
   }
 
-  /* Minimum touch target size (WCAG 3.0) - Mobile */
-  @media (max-width: 767px) {
-    button,
-    a,
-    input[type="button"],
-    input[type="submit"],
-    [role="button"] {
-      min-height: 44px;
-      min-width: 44px;
-    }
-  }
+  /* Touch-target sizing (WCAG 3.0) intentionally lives in each component now
+     (e.g. components/Button/Button.tsx), not here — a blanket selector like
+     `button { min-height: 44px }` silently overrides small, deliberately-sized
+     controls (carousel dots, icon buttons) that a component itself controls. */
 }
 
 /* Scroll animations */
@@ -176,12 +316,12 @@
 
 /* Smooth scrolling for anchor links */
 html {
-  scroll-padding-top: 70px;
+  scroll-padding-top: 90px;
 }
 
 @media (min-width: 640px) {
   html {
-    scroll-padding-top: 80px;
+    scroll-padding-top: 100px;
   }
 }
 

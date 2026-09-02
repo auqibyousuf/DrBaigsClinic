@@ -1,167 +1,167 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { getCMSData } from '@/lib/cms';
+import {
+  createAppointment,
+  isDateBookable,
+  SlotTakenError,
+  getConfiguredSlots,
+} from '@/lib/appointments';
+import { sendAdminAlert, sendPatientConfirmation } from '@/lib/notifications';
+import { findOrCreatePatientByPhone } from '@/lib/patients';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, email, phone, service, message } = body;
+    const { name, email, phone, service, reason, date, slot, doctorId } = body;
 
-    // Validate required fields
-    if (!name || !email || !phone || !service) {
+    if (!name || !email || !phone || !reason || !date || !slot || !doctorId) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
       );
     }
 
-    // Get CMS data for email configuration
     const cmsData = await getCMSData();
-    const contactData = cmsData.contact || {};
 
-    // Get email configuration from CMS
+    if (!getConfiguredSlots(cmsData.bookingSettings).includes(slot)) {
+      return NextResponse.json({ error: 'Invalid time slot' }, { status: 400 });
+    }
+
+    // Never trust the client for booking rules — re-validate server-side.
+    if (!isDateBookable(date, cmsData.bookingSettings)) {
+      return NextResponse.json(
+        { error: 'This date is not available for booking' },
+        { status: 400 }
+      );
+    }
+
+    const doctor = cmsData.doctors?.items?.find((d) => d.id === doctorId && d.isActive);
+    if (!doctor) {
+      return NextResponse.json({ error: 'Selected doctor is not available' }, { status: 400 });
+    }
+
+    const patient = await findOrCreatePatientByPhone(phone, name, email);
+
+    let appointment;
+    try {
+      appointment = await createAppointment({
+        patient_name: name,
+        patient_phone: phone,
+        patient_email: email,
+        patient_id: patient.id,
+        reason,
+        service_id: service || null,
+        doctor_id: doctorId,
+        appointment_date: date,
+        slot_start: slot,
+      });
+    } catch (err) {
+      if (err instanceof SlotTakenError) {
+        return NextResponse.json({ error: err.message }, { status: 409 });
+      }
+      throw err;
+    }
+
+    const contactData = cmsData.contact || {};
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || '';
+    const manageLink = `${siteUrl}/manage-appointment/${appointment.manage_token}`;
+
+    // Email (existing Resend flow, now with date/time/reason/manage-link placeholders)
     const recipientEmail = contactData.email || process.env.APPOINTMENT_EMAIL || 'yauqib@gmail.com';
     const emailSubjectTemplate = contactData.emailSubject || 'New Appointment Booking Request';
-    const emailBodyTemplate = contactData.emailBody ||
+    const emailBodyTemplate =
+      contactData.emailBody ||
       `New Appointment Booking Request\n\n` +
-      `Name: {name}\n` +
-      `Email: {email}\n` +
-      `Phone: {phone}\n` +
-      `Service: {service}\n` +
-      `Message: {message}\n\n` +
-      `Submitted on: {date}`;
+        `Name: {name}\nEmail: {email}\nPhone: {phone}\nDoctor: {doctor}\n` +
+        `Date: {date}\nTime: {time}\nReason: {reason}\n\nSubmitted on: {submittedAt}`;
 
-    // Replace placeholders in email subject
-    const emailSubject = emailSubjectTemplate
-      .replace(/{name}/g, name)
-      .replace(/{email}/g, email)
-      .replace(/{phone}/g, phone)
-      .replace(/{service}/g, service)
-      .replace(/{message}/g, message || 'No message provided')
-      .replace(/{date}/g, new Date().toLocaleString());
+    const fillTemplate = (template: string) =>
+      template
+        .replace(/{name}/g, name)
+        .replace(/{email}/g, email)
+        .replace(/{phone}/g, phone)
+        .replace(/{service}/g, service || 'Not specified')
+        .replace(/{doctor}/g, doctor.name)
+        .replace(/{date}/g, date)
+        .replace(/{time}/g, slot)
+        .replace(/{reason}/g, reason)
+        .replace(/{manageLink}/g, manageLink)
+        .replace(/{patientId}/g, patient.patient_code)
+        .replace(/{submittedAt}/g, new Date().toLocaleString());
 
-    // Replace placeholders in email body
-    const emailBody = emailBodyTemplate
-      .replace(/{name}/g, name)
-      .replace(/{email}/g, email)
-      .replace(/{phone}/g, phone)
-      .replace(/{service}/g, service)
-      .replace(/{message}/g, message || 'No message provided')
-      .replace(/{date}/g, new Date().toLocaleString());
+    if (process.env.RESEND_API_KEY) {
+      const fromEmail = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
 
-    // Send email using Resend
-    if (!process.env.RESEND_API_KEY) {
-      console.error('RESEND_API_KEY is not set');
-      return NextResponse.json(
-        { error: 'Email service not configured. Please set RESEND_API_KEY in environment variables.' },
-        { status: 500 }
-      );
-    }
-
-    const fromEmail = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
-
-    // Validate email addresses
-    if (!fromEmail || !fromEmail.includes('@')) {
-      console.error('Invalid RESEND_FROM_EMAIL:', fromEmail);
-      return NextResponse.json(
-        { error: 'Invalid from email address. Use onboarding@resend.dev for testing or a verified domain.' },
-        { status: 500 }
-      );
-    }
-
-    if (!recipientEmail || !recipientEmail.includes('@')) {
-      console.error('Invalid recipient email:', recipientEmail);
-      return NextResponse.json(
-        { error: 'Invalid recipient email address.' },
-        { status: 500 }
-      );
-    }
-
-    console.log('Attempting to send email:', { from: fromEmail, to: recipientEmail, subject: emailSubject });
-
-    const { data, error } = await resend.emails.send({
-      from: fromEmail,
-      to: recipientEmail,
-      subject: emailSubject,
-      text: emailBody,
-    });
-
-    if (error) {
-      console.error('Resend API error:', JSON.stringify(error, null, 2));
-
-      // Provide more helpful error messages
-      let errorMessage = 'Failed to send email';
-      if (error.message) {
-        errorMessage = error.message;
-      } else if (typeof error === 'object') {
-        errorMessage = JSON.stringify(error);
-      }
-
-      return NextResponse.json(
-        {
-          error: errorMessage,
-          details: 'Check server logs for more details. Make sure RESEND_API_KEY is valid and RESEND_FROM_EMAIL is verified in Resend.',
-          resendError: error
-        },
-        { status: 500 }
-      );
-    }
-
-    console.log('Admin email sent successfully:', data?.id);
-
-    // Send thank you email to customer
-    const customerEmailSubjectTemplate = contactData.customerEmailSubject || 'Thank You for Booking Your Appointment';
-    const customerEmailBodyTemplate = contactData.customerEmailBody ||
-      `Dear {name},\n\n` +
-      `Thank you for booking an appointment with us!\n\n` +
-      `We have received your appointment request for: {service}\n\n` +
-      `Our team will contact you soon to confirm your appointment.\n\n` +
-      `Best regards,\nDr Baig's Clinic`;
-
-    const customerEmailSubject = customerEmailSubjectTemplate
-      .replace(/{name}/g, name)
-      .replace(/{email}/g, email)
-      .replace(/{phone}/g, phone)
-      .replace(/{service}/g, service)
-      .replace(/{message}/g, message || 'No message provided')
-      .replace(/{date}/g, new Date().toLocaleString());
-
-    const customerEmailBody = customerEmailBodyTemplate
-      .replace(/{name}/g, name)
-      .replace(/{email}/g, email)
-      .replace(/{phone}/g, phone)
-      .replace(/{service}/g, service)
-      .replace(/{message}/g, message || 'No message provided')
-      .replace(/{date}/g, new Date().toLocaleString());
-
-    // Send customer thank you email
-    if (email && email.includes('@')) {
       try {
-        const customerEmailResult = await resend.emails.send({
+        await resend.emails.send({
           from: fromEmail,
-          to: email,
-          subject: customerEmailSubject,
-          text: customerEmailBody,
+          to: recipientEmail,
+          subject: fillTemplate(emailSubjectTemplate),
+          text: fillTemplate(emailBodyTemplate),
         });
 
-        if (customerEmailResult.error) {
-          console.error('Failed to send customer email:', customerEmailResult.error);
-          // Don't fail the request if customer email fails
-        } else {
-          console.log('Customer thank you email sent successfully:', customerEmailResult.data?.id);
+        if (doctor.email) {
+          await resend.emails.send({
+            from: fromEmail,
+            to: doctor.email,
+            subject: fillTemplate(emailSubjectTemplate),
+            text: fillTemplate(emailBodyTemplate),
+          });
         }
-      } catch (customerEmailError) {
-        console.error('Error sending customer email:', customerEmailError);
-        // Don't fail the request if customer email fails
+
+        const customerEmailSubjectTemplate =
+          contactData.customerEmailSubject || 'Your Appointment Confirmation';
+        const customerEmailBodyTemplate =
+          contactData.customerEmailBody ||
+          `Dear {name},\n\nYour appointment with {doctor} is confirmed for {date} at {time}.\n\n` +
+            `Manage or reschedule your booking: {manageLink}\n\n` +
+            `Your Patient ID is {patientId} — save this to view your visit history and download ` +
+            `prescriptions anytime at ${siteUrl}/my-visits\n\nBest regards,\nDr Baig's Clinic`;
+
+        if (email.includes('@')) {
+          await resend.emails.send({
+            from: fromEmail,
+            to: email,
+            subject: fillTemplate(customerEmailSubjectTemplate),
+            text: fillTemplate(customerEmailBodyTemplate),
+          });
+        }
+      } catch (emailError) {
+        // Don't fail the booking if email delivery has an issue — the appointment is already saved.
+        console.error('Error sending appointment emails:', emailError);
       }
+    } else {
+      console.warn('RESEND_API_KEY not set, skipping appointment emails.');
     }
+
+    // WhatsApp/SMS (best-effort, never blocks the booking response)
+    const notificationInput = {
+      patientName: name,
+      patientPhone: phone,
+      patientCode: patient.patient_code,
+      doctorName: doctor.name,
+      doctorPhone: doctor.phone,
+      doctorEmail: doctor.email,
+      date,
+      slot,
+      reason,
+      manageLink,
+      adminPhone: contactData.notificationPhone,
+      patientSmsTemplate: contactData.patientSmsTemplate,
+      adminSmsTemplate: contactData.adminSmsTemplate,
+    };
+    await Promise.all([
+      sendPatientConfirmation(notificationInput),
+      sendAdminAlert(notificationInput),
+    ]);
 
     return NextResponse.json({
       success: true,
-      message: 'Appointment request submitted successfully',
-      id: data?.id,
+      message: 'Appointment booked successfully',
+      manageToken: appointment.manage_token,
     });
   } catch (error) {
     console.error('Appointment API error:', error);

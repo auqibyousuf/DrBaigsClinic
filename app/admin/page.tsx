@@ -3,6 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { LockKey, ArrowLeft, SignIn } from '@phosphor-icons/react';
+import FloatingLabelInput from '@/components/FloatingLabelInput';
+import Button from '@/components/Button';
 
 export default function AdminLogin() {
   const [password, setPassword] = useState('');
@@ -10,8 +13,7 @@ export default function AdminLogin() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleLogin = async () => {
     setError('');
     setLoading(true);
 
@@ -56,21 +58,22 @@ export default function AdminLogin() {
           </p>
         </div>
 
-        <form onSubmit={handleLogin} className="space-y-6 animate-fade-in-up" style={{ animationDelay: '0.5s', animationFillMode: 'both' }}>
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-200"
-              placeholder="Enter admin password"
-              required
-            />
-          </div>
+        <div className="space-y-6 animate-fade-in-up" style={{ animationDelay: '0.5s', animationFillMode: 'both' }}>
+          <FloatingLabelInput
+            id="password"
+            name="password"
+            type="password"
+            placeholder="Enter admin password *"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                handleLogin();
+              }
+            }}
+            icon={<LockKey className="w-4 h-4" weight="duotone" />}
+          />
 
           {error && (
             <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg animate-fade-in-up">
@@ -78,36 +81,31 @@ export default function AdminLogin() {
             </div>
           )}
 
-          <button
-            type="submit"
+          {/* type="button" + explicit onClick, not type="submit" relying on
+              the form's onSubmit — a native form submission (password in the
+              URL query string!) was slipping through on this page even with
+              onSubmit wired up and preventDefault as the first line, so this
+              sidesteps native submission entirely rather than depend on it. */}
+          <Button
+            type="button"
+            onClick={handleLogin}
+            variant="primary"
+            size="md"
             disabled={loading}
-            className="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 transform hover:scale-[1.02] active:scale-[0.98]"
+            className="w-full"
+            icon={<SignIn weight="bold" />}
           >
-            {loading ? (
-              <>
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                <span>Logging in...</span>
-              </>
-            ) : (
-              <>
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-                </svg>
-                <span>Login</span>
-              </>
-            )}
-          </button>
-        </form>
+            {loading ? 'Logging in...' : 'Login'}
+          </Button>
+        </div>
 
         <div className="mt-6 text-center animate-fade-in-up" style={{ animationDelay: '0.6s', animationFillMode: 'both' }}>
           <Link
             href="/"
-            className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 transition-colors duration-200 inline-flex items-center space-x-1"
+            className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 transition-colors duration-200 inline-flex items-center gap-1.5"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            <span>Back to website</span>
+            <ArrowLeft className="w-4 h-4" />
+            Back to website
           </Link>
         </div>
       </div>

@@ -9,6 +9,8 @@ export interface CMSData {
   about?: any;
   footer?: any;
   contact?: any;
+  doctors?: any;
+  bookingSettings?: any;
 }
 
 export function useCMSData(section?: keyof CMSData) {
