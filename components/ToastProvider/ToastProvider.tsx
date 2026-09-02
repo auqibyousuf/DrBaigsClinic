@@ -1,39 +1,29 @@
 'use client';
 
-import { createContext, useContext, useState, ReactNode } from 'react';
-import Toast from '@/components/Toast';
+// Thin wrapper preserving this project's original `useToast()` API
+// (`showToast('success' | 'error' | 'info', message)`, called from ~30 sites
+// across the app) while delegating the actual rendering to shadcn/ui's
+// sonner-based Toaster — no consuming file needs to change.
 
-interface ToastContextType {
-  showToast: (type: 'success' | 'error' | 'info', message: string) => void;
-}
-
-const ToastContext = createContext<ToastContextType | undefined>(undefined);
+import { ReactNode } from 'react';
+import { toast as sonnerToast } from 'sonner';
+import { Toaster } from '@/components/ui/sonner';
 
 export function useToast() {
-  const context = useContext(ToastContext);
-  if (!context) {
-    throw new Error('useToast must be used within ToastProvider');
-  }
-  return context;
+  const showToast = (type: 'success' | 'error' | 'info', message: string) => {
+    if (type === 'success') sonnerToast.success(message);
+    else if (type === 'error') sonnerToast.error(message);
+    else sonnerToast.info(message);
+  };
+
+  return { showToast };
 }
 
 export default function ToastProvider({ children }: { children: ReactNode }) {
-  const [toast, setToast] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
-
-  const showToast = (type: 'success' | 'error' | 'info', message: string) => {
-    setToast({ type, message });
-  };
-
   return (
-    <ToastContext.Provider value={{ showToast }}>
+    <>
       {children}
-      {toast && (
-        <Toast
-          type={toast.type}
-          message={toast.message}
-          onClose={() => setToast(null)}
-        />
-      )}
-    </ToastContext.Provider>
+      <Toaster position="top-right" richColors closeButton />
+    </>
   );
 }

@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import Image from 'next/image';
 import ToastProvider from '@/components/ToastProvider';
+import Logo from '@/components/Logo';
+import { useCMSData } from '@/lib/cms-client';
 
 export default function AdminLayout({
   children,
@@ -13,6 +14,9 @@ export default function AdminLayout({
   const router = useRouter();
   const pathname = usePathname();
   const [showLogout, setShowLogout] = useState(false);
+  const { data: headerData } = useCMSData('header');
+  const brandName = headerData?.brandName || "Dr Baig's Clinic";
+  const logo = headerData?.logo || '/icon.svg';
 
   const handleLogout = async () => {
     await fetch('/api/cms/auth', {
@@ -50,17 +54,12 @@ export default function AdminLayout({
           <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8">
             <div className="flex items-center justify-between h-14 sm:h-16 min-h-[56px]">
               <div className="flex items-center space-x-2 sm:space-x-3 md:space-x-4 min-w-0 flex-1">
-                <Image
-                  src="/icon.svg"
-                  alt="Dr Baig's Clinic Logo"
-                  width={32}
-                  height={32}
-                  className="w-8 h-8 sm:w-10 sm:h-10 flex-shrink-0"
-                  priority
-                />
+                <div className="w-8 h-8 sm:w-10 sm:h-10 flex-shrink-0">
+                  <Logo src={logo} />
+                </div>
                 <div className="min-w-0 flex-1">
                   <h1 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-900 dark:text-white truncate">
-                    <span className="hidden sm:inline">Dr Baig's Clinic - </span>CMS
+                    <span className="hidden sm:inline">{brandName} - </span>CMS
                   </h1>
                   <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 hidden sm:block">
                     Content Management System
@@ -125,7 +124,7 @@ export default function AdminLayout({
                     >
                       <div className="py-2">
                         <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
-                          <p className="text-sm font-medium text-gray-900 dark:text-white">Dr Baig's Clinic</p>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">{brandName}</p>
                           <p className="text-xs text-gray-500 dark:text-gray-400">Manage your website</p>
                         </div>
                         <button

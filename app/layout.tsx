@@ -1,23 +1,30 @@
 import type { Metadata } from 'next';
-import { Inter, Poppins } from 'next/font/google';
+import { Plus_Jakarta_Sans, Sora } from 'next/font/google';
 import './globals.css';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import ThemeProvider from '@/components/ThemeProvider';
 import ToastProvider from '@/components/ToastProvider';
+import PageTransition from '@/components/PageTransition';
+import BookingModalProvider from '@/components/BookingModalProvider';
+import { cn } from '@/lib/utils';
 
-const inter = Inter({
+// Body: Plus Jakarta Sans — clean, confident, modern grotesque.
+const plusJakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
   display: 'swap',
-  variable: '--font-inter',
-  weight: ['300', '400', '500', '600', '700', '800'],
+  variable: '--font-body',
+  weight: ['400', '500', '600', '700', '800'],
 });
 
-const poppins = Poppins({
+// Headings/display: Sora — a bold, geometric, distinctly modern sans used
+// widely across current premium health-tech and SaaS products. Confident
+// without the "wedding invite" risk of a display serif.
+const sora = Sora({
   subsets: ['latin'],
   display: 'swap',
-  variable: '--font-poppins',
-  weight: ['300', '400', '500', '600', '700', '800'],
+  variable: '--font-heading',
+  weight: ['500', '600', '700', '800'],
 });
 
 export const metadata: Metadata = {
@@ -132,26 +139,30 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="en" suppressHydrationWarning className={`${inter.variable} ${poppins.variable}`}>
+    <html lang="en" suppressHydrationWarning className={cn(plusJakarta.variable, sora.variable, 'font-sans')}>
       <head>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
         />
       </head>
-      <body className={`${inter.className} font-sans overflow-x-auto`}>
+      <body className={`${plusJakarta.className} font-sans overflow-x-hidden`}>
         <ThemeProvider>
           <ToastProvider>
-            <a
-              href="#main-content"
-              className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-primary-600 focus:text-white focus:rounded-lg focus:shadow-lg focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-              aria-label="Skip to main content"
-            >
-              Skip to main content
-            </a>
-            <Header />
-            <main id="main-content" role="main">{children}</main>
-            <Footer />
+            <BookingModalProvider>
+              <a
+                href="#main-content"
+                className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-primary-600 focus:text-white focus:rounded-lg focus:shadow-lg focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                aria-label="Skip to main content"
+              >
+                Skip to main content
+              </a>
+              <Header />
+              <main id="main-content" role="main">
+                <PageTransition>{children}</PageTransition>
+              </main>
+              <Footer />
+            </BookingModalProvider>
           </ToastProvider>
         </ThemeProvider>
       </body>
