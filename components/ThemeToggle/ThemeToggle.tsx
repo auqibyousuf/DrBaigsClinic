@@ -63,7 +63,7 @@ export default function ThemeToggle() {
     <Tooltip content={getTooltipText()} position="bottom">
       <button
         onClick={toggleTheme}
-        className="p-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-gray-800 hover:text-primary-600 dark:hover:text-primary-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+        className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg text-gray-700 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-gray-800 hover:text-primary-600 dark:hover:text-primary-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
         aria-label={`Toggle theme. Current: ${theme}`}
       >
         {getIcon()}

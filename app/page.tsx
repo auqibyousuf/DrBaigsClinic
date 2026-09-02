@@ -1,286 +1,73 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Hero from '@/components/Hero';
 import Section from '@/components/Section';
 import ServiceCard from '@/components/ServiceCard';
 import Button from '@/components/Button';
 import ScrollReveal from '@/components/ScrollReveal';
-import { useToast } from '@/components/ToastProvider';
-import FloatingLabelInput from '@/components/FloatingLabelInput';
-import Image from 'next/image';
+import { useBookingModal } from '@/components/BookingModalProvider';
 import { useCMSData } from '@/lib/cms-client';
+import { defaultServices } from '@/lib/default-services';
+import { MapPin, Phone, EnvelopeSimple, CalendarCheck } from '@phosphor-icons/react';
 
-const defaultServices = [
-  {
-    id: 'hair-restoration',
-    title: 'Hair Restoration',
-    description: 'Advanced hair restoration treatments to help you regain confidence with natural-looking results.',
-    image: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?q=80&w=800&auto=format&fit=crop',
-  },
-  {
-    id: 'hair-transplantation',
-    title: 'Hair Transplantation',
-    description: 'State-of-the-art FUE and FUT hair transplantation techniques for permanent hair restoration.',
-    image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=800&auto=format&fit=crop',
-  },
-  {
-    id: 'hair-treatments',
-    title: 'Hair Treatments',
-    description: 'Comprehensive hair care solutions including PRP therapy, scalp treatments, and hair loss prevention.',
-    image: 'https://images.unsplash.com/photo-1585747860715-2ba37e788b7d?q=80&w=800&auto=format&fit=crop',
-  },
-  {
-    id: 'skin-care',
-    title: 'Skin Care',
-    description: 'Professional skincare treatments including facials, chemical peels, and anti-aging solutions.',
-    image: 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?q=80&w=800&auto=format&fit=crop',
-  },
-  {
-    id: 'acne-treatment',
-    title: 'Acne Treatment',
-    description: 'Effective acne treatment plans tailored to your skin type for clear, healthy skin.',
-    image: 'https://images.unsplash.com/photo-1571875257727-256c39da42af?q=80&w=800&auto=format&fit=crop',
-  },
-  {
-    id: 'anti-aging',
-    title: 'Anti-Aging',
-    description: 'Revolutionary anti-aging treatments including botox, fillers, and skin rejuvenation therapies.',
-    image: 'https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?q=80&w=800&auto=format&fit=crop',
-  },
-  {
-    id: 'pigmentation',
-    title: 'Pigmentation Treatment',
-    description: 'Advanced solutions for hyperpigmentation, melasma, and uneven skin tone.',
-    image: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?q=80&w=800&auto=format&fit=crop',
-  },
-  {
-    id: 'hijama',
-    title: 'Hijama Therapy',
-    description: 'Traditional cupping therapy for detoxification, pain relief, and overall wellness.',
-    image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=800&auto=format&fit=crop',
-  },
-  {
-    id: 'laser-therapy',
-    title: 'Laser Therapy',
-    description: 'Cutting-edge laser treatments for hair removal, skin resurfacing, and scar reduction.',
-    image: 'https://images.unsplash.com/photo-1559757148-5c350d0d4c09?q=80&w=800&auto=format&fit=crop',
-  },
-  {
-    id: 'prp-therapy',
-    title: 'PRP Therapy',
-    description: 'Platelet-Rich Plasma therapy to stimulate natural hair growth and improve hair density.',
-    image: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?q=80&w=800&auto=format&fit=crop',
-  },
-  {
-    id: 'scalp-treatment',
-    title: 'Scalp Treatment',
-    description: 'Specialized scalp treatments for dandruff, psoriasis, and other scalp conditions.',
-    image: 'https://images.unsplash.com/photo-1605497788044-5a32c7078486?q=80&w=800&auto=format&fit=crop',
-  },
-  {
-    id: 'hair-thickening',
-    title: 'Hair Thickening',
-    description: 'Effective treatments to add volume and thickness to thinning or fine hair.',
-    image: 'https://images.unsplash.com/photo-1563453392212-326f5e854473?q=80&w=800&auto=format&fit=crop',
-  },
-];
-
-interface FormErrors {
-  name?: string;
-  email?: string;
-  phone?: string;
-  service?: string;
-  message?: string;
-}
 
 export default function Home() {
   const [showAllServices, setShowAllServices] = useState(false);
   const [currentServiceIndex, setCurrentServiceIndex] = useState(0);
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    service: '',
-    message: '',
-  });
-  const [errors, setErrors] = useState<FormErrors>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { showToast } = useToast();
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const { open: openBookingModal } = useBookingModal();
 
   const { data: heroData, loading: heroLoading, error: heroError } = useCMSData('hero');
   const { data: servicesData, loading: servicesLoading, error: servicesError } = useCMSData('services');
   const { data: aboutData, loading: aboutLoading, error: aboutError } = useCMSData('about');
   const { data: contactData, loading: contactLoading, error: contactError } = useCMSData('contact');
+  const { data: footerData } = useCMSData('footer');
 
-  // Debug logging
   useEffect(() => {
     if (heroError) console.error('Hero data error:', heroError);
     if (servicesError) console.error('Services data error:', servicesError);
     if (aboutError) console.error('About data error:', aboutError);
     if (contactError) console.error('Contact data error:', contactError);
+  }, [heroError, servicesError, aboutError, contactError]);
 
-    // Log data for debugging
-    console.log('Hero data:', heroData);
-    console.log('Services data:', servicesData);
-    console.log('About data:', aboutData);
-    console.log('Contact data:', contactData);
-  }, [heroData, servicesData, aboutData, contactData, heroError, servicesError, aboutError, contactError]);
-
-  const services = servicesData?.items || defaultServices;
+  const services = servicesData?.items?.length ? servicesData.items : defaultServices;
   const displayedServices = showAllServices ? services : services.slice(0, 8);
 
-  // Carousel navigation functions
-  const nextService = () => {
-    setCurrentServiceIndex((prev) => (prev + 1) % displayedServices.length);
+  // Carousel navigation — scrolls the native scroll-snap row rather than
+  // faking motion with a CSS transform, so there's no peeking-neighbor
+  // overlap or absolutely-positioned arrows sitting on top of card content.
+  const scrollToService = (index: number) => {
+    const container = carouselRef.current;
+    if (!container) return;
+    const clampedIndex = Math.max(0, Math.min(index, displayedServices.length - 1));
+    const card = container.children[clampedIndex] as HTMLElement | undefined;
+    card?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    setCurrentServiceIndex(clampedIndex);
   };
 
-  const prevService = () => {
-    setCurrentServiceIndex((prev) => (prev - 1 + displayedServices.length) % displayedServices.length);
-  };
+  const goToService = (index: number) => scrollToService(index);
 
-  const goToService = (index: number) => {
-    setCurrentServiceIndex(index);
-  };
-
-  const validateForm = () => {
-    const newErrors: FormErrors = {};
-
-    // Name validation - Custom validation
-    const nameTrimmed = formData.name.trim();
-    if (!nameTrimmed) {
-      newErrors.name = 'Full name is required';
-    } else if (nameTrimmed.length < 2) {
-      newErrors.name = 'Name must be at least 2 characters long';
-    } else if (nameTrimmed.length > 50) {
-      newErrors.name = 'Name cannot exceed 50 characters';
-    } else if (!/^[a-zA-Z\s'-]+$/.test(nameTrimmed)) {
-      newErrors.name = 'Name can only contain letters, spaces, hyphens, and apostrophes';
-    }
-
-    // Email validation - Custom validation
-    const emailTrimmed = formData.email.trim();
-    if (!emailTrimmed) {
-      newErrors.email = 'Email address is required';
-    } else {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(emailTrimmed)) {
-        newErrors.email = 'Please enter a valid email address (e.g., name@example.com)';
-      } else if (emailTrimmed.length > 100) {
-        newErrors.email = 'Email address cannot exceed 100 characters';
-      } else if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(emailTrimmed)) {
-        newErrors.email = 'Email format is invalid. Please check and try again';
+  const handleCarouselScroll = () => {
+    const container = carouselRef.current;
+    if (!container) return;
+    const { scrollLeft, children } = container;
+    let closestIndex = 0;
+    let closestDistance = Infinity;
+    Array.from(children).forEach((child, index) => {
+      const el = child as HTMLElement;
+      const distance = Math.abs(el.offsetLeft - scrollLeft);
+      if (distance < closestDistance) {
+        closestDistance = distance;
+        closestIndex = index;
       }
-    }
-
-    // Phone validation - Custom validation
-    const phoneTrimmed = formData.phone.trim();
-    if (!phoneTrimmed) {
-      newErrors.phone = 'Phone number is required';
-    } else {
-      const phoneDigits = phoneTrimmed.replace(/\D/g, '');
-      if (phoneDigits.length < 10) {
-        newErrors.phone = 'Phone number must contain at least 10 digits';
-      } else if (phoneDigits.length > 15) {
-        newErrors.phone = 'Phone number cannot exceed 15 digits';
-      } else if (!/^[\d\s\-\+\(\)]+$/.test(phoneTrimmed)) {
-        newErrors.phone = 'Phone number can only contain digits, spaces, hyphens, parentheses, and + sign';
-      }
-    }
-
-    // Service validation
-    if (!formData.service || formData.service === '') {
-      newErrors.service = 'Please select a service';
-    }
-
-    // Message validation (optional but with custom validation if provided)
-    const messageTrimmed = formData.message.trim();
-    if (messageTrimmed.length > 0) {
-      if (messageTrimmed.length < 10) {
-        newErrors.message = 'Message must be at least 10 characters if provided';
-      } else if (messageTrimmed.length > 500) {
-        newErrors.message = 'Message cannot exceed 500 characters';
-      }
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    // Clear error when user starts typing
-    if (errors[name as keyof FormErrors]) {
-      setErrors(prev => ({ ...prev, [name]: undefined }));
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    // Clear previous errors
-    setErrors({});
-
-    if (!validateForm()) {
-      showToast('error', 'Please fix the validation errors in the form before submitting.');
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      // Get service name
-      const selectedService = services.find((s: { id: string; title: string }) => s.id === formData.service);
-      const serviceName = selectedService ? selectedService.title : 'Unknown Service';
-
-      // Send appointment request to API
-      const response = await fetch('/api/appointment', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: formData.name.trim(),
-          email: formData.email.trim(),
-          phone: formData.phone.trim(),
-          service: serviceName,
-          message: formData.message.trim() || '',
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        // Provide more detailed error message
-        const errorMessage = data.error || data.message || 'Failed to submit appointment request';
-        const errorDetails = data.details ? ` ${data.details}` : '';
-        throw new Error(`${errorMessage}${errorDetails}`);
-      }
-
-      showToast('success', 'Thank you! Your appointment request has been submitted successfully. We will contact you soon.');
-
-      // Reset form
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        service: '',
-        message: '',
-      });
-      setErrors({});
-    } catch (error) {
-      console.error('Appointment submission error:', error);
-      showToast('error', error instanceof Error ? error.message : 'Failed to submit your appointment request. Please try again or contact us directly.');
-    } finally {
-      setIsSubmitting(false);
-    }
+    });
+    setCurrentServiceIndex(closestIndex);
   };
 
   const heroTitle = heroData?.title || "Transform Your Skin & Hair";
   const heroSubtitle = heroData?.subtitle || "Experience world-class treatments at Dr Baig's Clinic. Your journey to confidence starts here.";
   const heroCtaText = heroData?.ctaText || "Book Consultation";
-  const heroCtaHref = heroData?.ctaHref || "#contact";
   const heroBackgroundImage = heroData?.backgroundImage;
 
   const servicesTitle = servicesData?.title || "Our Services";
@@ -288,7 +75,7 @@ export default function Home() {
 
   const aboutTitle = aboutData?.title || "Why Choose Baig's Clinic?";
   const aboutSubtitle = aboutData?.subtitle || "Excellence in every treatment";
-  const aboutFeatures = aboutData?.features || [
+  const aboutFeatures = aboutData?.features?.length ? aboutData.features : [
     {
       id: "expert-team",
       title: "Expert Team",
@@ -311,6 +98,25 @@ export default function Home() {
 
   const contactTitle = contactData?.title || "Book Your Appointment";
   const contactSubtitle = contactData?.subtitle || "Start your journey to healthier skin and hair today";
+  // Sourced from the same footer contact info the admin already edits in
+  // the Footer Settings tab — one place to update address/phone/email,
+  // reflected both in the footer and in this on-page contact section.
+  const contactInfo = footerData?.contact && typeof footerData.contact === 'object'
+    ? footerData.contact
+    : { address: '123 Health Street\nCity, State 12345', phone: '+1 (234) 567-890', email: 'info@glowclinic.com' };
+
+  // The address field stores one branch per line as "Label: street details"
+  // (multiple clinic locations) — split it into distinct labeled entries
+  // instead of rendering it as one run-on paragraph.
+  const branches: { label: string | null; details: string }[] = String(contactInfo.address || '')
+    .split('\n')
+    .map((line: string) => line.trim())
+    .filter(Boolean)
+    .map((line: string) => {
+      const separatorIndex = line.indexOf(':');
+      if (separatorIndex === -1) return { label: null, details: line };
+      return { label: line.slice(0, separatorIndex).trim(), details: line.slice(separatorIndex + 1).trim() };
+    });
 
   const iconMap: Record<string, JSX.Element> = {
     shield: (
@@ -336,66 +142,48 @@ export default function Home() {
         title={heroTitle}
         subtitle={heroSubtitle}
         ctaText={heroCtaText}
-        ctaHref={heroCtaHref}
+        onCtaClick={openBookingModal}
         backgroundImage={heroBackgroundImage}
       />
 
       <Section
         id="services"
+        eyebrow="What We Offer"
         title={servicesTitle}
         subtitle={servicesSubtitle}
         className="bg-gray-50 dark:bg-gray-900"
       >
-        {/* Mobile Carousel */}
-        <div className="block md:hidden relative">
-          <div className="relative overflow-hidden px-12">
-            <div
-              className="flex transition-transform duration-300 ease-in-out"
-              style={{ transform: `translateX(-${currentServiceIndex * 100}%)` }}
-            >
-              {displayedServices.map((service: { id: string; title: string; description: string; image: string }, index: number) => (
-                <div key={service.id} className="w-full flex-shrink-0 px-2">
-                  <ServiceCard service={service} index={index} />
-                </div>
-              ))}
-            </div>
+        {/* Mobile Carousel — a native scroll-snap row, contained within the
+            section's own width (no negative-margin bleed that can push the
+            whole page into horizontal overflow), dots-only navigation. */}
+        <div className="block md:hidden w-full max-w-full overflow-hidden">
+          <div
+            ref={carouselRef}
+            onScroll={handleCarouselScroll}
+            className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-2"
+          >
+            {displayedServices.map((service: { id: string; title: string; description: string; image: string }, index: number) => (
+              <div key={service.id} className="w-[80%] xs:w-[68%] flex-shrink-0 snap-center">
+                <ServiceCard service={service} index={index} />
+              </div>
+            ))}
           </div>
 
-          {/* Navigation Arrows */}
           {displayedServices.length > 1 && (
-            <>
-              <button
-                onClick={prevService}
-                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white dark:bg-gray-800 rounded-full shadow-lg flex items-center justify-center hover:bg-primary-50 dark:hover:bg-gray-700 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                aria-label="Previous service"
-              >
-                <svg className="w-5 h-5 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-              <button
-                onClick={nextService}
-                className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white dark:bg-gray-800 rounded-full shadow-lg flex items-center justify-center hover:bg-primary-50 dark:hover:bg-gray-700 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                aria-label="Next service"
-              >
-                <svg className="w-5 h-5 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-            </>
-          )}
-
-          {/* Dots Indicator */}
-          {displayedServices.length > 1 && (
-            <div className="flex justify-center gap-2 mt-6">
+            <div className="flex justify-center items-center gap-2.5 mt-6">
+              {/* The button is the 44px touch target (global a11y rule); the
+                  inner span is the actual small visible dot. */}
+              {/* A carousel dot is a small supplementary control, not a primary
+                  action — deliberately not run through Button/the 44px touch
+                  rule, which would balloon it into a padded box. */}
               {displayedServices.map((_: any, index: number) => (
                 <button
                   key={index}
                   onClick={() => goToService(index)}
-                  className={`w-2 h-2 rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
+                  className={`h-2.5 rounded-full transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
                     index === currentServiceIndex
-                      ? 'bg-primary-600 dark:bg-primary-400 w-6'
-                      : 'bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500'
+                      ? 'bg-primary-600 dark:bg-primary-400 w-7'
+                      : 'bg-gray-300 dark:bg-gray-600 w-2.5'
                   }`}
                   aria-label={`Go to service ${index + 1}`}
                   aria-current={index === currentServiceIndex ? 'true' : 'false'}
@@ -438,6 +226,7 @@ export default function Home() {
 
       <Section
         id="about"
+        eyebrow="Why Choose Us"
         title={aboutTitle}
         subtitle={aboutSubtitle}
         className="bg-white dark:bg-gray-900"
@@ -445,17 +234,14 @@ export default function Home() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 px-4 sm:px-0">
           {aboutFeatures.map((feature: any, index: number) => (
             <ScrollReveal key={feature.id} direction="up" delay={index * 100}>
-              <article className="group relative bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 dark:border-gray-700 hover:border-primary-200 dark:hover:border-primary-700 hover:-translate-y-1">
-                <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-primary-100 dark:from-primary-900/30 to-primary-50 dark:to-primary-900/20 rounded-bl-3xl rounded-tr-2xl opacity-50" aria-hidden="true"></div>
-                <div className="relative">
-                  <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300" aria-hidden="true">
-                    {iconMap[feature.icon] || iconMap.shield}
-                  </div>
-                  <h3 className="text-lg sm:text-xl font-bold mb-2 sm:mb-3 text-gray-900 dark:text-gray-100">{feature.title}</h3>
-                  <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 leading-relaxed">
-                    {feature.description}
-                  </p>
+              <article className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-rest hover:shadow-hover transition-shadow duration-300 border border-gray-100 dark:border-gray-700 hover:border-primary-200 dark:hover:border-primary-700 h-full">
+                <div className="w-16 h-16 bg-primary-600 rounded-2xl flex items-center justify-center mb-6" aria-hidden="true">
+                  {iconMap[feature.icon] || iconMap.shield}
                 </div>
+                <h3 className="text-lg sm:text-xl font-bold mb-2 sm:mb-3 text-gray-900 dark:text-gray-100">{feature.title}</h3>
+                <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 leading-relaxed">
+                  {feature.description}
+                </p>
               </article>
             </ScrollReveal>
           ))}
@@ -464,134 +250,80 @@ export default function Home() {
 
       <Section
         id="contact"
+        eyebrow="Get In Touch"
         title={contactTitle}
         subtitle={contactSubtitle}
-        className="bg-primary-600 dark:bg-primary-700 text-white"
+        className="bg-gray-50 dark:bg-gray-900"
       >
-        <ScrollReveal direction="up" delay={0}>
-          <div className="max-w-3xl mx-auto px-4 sm:px-4 md:px-6 lg:px-8 xl:px-12">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-10 shadow-2xl border border-gray-100 dark:border-gray-700">
-              <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5" noValidate aria-label="Appointment booking form">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="form-field">
-                    <FloatingLabelInput
-                      id="name"
-                      name="name"
-                      type="text"
-                      placeholder="Full Name *"
-                      value={formData.name}
-                      onChange={handleChange}
-                      error={errors.name}
-                      icon={
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
-                      }
-                    />
-                  </div>
-                  <div className="form-field" style={{ animationDelay: '0.1s' }}>
-                    <FloatingLabelInput
-                      id="email"
-                      name="email"
-                      type="email"
-                      placeholder="Email Address *"
-                      value={formData.email}
-                      onChange={handleChange}
-                      error={errors.email}
-                      icon={
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                        </svg>
-                      }
-                    />
-                  </div>
+        <div className="max-w-4xl mx-auto">
+          {branches.length > 0 && (
+            <ScrollReveal direction="up" delay={0}>
+              <div
+                className="bg-white dark:bg-gray-800 rounded-2xl shadow-rest border border-gray-100 dark:border-gray-700 mb-6"
+                style={{ padding: 'var(--space-md)' }}
+              >
+                <div className="flex items-center gap-2" style={{ marginBottom: 'var(--space-sm)' }}>
+                  <MapPin className="w-5 h-5 text-primary-600 dark:text-primary-400 flex-shrink-0" weight="duotone" />
+                  <h3 className="font-bold text-gray-900 dark:text-white" style={{ fontSize: 'var(--text-lg)' }}>
+                    Our Locations
+                  </h3>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="form-field" style={{ animationDelay: '0.2s' }}>
-                    <FloatingLabelInput
-                      id="phone"
-                      name="phone"
-                      type="tel"
-                      placeholder="Phone Number *"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      error={errors.phone}
-                      icon={
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                        </svg>
-                      }
-                    />
-                  </div>
-                  <div className="form-field" style={{ animationDelay: '0.3s' }}>
-                    <FloatingLabelInput
-                      id="service"
-                      name="service"
-                      placeholder="Select a service *"
-                      value={formData.service}
-                      onChange={handleChange}
-                      error={errors.service}
-                      as="select"
-                      options={[
-                        { value: '', label: 'Select a service' },
-                        ...services.map((s: { id: string; title: string }) => ({ value: s.id, label: s.title }))
-                      ]}
-                      icon={
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                        </svg>
-                      }
-                    />
-                  </div>
-                </div>
-                <div className="form-field" style={{ animationDelay: '0.4s' }}>
-                  <FloatingLabelInput
-                    id="message"
-                    name="message"
-                    placeholder="Message (Optional)"
-                    value={formData.message}
-                    onChange={handleChange}
-                    error={errors.message}
-                    as="textarea"
-                    icon={
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                      </svg>
-                    }
-                  />
-                </div>
-                <div className="pt-1">
-                  <Button
-                    type="submit"
-                    variant="primary"
-                    size="md"
-                    disabled={isSubmitting}
-                    className="w-full sm:w-auto mx-auto shadow-md hover:shadow-lg transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 text-xs sm:text-sm md:text-base px-4 py-2 sm:px-6 sm:py-3"
-                  >
-                    <span className="flex items-center justify-center space-x-2">
-                      {isSubmitting ? (
-                        <>
-                          <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                          <span>Submitting...</span>
-                        </>
-                      ) : (
-                        <>
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
-                          <span>Book Appointment</span>
-                        </>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+                  {branches.map((branch: { label: string | null; details: string }, i: number) => (
+                    <div key={i}>
+                      {branch.label && (
+                        <p className="font-semibold text-gray-900 dark:text-white text-sm mb-0.5">
+                          {branch.label}
+                        </p>
                       )}
-                    </span>
-                  </Button>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                        {branch.details}
+                      </p>
+                    </div>
+                  ))}
                 </div>
-              </form>
-            </div>
+              </div>
+            </ScrollReveal>
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-8 sm:mb-10">
+            <ScrollReveal direction="up" delay={80}>
+              <a
+                href={`tel:${contactInfo.phone?.replace(/[^\d+]/g, '')}`}
+                className="flex items-center gap-3 bg-white dark:bg-gray-800 rounded-2xl shadow-rest hover:shadow-hover border border-gray-100 dark:border-gray-700 h-full transition-shadow"
+                style={{ padding: 'var(--space-md)' }}
+              >
+                <span className="w-10 h-10 rounded-xl bg-primary-50 dark:bg-primary-900/30 flex items-center justify-center flex-shrink-0">
+                  <Phone className="w-5 h-5 text-primary-600 dark:text-primary-400" weight="duotone" />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Call us</p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{contactInfo.phone}</p>
+                </div>
+              </a>
+            </ScrollReveal>
+            <ScrollReveal direction="up" delay={160}>
+              <a
+                href={`mailto:${contactInfo.email}`}
+                className="flex items-center gap-3 bg-white dark:bg-gray-800 rounded-2xl shadow-rest hover:shadow-hover border border-gray-100 dark:border-gray-700 h-full transition-shadow"
+                style={{ padding: 'var(--space-md)' }}
+              >
+                <span className="w-10 h-10 rounded-xl bg-primary-50 dark:bg-primary-900/30 flex items-center justify-center flex-shrink-0">
+                  <EnvelopeSimple className="w-5 h-5 text-primary-600 dark:text-primary-400" weight="duotone" />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Email us</p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{contactInfo.email}</p>
+                </div>
+              </a>
+            </ScrollReveal>
           </div>
-        </ScrollReveal>
+          <div className="text-center">
+            <Button onClick={openBookingModal} variant="primary" size="lg" icon={<CalendarCheck weight="bold" />}>
+              Book Consultation
+            </Button>
+          </div>
+        </div>
       </Section>
     </>
   );
