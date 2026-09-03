@@ -8,6 +8,7 @@ import { useToast } from '@/components/ToastProvider';
 import { DataTable } from '@/components/ui/data-table';
 import Modal from '@/components/Modal';
 import Button from '@/components/Button';
+import { formatShortDate } from '@/lib/format-date';
 import PatientDetailPage from '@/components/admin/PatientDetailPage';
 import PatientProfileForm, {
   emptyPatientProfile,
@@ -248,7 +249,7 @@ export default function PatientsView() {
       header: 'Registered',
       cell: ({ row }) => (
         <span className="whitespace-nowrap text-gray-500 dark:text-gray-400 text-xs">
-          {new Date(row.original.created_at).toLocaleDateString()}
+          {formatShortDate(row.original.created_at)}
         </span>
       ),
     },

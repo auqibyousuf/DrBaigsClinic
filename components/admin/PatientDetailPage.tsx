@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { type ColumnDef } from '@tanstack/react-table';
 import { ArrowLeft, Printer, CalendarBlank, FileText, Receipt } from '@phosphor-icons/react';
+import { formatShortDate } from '@/lib/format-date';
 import { DataTable } from '@/components/ui/data-table';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import PrescriptionSummary from '@/components/admin/PrescriptionSummary';
@@ -79,7 +80,7 @@ export default function PatientDetailPage({ patientId, onBack }: { patientId: st
       header: 'Date',
       cell: ({ row }) => (
         <span className="whitespace-nowrap">
-          {row.original.date}
+          {formatShortDate(row.original.date)}
           {row.original.slot ? ` · ${row.original.slot}` : ''}
         </span>
       ),
@@ -134,7 +135,7 @@ export default function PatientDetailPage({ patientId, onBack }: { patientId: st
         <div>
           <div className="font-medium text-primary-600 dark:text-primary-400">{row.original.invoiceNumber}</div>
           <div className="text-xs text-gray-500 dark:text-gray-400">
-            {new Date(row.original.billDate).toLocaleDateString()}
+            {formatShortDate(row.original.billDate)}
           </div>
         </div>
       ),

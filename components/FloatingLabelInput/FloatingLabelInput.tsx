@@ -30,7 +30,7 @@ export const fieldStyle = (icon: React.ReactNode | undefined): React.CSSProperti
 });
 
 export const fieldClasses = (error?: string) =>
-  `w-full text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-800/60 border transition-colors duration-150 focus:outline-none focus-visible:outline-none focus:bg-white dark:focus:bg-gray-800 placeholder-gray-400 dark:placeholder-gray-500 ${
+  `w-full text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 border transition-colors duration-150 focus:outline-none focus-visible:outline-none placeholder-gray-400 dark:placeholder-gray-500 ${
     error
       ? 'border-red-300 dark:border-red-600 focus:border-red-500 dark:focus:border-red-500 focus:ring-2 focus:ring-red-500/15'
       : 'border-gray-200 dark:border-gray-700 focus:border-primary-500 dark:focus:border-primary-500 focus:ring-2 focus:ring-primary-500/15 hover:border-gray-300 dark:hover:border-gray-600'

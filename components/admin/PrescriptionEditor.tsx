@@ -449,7 +449,7 @@ export default function PrescriptionEditor({
                 onClick={() => setOpenModule(null)}
                 className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-semibold cursor-pointer"
               >
-                FloppyDisk
+                Save
               </button>
             </div>
           </div>
@@ -486,7 +486,7 @@ export default function PrescriptionEditor({
                 disabled={!privateNotes.trim()}
                 className="px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed text-white rounded-lg text-sm font-semibold cursor-pointer"
               >
-                FloppyDisk
+                Save
               </button>
             </div>
           </div>
@@ -515,7 +515,7 @@ export default function PrescriptionEditor({
                 onClick={() => setOpenModule(null)}
                 className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-semibold cursor-pointer"
               >
-                FloppyDisk
+                Save
               </button>
             </div>
           </div>
@@ -630,7 +630,7 @@ export default function PrescriptionEditor({
                 onClick={() => setOpenModule(null)}
                 className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-semibold cursor-pointer"
               >
-                FloppyDisk
+                Save
               </button>
             </div>
           </div>
@@ -653,7 +653,7 @@ export default function PrescriptionEditor({
           className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium disabled:opacity-50 cursor-pointer"
         >
           {saving ? <CircleNotch className="w-4 h-4 animate-spin" /> : <FloppyDisk className="w-4 h-4" />}
-          {saving ? 'Saving...' : 'FloppyDisk & Generate PDF'}
+          {saving ? 'Saving...' : 'Save & Generate PDF'}
         </button>
       </div>
     </div>

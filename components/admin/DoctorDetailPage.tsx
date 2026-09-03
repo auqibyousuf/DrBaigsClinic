@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { type ColumnDef } from '@tanstack/react-table';
 import { ArrowLeft, FileText, CalendarBlank, CheckCircle, XCircle } from '@phosphor-icons/react';
+import { formatShortDate } from '@/lib/format-date';
 import { DataTable } from '@/components/ui/data-table';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
@@ -46,7 +47,7 @@ const appointmentColumns: ColumnDef<AppointmentSummary>[] = [
     header: 'Visit',
     cell: ({ row }) => (
       <span className="whitespace-nowrap">
-        {row.original.date}
+        {formatShortDate(row.original.date)}
         {row.original.slot ? ` · ${row.original.slot}` : ''}
       </span>
     ),

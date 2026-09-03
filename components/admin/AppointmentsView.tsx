@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { type ColumnDef } from '@tanstack/react-table';
 import { Play, Eye, PencilSimple, CheckCircle, Prohibit, TrashSimple, FileText, ListChecks, XCircle } from '@phosphor-icons/react';
 import type { CMSData } from '@/lib/cms';
+import { formatShortDate } from '@/lib/format-date';
 import { DataTable, type DataTableFilter } from '@/components/ui/data-table';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import AppointmentDetailsPanel, { hasStarted, type Appointment } from '@/components/admin/AppointmentDetailsPanel';
@@ -123,7 +124,7 @@ export default function AppointmentsView({ doctors }: AppointmentsViewProps) {
       cell: ({ row }) => (
         <div className="text-xs whitespace-nowrap">
           <div className="text-gray-900 dark:text-white">
-            {row.original.appointment_date}
+            {formatShortDate(row.original.appointment_date)}
             {row.original.slot_start ? ` · ${row.original.slot_start}` : ''}
           </div>
           <div className="text-gray-500 dark:text-gray-400">{doctorName(row.original.doctor_id)}</div>

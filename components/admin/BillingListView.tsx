@@ -7,6 +7,7 @@ import { DataTable, type DataTableFilter } from '@/components/ui/data-table';
 import Modal from '@/components/Modal';
 import InvoiceEditor from '@/components/admin/InvoiceEditor';
 import type { Invoice } from '@/lib/invoices';
+import { formatShortDate } from '@/lib/format-date';
 
 interface InvoiceRow {
   id: string;
@@ -84,7 +85,7 @@ export default function BillingListView() {
         <div>
           <div className="font-medium text-primary-600 dark:text-primary-400">{row.original.invoiceNumber}</div>
           <div className="text-xs text-gray-500 dark:text-gray-400">
-            {new Date(row.original.billDate).toLocaleDateString()}
+            {formatShortDate(row.original.billDate)}
           </div>
         </div>
       ),

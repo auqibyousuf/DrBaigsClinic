@@ -9,6 +9,7 @@ import Button from '@/components/Button';
 import DropdownMenu from '@/components/admin/DropdownMenu';
 import PrescriptionEditor from '@/components/admin/PrescriptionEditor';
 import { useToast } from '@/components/ToastProvider';
+import { formatShortDate } from '@/lib/format-date';
 
 interface PrescriptionRow {
   id: string;
@@ -82,18 +83,18 @@ export default function PrescriptionsListView({ doctors }: PrescriptionsListView
       accessorKey: 'createdAt',
       header: 'Date Written',
       cell: ({ row }) => (
-        <span className="whitespace-nowrap">
-          {new Date(row.original.createdAt).toLocaleDateString()}
-        </span>
+        <span className="whitespace-nowrap">{formatShortDate(row.original.createdAt)}</span>
       ),
     },
     {
       id: 'visit',
       header: 'Visit',
-      accessorFn: (row) => (row.appointmentDate ? `${row.appointmentDate} ${row.slot}` : ''),
+      accessorFn: (row) => (row.appointmentDate ? `${row.appointmentDate} ${row.slot || ''}` : ''),
       cell: ({ row }) => (
         <span className="whitespace-nowrap">
-          {row.original.appointmentDate ? `${row.original.appointmentDate} ${row.original.slot}` : '—'}
+          {row.original.appointmentDate
+            ? `${formatShortDate(row.original.appointmentDate)}${row.original.slot ? ` · ${row.original.slot}` : ' · Walk-in'}`
+            : '—'}
         </span>
       ),
     },
@@ -305,7 +306,7 @@ export default function PrescriptionsListView({ doctors }: PrescriptionsListView
               >
                 <p className="font-medium text-gray-900 dark:text-white truncate">{appt.patient_name}</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mb-1 truncate">
-                  {doctorName(appt.doctor_id)} · {appt.appointment_date}
+                  {doctorName(appt.doctor_id)} · {formatShortDate(appt.appointment_date)}
                   {appt.slot_start ? ` at ${appt.slot_start}` : ' · Walk-in'}
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 mb-3 flex-1">{appt.reason}</p>

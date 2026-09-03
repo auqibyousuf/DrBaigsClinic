@@ -29,9 +29,9 @@ export default function DropdownMenu({ actions, title = 'More actions' }: Dropdo
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
         title={title}
-        className="p-1.5 rounded-lg text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+        className="p-1.5 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
       >
-        <DotsThreeVertical className="w-4 h-4" />
+        <DotsThreeVertical className="w-5 h-5" weight="bold" />
       </PopoverTrigger>
       <PopoverContent align="end" className="w-auto min-w-[150px] md:min-w-[190px] !p-1 md:!p-1.5">
         {visible.map((action) => (
