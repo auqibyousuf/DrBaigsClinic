@@ -55,7 +55,7 @@ const appointmentColumns: ColumnDef<AppointmentSummary>[] = [
   {
     accessorKey: 'reason',
     header: 'Reason',
-    cell: ({ row }) => <span className="block max-w-xs truncate">{row.original.reason}</span>,
+    cell: ({ row }) => <span className="block max-w-xs truncate" title={row.original.reason}>{row.original.reason}</span>,
     enableSorting: false,
   },
 ];
@@ -91,7 +91,7 @@ export default function DoctorDetailPage({
     {
       accessorKey: 'diagnosis',
       header: 'Diagnosis',
-      cell: ({ row }) => <span className="block max-w-xs truncate">{row.original.diagnosis || '—'}</span>,
+      cell: ({ row }) => <span className="block max-w-xs truncate" title={row.original.diagnosis || '—'}>{row.original.diagnosis || '—'}</span>,
       enableSorting: false,
     },
     {
@@ -104,6 +104,7 @@ export default function DoctorDetailPage({
             target="_blank"
             rel="noopener noreferrer"
             className="text-gray-500 hover:text-primary-600 dark:hover:text-primary-400 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 inline-flex"
+            title="View prescription PDF"
           >
             <FileText className="w-4 h-4" />
           </a>

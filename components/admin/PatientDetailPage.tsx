@@ -89,7 +89,7 @@ export default function PatientDetailPage({ patientId, onBack }: { patientId: st
     {
       accessorKey: 'reason',
       header: 'Reason',
-      cell: ({ row }) => <span className="block max-w-xs truncate">{row.original.reason}</span>,
+      cell: ({ row }) => <span className="block max-w-xs truncate" title={row.original.reason}>{row.original.reason}</span>,
       enableSorting: false,
     },
     {

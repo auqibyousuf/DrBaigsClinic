@@ -134,7 +134,7 @@ export default function AppointmentsView({ doctors }: AppointmentsViewProps) {
     {
       accessorKey: 'reason',
       header: 'Reason',
-      cell: ({ row }) => <span className="block max-w-[10rem] truncate text-xs">{row.original.reason}</span>,
+      cell: ({ row }) => <span className="block max-w-[10rem] truncate text-xs" title={row.original.reason}>{row.original.reason}</span>,
       enableSorting: false,
     },
     {

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cancelAppointment, getAppointmentByToken, isPastPatientCutoff } from '@/lib/appointments';
 import { getCMSData } from '@/lib/cms';
-import { sendUpdateNotification } from '@/lib/notifications';
+import { sendAppointmentCancelled } from '@/lib/notifications';
 
 export async function POST(request: NextRequest, { params }: { params: { token: string } }) {
   try {
@@ -27,13 +27,16 @@ export async function POST(request: NextRequest, { params }: { params: { token: 
 
     const cmsData = await getCMSData();
     const doctor = cmsData.doctors?.items?.find((d) => d.id === appointment.doctor_id);
-    const message = `Your appointment with ${doctor?.name || 'your doctor'} on ${appointment.appointment_date} at ${appointment.slot_start} has been cancelled.`;
+    const doctorName = doctor?.name || 'your doctor';
+    const slot = appointment.slot_start || 'to be confirmed';
 
     await Promise.all([
-      sendUpdateNotification(appointment.patient_phone, message),
-      doctor?.phone ? sendUpdateNotification(doctor.phone, `Cancelled: ${message}`) : Promise.resolve(),
+      sendAppointmentCancelled(appointment.patient_phone, doctorName, appointment.appointment_date, slot),
+      doctor?.phone
+        ? sendAppointmentCancelled(doctor.phone, doctorName, appointment.appointment_date, slot)
+        : Promise.resolve(),
       cmsData.contact?.notificationPhone
-        ? sendUpdateNotification(cmsData.contact.notificationPhone, `Cancelled: ${message}`)
+        ? sendAppointmentCancelled(cmsData.contact.notificationPhone, doctorName, appointment.appointment_date, slot)
         : Promise.resolve(),
     ]);
 

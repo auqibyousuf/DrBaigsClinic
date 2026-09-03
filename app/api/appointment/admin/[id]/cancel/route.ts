@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cancelAppointment, getAppointmentById } from '@/lib/appointments';
 import { getCMSData } from '@/lib/cms';
-import { sendUpdateNotification } from '@/lib/notifications';
+import { sendAppointmentCancelled } from '@/lib/notifications';
 
 function isAuthenticated(request: NextRequest): boolean {
   const authHeader = request.headers.get('authorization');
@@ -26,9 +26,13 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 
     const cmsData = await getCMSData();
     const doctor = cmsData.doctors?.items?.find((d) => d.id === appointment.doctor_id);
-    const message = `Your appointment with ${doctor?.name || 'your doctor'} on ${appointment.appointment_date} at ${appointment.slot_start} has been cancelled by the clinic.`;
 
-    await sendUpdateNotification(appointment.patient_phone, message);
+    await sendAppointmentCancelled(
+      appointment.patient_phone,
+      doctor?.name || 'your doctor',
+      appointment.appointment_date,
+      appointment.slot_start || 'to be confirmed'
+    );
 
     return NextResponse.json({ success: true, appointment: updated });
   } catch (error) {

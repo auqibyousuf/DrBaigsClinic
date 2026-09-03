@@ -229,7 +229,10 @@ export default function PatientsView() {
       accessorKey: 'lastVisitReason',
       header: 'Reason',
       cell: ({ row }) => (
-        <span className="block max-w-[10rem] truncate text-xs text-gray-600 dark:text-gray-300">
+        <span
+          className="block max-w-[10rem] truncate text-xs text-gray-600 dark:text-gray-300"
+          title={row.original.lastVisitReason || '—'}
+        >
           {row.original.lastVisitReason || '—'}
         </span>
       ),
