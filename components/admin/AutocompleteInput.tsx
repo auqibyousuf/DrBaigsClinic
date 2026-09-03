@@ -82,6 +82,14 @@ export default function AutocompleteInput({ category, value, onChange, placehold
   };
 
   const filtered = suggestions.filter((s) => s.toLowerCase() !== value.trim().toLowerCase());
+  const trimmedValue = value.trim();
+  const exactMatch = suggestions.some((s) => s.toLowerCase() === trimmedValue.toLowerCase());
+
+  const confirmValue = (v: string) => {
+    onChange(v);
+    setOpen(false);
+    persistTerm(v);
+  };
 
   return (
     <div className="relative">
@@ -95,12 +103,18 @@ export default function AutocompleteInput({ category, value, onChange, placehold
         }}
         onFocus={openDropdown}
         onBlur={() => persistTerm(value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' && trimmedValue) {
+            e.preventDefault();
+            confirmValue(trimmedValue);
+          }
+        }}
         placeholder={placeholder}
         style={fieldStyle(undefined)}
         className={fieldClasses()}
       />
       {open &&
-        filtered.length > 0 &&
+        (filtered.length > 0 || trimmedValue) &&
         rect &&
         createPortal(
           <div
@@ -113,16 +127,22 @@ export default function AutocompleteInput({ category, value, onChange, placehold
                 key={s}
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
-                onClick={() => {
-                  onChange(s);
-                  setOpen(false);
-                  persistTerm(s);
-                }}
+                onClick={() => confirmValue(s)}
                 className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-primary-50 dark:hover:bg-primary-900/30 cursor-pointer"
               >
                 {s}
               </button>
             ))}
+            {trimmedValue && !exactMatch && (
+              <button
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => confirmValue(trimmedValue)}
+                className="w-full text-left px-3 py-2 text-sm font-medium text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/30 cursor-pointer border-t border-gray-100 dark:border-gray-700"
+              >
+                + Add custom &ldquo;{trimmedValue}&rdquo;
+              </button>
+            )}
           </div>,
           document.body
         )}

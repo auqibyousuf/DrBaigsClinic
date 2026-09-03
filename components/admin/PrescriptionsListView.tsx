@@ -119,7 +119,7 @@ export default function PrescriptionsListView({ doctors }: PrescriptionsListView
       accessorKey: 'diagnosis',
       header: 'Diagnosis',
       cell: ({ row }) => (
-        <span className="block max-w-xs truncate">{row.original.diagnosis || '—'}</span>
+        <span className="block max-w-xs truncate" title={row.original.diagnosis || '—'}>{row.original.diagnosis || '—'}</span>
       ),
       enableSorting: false,
     },
