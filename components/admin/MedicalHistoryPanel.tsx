@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Plus } from '@phosphor-icons/react';
 import { AdminInput, AdminTextarea } from '@/components/admin/AdminField';
 import type { MedicalHistoryCategory, MedicalHistoryTag } from '@/lib/prescriptions';
 
@@ -180,9 +181,10 @@ export default function MedicalHistoryPanel({ tags, onChangeTags, noKnown, onCha
                     type="button"
                     disabled={disabled}
                     onClick={() => setAddingTo(cat.id)}
-                    className="flex items-center gap-1 pl-3 pr-3.5 py-1.5 rounded-full border border-dashed border-primary-300 dark:border-primary-700 text-sm text-primary-600 dark:text-primary-400 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                    className="flex items-center gap-1 pl-2.5 pr-3.5 py-1.5 rounded-full border border-dashed border-primary-300 dark:border-primary-700 text-xs text-primary-600 dark:text-primary-400 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    + Add Custom
+                    <Plus className="w-3.5 h-3.5" />
+                    Add
                   </button>
                 )}
               </div>

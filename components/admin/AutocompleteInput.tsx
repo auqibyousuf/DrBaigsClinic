@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { Plus } from '@phosphor-icons/react';
 import { fieldStyle, fieldClasses } from '@/components/FloatingLabelInput/FloatingLabelInput';
 import type { ClinicalTermCategory } from '@/lib/clinical-terms';
 
@@ -141,9 +142,10 @@ export default function AutocompleteInput({ category, value, onChange, placehold
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => confirmValue(trimmedValue)}
-                className="w-full text-left px-3 py-2 text-sm font-medium text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/30 cursor-pointer border-t border-gray-100 dark:border-gray-700"
+                className="w-full flex items-center gap-1.5 text-left px-3 py-2 text-xs font-medium text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/30 cursor-pointer border-t border-gray-100 dark:border-gray-700"
               >
-                + Add custom &ldquo;{trimmedValue}&rdquo;
+                <Plus className="w-3.5 h-3.5 flex-shrink-0" />
+                Add &ldquo;{trimmedValue}&rdquo;
               </button>
             )}
           </div>,
