@@ -44,16 +44,16 @@ export default function VitalsPanel({ reading, onChange }: VitalsPanelProps) {
       </div>
       <div className="divide-y divide-gray-100 dark:divide-gray-800">
         {FIELDS.map(({ key, label, unit }) => (
-          <div key={key} className="flex items-center gap-3 px-4 py-2.5">
-            <span className="w-32 flex-shrink-0 text-sm font-medium text-gray-900 dark:text-white">{label}</span>
-            <div className="flex-1 flex items-stretch rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden focus-within:ring-1 focus-within:ring-primary-500">
+          <div key={key} className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3 px-3 sm:px-4 py-2 sm:py-2.5">
+            <span className="sm:w-28 flex-shrink-0 text-xs sm:text-sm font-medium text-gray-900 dark:text-white">{label}</span>
+            <div className="flex-1 min-w-0 flex items-stretch rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden focus-within:ring-1 focus-within:ring-primary-500">
               <input
                 value={reading[key] || ''}
                 onChange={(e) => onChange({ ...reading, [key]: e.target.value })}
                 placeholder="Enter"
                 className="flex-1 min-w-0 px-3 py-2 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white outline-none focus-visible:outline-none"
               />
-              <span className="flex items-center justify-center w-16 flex-shrink-0 text-xs text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-900/40 border-l border-gray-200 dark:border-gray-700">
+              <span className="flex items-center justify-center w-14 flex-shrink-0 text-xs text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-900/40 border-l border-gray-200 dark:border-gray-700">
                 {unit}
               </span>
             </div>

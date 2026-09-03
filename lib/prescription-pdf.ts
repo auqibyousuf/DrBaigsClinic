@@ -72,25 +72,34 @@ export async function generatePrescriptionPdf(
 
   let y = page.getHeight() - margin;
 
-  // ---- Doctor (left) / Clinic (right) header ----
+  // ---- Section 1: Doctor (left) / Clinic name + phone (right) — names
+  // only, kept on their own fixed-height row so a long multi-branch
+  // address (section 2 below) never collides with this row. ----
   drawText(`Dr. ${doctor.name}`, margin, y, 16, boldFont, accent);
   if (doctor.qualification) drawText(doctor.qualification, margin, y - 16, 9.5, font, gray);
   if (doctor.specialty) drawText(doctor.specialty, margin, y - (doctor.qualification ? 28 : 16), 9.5, font, gray);
 
   const clinicName = clinic.name || "Dr Baig's Clinic";
   drawRightAligned(clinicName, pageWidth - margin, y, 16, boldFont, accent);
-  let clinicLineY = y - 16;
-  if (clinic.address) {
-    for (const line of clinic.address.split('\n')) {
-      drawRightAligned(line, pageWidth - margin, clinicLineY, 9.5, font, gray);
-      clinicLineY -= 13;
-    }
-  }
   if (clinic.phone) {
-    drawRightAligned(`Phone No: ${clinic.phone}`, pageWidth - margin, clinicLineY, 9.5, boldFont, dark);
+    drawRightAligned(`Phone No: ${clinic.phone}`, pageWidth - margin, y - 16, 9.5, boldFont, dark);
   }
 
-  y -= 46;
+  const doctorInfoLines = 1 + (doctor.qualification ? 1 : 0) + (doctor.specialty ? 1 : 0);
+  y -= Math.max(doctorInfoLines * 13, 30) + 6;
+
+  // ---- Section 2: Clinic address — its own full-width block, so it can
+  // wrap to as many lines as it needs without fighting Section 1's layout.
+  if (clinic.address) {
+    drawText('Address', margin, y, 8, boldFont, gray);
+    y -= 14;
+    for (const line of clinic.address.split('\n')) {
+      drawText(line, margin, y, 9.5, font, dark);
+      y -= 14;
+    }
+    y -= 6;
+  }
+
   drawRule(y);
   y -= 22;
 

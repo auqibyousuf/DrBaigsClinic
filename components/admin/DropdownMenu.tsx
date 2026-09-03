@@ -29,11 +29,11 @@ export default function DropdownMenu({ actions, title = 'More actions' }: Dropdo
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
         title={title}
-        className="p-2 rounded-lg text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+        className="p-1.5 rounded-lg text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
       >
         <MoreVertical className="w-4 h-4" />
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-56 !p-1.5">
+      <PopoverContent align="end" className="w-44 !p-1">
         {visible.map((action) => (
           <button
             key={action.label}
@@ -42,7 +42,7 @@ export default function DropdownMenu({ actions, title = 'More actions' }: Dropdo
               setOpen(false);
               action.onClick();
             }}
-            className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm text-left cursor-pointer ${
+            className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-md text-xs text-left cursor-pointer [&_svg]:w-3.5 [&_svg]:h-3.5 [&_svg]:flex-shrink-0 ${
               action.danger
                 ? 'text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20'
                 : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'

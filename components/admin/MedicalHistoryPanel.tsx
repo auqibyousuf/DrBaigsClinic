@@ -129,36 +129,31 @@ export default function MedicalHistoryPanel({ tags, onChangeTags, noKnown, onCha
                 {chipsFor(cat).map((value) => {
                   const active = !!getTag(cat.id, value);
                   return (
-                    <div
+                    <button
                       key={value}
-                      className={`flex items-center gap-1.5 pl-3 pr-1.5 py-1.5 rounded-full border text-sm ${
+                      type="button"
+                      disabled={disabled}
+                      onClick={() => toggleTag(cat.id, value)}
+                      aria-pressed={active}
+                      aria-label={active ? `Remove ${value}` : `Add ${value}`}
+                      className={`flex items-center gap-1.5 pl-3 pr-1.5 py-1.5 rounded-full border text-sm cursor-pointer disabled:cursor-not-allowed ${
                         active
                           ? 'border-primary-400 bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
                           : 'border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800'
                       }`}
                     >
-                      <button
-                        type="button"
-                        disabled={disabled}
-                        onClick={() => setSelected({ category: cat.id, value })}
-                        className="cursor-pointer disabled:cursor-not-allowed"
-                      >
-                        {value}
-                      </button>
-                      <button
-                        type="button"
-                        disabled={disabled}
-                        onClick={() => toggleTag(cat.id, value)}
-                        aria-label={active ? `Remove ${value}` : `Add ${value}`}
-                        className={`w-5 h-5 flex items-center justify-center rounded-full text-xs flex-shrink-0 cursor-pointer disabled:cursor-not-allowed ${
+                      <span>{value}</span>
+                      <span
+                        aria-hidden="true"
+                        className={`w-5 h-5 flex items-center justify-center rounded-full text-xs leading-none flex-shrink-0 ${
                           active
                             ? 'bg-primary-600 text-white'
                             : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
                         }`}
                       >
                         {active ? '−' : '+'}
-                      </button>
-                    </div>
+                      </span>
+                    </button>
                   );
                 })}
 

@@ -79,6 +79,9 @@ export default function AdminDashboard() {
   // card lets the admin collapse either one, but neither is collapsed by
   // default the way a single-open accordion would force.
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({ website: true, app: true });
+  // Below `lg`, the sidebar is a hamburger-triggered slide-over instead of
+  // two always-expanded cards pushing the content down the page.
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [data, setData] = useState<Partial<CMSData>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -179,6 +182,7 @@ export default function AdminDashboard() {
   const handleSectionChange = (sectionId: string) => {
     setSectionLoading(true);
     setActiveSection(sectionId);
+    setMobileNavOpen(false);
     // Simulate loading for smooth transition
     setTimeout(() => setSectionLoading(false), 300);
   };
@@ -424,11 +428,109 @@ export default function AdminDashboard() {
   return (
     <>
       <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
+        {/* Mobile-only top bar: hamburger + current section name — replaces
+            the always-expanded sidebar cards, which used to push all page
+            content down below the fold on small screens. */}
+        <div className="lg:hidden flex items-center gap-2 mb-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm px-3 py-2.5">
+          <button
+            type="button"
+            onClick={() => setMobileNavOpen(true)}
+            aria-label="Open menu"
+            className="p-1.5 -ml-1 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer flex-shrink-0"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+          <span className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+            {sections.find((s) => s.id === activeSection)?.name || 'Dashboard'}
+          </span>
+        </div>
+
+        {mobileNavOpen && (
+          <div className="fixed inset-0 z-50 lg:hidden">
+            <div
+              className="absolute inset-0 bg-black/40"
+              onClick={() => setMobileNavOpen(false)}
+              aria-hidden="true"
+            />
+            <div className="absolute inset-y-0 left-0 w-72 max-w-[85vw] bg-gray-50 dark:bg-gray-900 overflow-y-auto p-3 space-y-4 shadow-xl">
+              <div className="flex items-center justify-between px-1">
+                <span className="text-sm font-semibold text-gray-900 dark:text-white">Menu</span>
+                <button
+                  type="button"
+                  onClick={() => setMobileNavOpen(false)}
+                  aria-label="Close menu"
+                  className="p-1.5 rounded-md text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              {sectionGroups.map((group) => {
+                const isOpen = openGroups[group.id];
+                return (
+                  <nav
+                    key={group.id}
+                    className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-2"
+                    aria-label={`${group.label} sections navigation`}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setOpenGroups((prev) => ({ ...prev, [group.id]: !prev[group.id] }))}
+                      aria-expanded={isOpen}
+                      className="w-full flex items-center justify-between px-2.5 py-2 text-left text-[11px] font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500 cursor-pointer"
+                    >
+                      {group.label}
+                      <svg
+                        className={`w-3.5 h-3.5 transition-transform duration-150 ${isOpen ? 'rotate-180' : ''}`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                    {isOpen && (
+                      <ul className="space-y-0.5 pb-1" role="list">
+                        {group.sections.map((section) => (
+                          <li key={section.id}>
+                            <button
+                              onClick={() => handleSectionChange(section.id)}
+                              aria-current={activeSection === section.id ? 'page' : undefined}
+                              className={`w-full text-left px-2.5 py-2 rounded-lg flex items-center gap-2 text-xs cursor-pointer ${
+                                activeSection === section.id
+                                  ? 'bg-primary-600 text-white font-medium'
+                                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                              }`}
+                            >
+                              <span
+                                className={`flex-shrink-0 [&_svg]:w-4 [&_svg]:h-4 ${activeSection === section.id ? 'text-white' : 'text-gray-500 dark:text-gray-400'}`}
+                                aria-hidden="true"
+                              >
+                                {section.icon}
+                              </span>
+                              <span>{section.name}</span>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </nav>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-6 gap-4 sm:gap-6">
           {/* Sidebar — Website and App are two separate cards with a gap
               between them (not one nav block), both open by default; each
-              still collapses independently via its own accordion toggle. */}
-          <div className="lg:col-span-1 space-y-4">
+              still collapses independently via its own accordion toggle.
+              Hidden below `lg` — the mobile hamburger drawer above replaces
+              it there. */}
+          <div className="hidden lg:block lg:col-span-1 space-y-4">
             {sectionGroups.map((group) => {
               const isOpen = openGroups[group.id];
               return (
