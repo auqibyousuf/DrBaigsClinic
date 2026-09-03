@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { type ColumnDef } from '@tanstack/react-table';
-import { ArrowLeft, Printer } from 'lucide-react';
+import { ArrowLeft, Printer, CalendarBlank, FileText, Receipt } from '@phosphor-icons/react';
 import { DataTable } from '@/components/ui/data-table';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import PrescriptionSummary from '@/components/admin/PrescriptionSummary';
@@ -216,9 +216,15 @@ export default function PatientDetailPage({ patientId, onBack }: { patientId: st
 
           <Tabs value={tab} onValueChange={setTab}>
             <TabsList>
-              <TabsTrigger value="visits">Visits ({data.visits.length})</TabsTrigger>
-              <TabsTrigger value="prescriptions">Prescriptions ({prescriptionVisits.length})</TabsTrigger>
-              <TabsTrigger value="billing">Billing ({data.billing.length})</TabsTrigger>
+              <TabsTrigger value="visits">
+                <CalendarBlank /> Visits ({data.visits.length})
+              </TabsTrigger>
+              <TabsTrigger value="prescriptions">
+                <FileText /> Prescriptions ({prescriptionVisits.length})
+              </TabsTrigger>
+              <TabsTrigger value="billing">
+                <Receipt /> Billing ({data.billing.length})
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="visits">

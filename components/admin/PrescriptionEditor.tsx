@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { Plus, X, Stethoscope, ClipboardCheck, ScanSearch, Pill, FlaskConical, MessageSquareText, CalendarClock, StickyNote, Activity, Lock, Check, ArrowLeft, ClipboardList, FolderPlus, Paperclip, Save, Loader2 } from 'lucide-react';
+import { Plus, X, Stethoscope, ClipboardText, MagnifyingGlass, Pill, Flask, ChatText, CalendarBlank, Note, Heartbeat, Lock, Check, ArrowLeft, Notepad, FolderPlus, Paperclip, FloppyDisk, CircleNotch } from '@phosphor-icons/react';
 import { useToast } from '@/components/ToastProvider';
 import Modal from '@/components/Modal';
 import { AdminInput, AdminTextarea, AdminSelect } from '@/components/admin/AdminField';
@@ -239,7 +239,7 @@ export default function PrescriptionEditor({
           >
             <span className="flex items-center gap-2 min-w-0">
               <span className="flex items-center justify-center w-9 h-9 rounded-lg bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 flex-shrink-0">
-                <Activity className="w-4 h-4" />
+                <Heartbeat className="w-4 h-4" />
               </span>
               <span className="text-base font-medium text-gray-900 dark:text-white">Vitals & Body Composition</span>
             </span>
@@ -275,7 +275,7 @@ export default function PrescriptionEditor({
           >
             <span className="flex items-center gap-2 min-w-0">
               <span className="flex items-center justify-center w-9 h-9 rounded-lg bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 flex-shrink-0">
-                <ClipboardList className="w-4 h-4" />
+                <Notepad className="w-4 h-4" />
               </span>
               <span className="text-base font-medium text-gray-900 dark:text-white">Medical History</span>
             </span>
@@ -316,11 +316,11 @@ export default function PrescriptionEditor({
             />
           </SectionCard>
 
-          <SectionCard icon={<ScanSearch className="w-4 h-4" />} title="Examinations">
+          <SectionCard icon={<MagnifyingGlass className="w-4 h-4" />} title="Examinations">
             <AutocompleteTagInput category="examination" values={examinations} onChange={setExaminations} />
           </SectionCard>
 
-          <SectionCard icon={<ClipboardCheck className="w-4 h-4" />} title="Diagnosis">
+          <SectionCard icon={<ClipboardText className="w-4 h-4" />} title="Diagnosis">
             <AutocompleteTagInput
               category="diagnosis"
               values={diagnosis ? [diagnosis] : []}
@@ -396,16 +396,16 @@ export default function PrescriptionEditor({
             </button>
           </SectionCard>
 
-          <SectionCard icon={<FlaskConical className="w-4 h-4" />} title="Lab Investigation">
+          <SectionCard icon={<Flask className="w-4 h-4" />} title="Lab Investigation">
             <AutocompleteTagInput category="investigation" values={investigations} onChange={setInvestigations} />
           </SectionCard>
 
-          <SectionCard icon={<MessageSquareText className="w-4 h-4" />} title="Advices">
+          <SectionCard icon={<ChatText className="w-4 h-4" />} title="Advices">
             <AutocompleteTagInput category="advice" values={advices} onChange={setAdvices} />
           </SectionCard>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <SectionCard icon={<CalendarClock className="w-4 h-4" />} title="Follow-up">
+            <SectionCard icon={<CalendarBlank className="w-4 h-4" />} title="Follow-up">
               <AdminInput type="date" value={followUpDate} onChange={(e) => setFollowUpDate(e.target.value)} />
               <div className="flex gap-2 mt-2">
                 {FOLLOW_UP_PRESETS.map((preset) => (
@@ -420,7 +420,7 @@ export default function PrescriptionEditor({
                 ))}
               </div>
             </SectionCard>
-            <SectionCard icon={<StickyNote className="w-4 h-4" />} title="Additional Notes">
+            <SectionCard icon={<Note className="w-4 h-4" />} title="Additional Notes">
               <AdminTextarea
                 value={additionalNotes}
                 onChange={(e) => setAdditionalNotes(e.target.value)}
@@ -449,7 +449,7 @@ export default function PrescriptionEditor({
                 onClick={() => setOpenModule(null)}
                 className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-semibold cursor-pointer"
               >
-                Save
+                FloppyDisk
               </button>
             </div>
           </div>
@@ -486,7 +486,7 @@ export default function PrescriptionEditor({
                 disabled={!privateNotes.trim()}
                 className="px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed text-white rounded-lg text-sm font-semibold cursor-pointer"
               >
-                Save
+                FloppyDisk
               </button>
             </div>
           </div>
@@ -515,7 +515,7 @@ export default function PrescriptionEditor({
                 onClick={() => setOpenModule(null)}
                 className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-semibold cursor-pointer"
               >
-                Save
+                FloppyDisk
               </button>
             </div>
           </div>
@@ -630,7 +630,7 @@ export default function PrescriptionEditor({
                 onClick={() => setOpenModule(null)}
                 className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-semibold cursor-pointer"
               >
-                Save
+                FloppyDisk
               </button>
             </div>
           </div>
@@ -652,8 +652,8 @@ export default function PrescriptionEditor({
           disabled={saving}
           className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium disabled:opacity-50 cursor-pointer"
         >
-          {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-          {saving ? 'Saving...' : 'Save & Generate PDF'}
+          {saving ? <CircleNotch className="w-4 h-4 animate-spin" /> : <FloppyDisk className="w-4 h-4" />}
+          {saving ? 'Saving...' : 'FloppyDisk & Generate PDF'}
         </button>
       </div>
     </div>

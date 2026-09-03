@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Plus, Printer, Pencil } from 'lucide-react';
+import { Plus, Printer, PencilSimple } from '@phosphor-icons/react';
 import Modal from '@/components/Modal';
 import InvoiceEditor from '@/components/admin/InvoiceEditor';
 import type { Invoice } from '@/lib/invoices';
@@ -114,7 +114,7 @@ export default function BillingPanel({ appointmentId, patientId, doctorId }: Bil
                   className="text-primary-600 hover:text-primary-700 dark:text-primary-400 p-2 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/20 cursor-pointer"
                   title="Edit bill"
                 >
-                  <Pencil className="w-4 h-4" />
+                  <PencilSimple className="w-4 h-4" />
                 </button>
               </div>
             </div>

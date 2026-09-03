@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { type ColumnDef, type Row } from '@tanstack/react-table';
-import { Copy, Eye, Pencil, Trash } from 'lucide-react';
+import { Copy, Eye, PencilSimple, Trash } from '@phosphor-icons/react';
 import { Plus } from '@phosphor-icons/react';
 import { useToast } from '@/components/ToastProvider';
 import { DataTable } from '@/components/ui/data-table';
@@ -272,7 +272,7 @@ export default function PatientsView() {
             className="text-primary-600 hover:text-primary-700 dark:text-primary-400 p-2 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/20 cursor-pointer"
             title="Edit patient"
           >
-            <Pencil className="w-4 h-4" />
+            <PencilSimple className="w-4 h-4" />
           </button>
           <button
             type="button"
@@ -312,7 +312,7 @@ export default function PatientsView() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between gap-4 border-b border-gray-200 dark:border-gray-700 pb-4 mb-2">
+      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 border-b border-gray-200 dark:border-gray-700 pb-4 mb-2">
         <div>
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Patients</h2>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
@@ -320,7 +320,13 @@ export default function PatientsView() {
             the walk-in front-desk flow.
           </p>
         </div>
-        <Button onClick={() => setAddingPatient(true)} variant="primary" size="xs" icon={<Plus weight="bold" />}>
+        <Button
+          onClick={() => setAddingPatient(true)}
+          variant="primary"
+          size="xs"
+          icon={<Plus weight="bold" />}
+          className="w-full md:w-auto"
+        >
           Add New Patient
         </Button>
       </div>

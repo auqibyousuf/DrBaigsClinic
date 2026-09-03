@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { X } from 'lucide-react';
+import { X } from '@phosphor-icons/react';
 import { fieldStyle, fieldClasses } from '@/components/FloatingLabelInput/FloatingLabelInput';
 import type { ClinicalTermCategory } from '@/lib/clinical-terms';
 

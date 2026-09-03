@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { type ColumnDef } from '@tanstack/react-table';
-import { Play, Eye, Pencil, CheckCircle2, Ban, Trash2, FileText } from 'lucide-react';
+import { Play, Eye, PencilSimple, CheckCircle, Prohibit, TrashSimple, FileText, ListChecks, XCircle } from '@phosphor-icons/react';
 import type { CMSData } from '@/lib/cms';
 import { DataTable, type DataTableFilter } from '@/components/ui/data-table';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -176,7 +176,7 @@ export default function AppointmentsView({ doctors }: AppointmentsViewProps) {
             <DropdownMenu
               actions={[
                 { label: 'View Details', icon: <Eye className="w-4 h-4" />, onClick: () => openAs('details') },
-                { label: 'Edit', icon: <Pencil className="w-4 h-4" />, onClick: () => openAs('edit') },
+                { label: 'Edit', icon: <PencilSimple className="w-4 h-4" />, onClick: () => openAs('edit') },
                 {
                   label: appt.prescription ? 'Edit Prescription' : 'Add Prescription',
                   icon: <FileText className="w-4 h-4" />,
@@ -185,20 +185,20 @@ export default function AppointmentsView({ doctors }: AppointmentsViewProps) {
                 },
                 {
                   label: 'Finish Visit',
-                  icon: <CheckCircle2 className="w-4 h-4" />,
+                  icon: <CheckCircle className="w-4 h-4" />,
                   hidden: appt.status !== 'confirmed',
                   onClick: () => handleFinish(appt.id),
                 },
                 {
                   label: 'Cancel Appointment',
-                  icon: <Ban className="w-4 h-4" />,
+                  icon: <Prohibit className="w-4 h-4" />,
                   hidden: appt.status !== 'confirmed',
                   danger: true,
                   onClick: () => handleCancel(appt.id),
                 },
                 {
                   label: 'Delete Permanently',
-                  icon: <Trash2 className="w-4 h-4" />,
+                  icon: <TrashSimple className="w-4 h-4" />,
                   danger: true,
                   onClick: () => handleDelete(appt.id),
                 },
@@ -266,7 +266,7 @@ export default function AppointmentsView({ doctors }: AppointmentsViewProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between gap-4 border-b border-gray-200 dark:border-gray-700 pb-4 mb-2">
+      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 border-b border-gray-200 dark:border-gray-700 pb-4 mb-2">
         <div>
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Appointments</h2>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
@@ -277,18 +277,24 @@ export default function AppointmentsView({ doctors }: AppointmentsViewProps) {
         <button
           type="button"
           onClick={() => setShowWalkIn(true)}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-accent-600 hover:bg-accent-700 text-white rounded-lg text-sm font-semibold cursor-pointer flex-shrink-0"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-accent-600 hover:bg-accent-700 text-white rounded-lg text-sm font-semibold cursor-pointer w-full md:w-auto md:flex-shrink-0"
         >
-          <Play className="w-4 h-4" fill="currentColor" />
+          <Play className="w-4 h-4" weight="fill" />
           Start Walk-in Consultation
         </button>
       </div>
 
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList>
-          <TabsTrigger value="queue">Queue ({queue.length})</TabsTrigger>
-          <TabsTrigger value="finished">Finished ({finished.length})</TabsTrigger>
-          <TabsTrigger value="cancelled">Cancelled ({cancelled.length})</TabsTrigger>
+          <TabsTrigger value="queue">
+            <ListChecks /> Queue ({queue.length})
+          </TabsTrigger>
+          <TabsTrigger value="finished">
+            <CheckCircle /> Finished ({finished.length})
+          </TabsTrigger>
+          <TabsTrigger value="cancelled">
+            <XCircle /> Cancelled ({cancelled.length})
+          </TabsTrigger>
         </TabsList>
         <TabsContent value={tab}>
           <DataTable

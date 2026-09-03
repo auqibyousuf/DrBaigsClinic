@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { X } from 'lucide-react';
+import { X } from '@phosphor-icons/react';
 import type { CMSData } from '@/lib/cms';
 import { DEFAULT_SLOTS } from '@/lib/appointments';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';

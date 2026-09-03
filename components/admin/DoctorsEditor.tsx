@@ -19,7 +19,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { PencilSimple, TrashSimple, UserCircle, DotsSixVertical, Check } from '@phosphor-icons/react';
-import { Eye } from 'lucide-react';
+import { Eye } from '@phosphor-icons/react';
 import ImageUpload from '@/components/ImageUpload';
 import { useToast } from '@/components/ToastProvider';
 import { AdminInput, AdminTextarea } from '@/components/admin/AdminField';

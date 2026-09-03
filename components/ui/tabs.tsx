@@ -68,7 +68,7 @@ export function TabsTrigger({
       aria-selected={isActive}
       onClick={() => setValue(value)}
       className={cn(
-        'relative px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-colors cursor-pointer',
+        'relative flex items-center gap-1.5 px-2.5 py-2 md:px-4 md:py-2.5 text-xs md:text-sm font-medium whitespace-nowrap transition-colors cursor-pointer [&_svg]:w-3.5 [&_svg]:h-3.5 md:[&_svg]:w-4 md:[&_svg]:h-4',
         'border-b-2 -mb-px',
         isActive
           ? 'border-primary-600 text-primary-700 dark:text-primary-400'

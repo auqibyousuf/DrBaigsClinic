@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { type ColumnDef } from '@tanstack/react-table';
-import { ArrowLeft, FileText } from 'lucide-react';
+import { ArrowLeft, FileText, CalendarBlank, CheckCircle, XCircle } from '@phosphor-icons/react';
 import { DataTable } from '@/components/ui/data-table';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
@@ -135,10 +135,18 @@ export default function DoctorDetailPage({
       ) : (
         <Tabs value={tab} onValueChange={setTab}>
           <TabsList>
-            <TabsTrigger value="upcoming">Upcoming ({data.upcoming.length})</TabsTrigger>
-            <TabsTrigger value="consulted">Consulted ({data.consulted.length})</TabsTrigger>
-            <TabsTrigger value="cancelled">Cancelled ({data.cancelled.length})</TabsTrigger>
-            <TabsTrigger value="prescriptions">Prescriptions ({data.prescriptions.length})</TabsTrigger>
+            <TabsTrigger value="upcoming">
+              <CalendarBlank /> Upcoming ({data.upcoming.length})
+            </TabsTrigger>
+            <TabsTrigger value="consulted">
+              <CheckCircle /> Consulted ({data.consulted.length})
+            </TabsTrigger>
+            <TabsTrigger value="cancelled">
+              <XCircle /> Cancelled ({data.cancelled.length})
+            </TabsTrigger>
+            <TabsTrigger value="prescriptions">
+              <FileText /> Prescriptions ({data.prescriptions.length})
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="upcoming">

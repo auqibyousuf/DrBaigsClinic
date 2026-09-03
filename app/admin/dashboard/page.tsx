@@ -95,8 +95,9 @@ export default function AdminDashboard() {
   // card lets the admin collapse either one, but neither is collapsed by
   // default the way a single-open accordion would force.
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({ website: true, app: true });
-  // Below `lg`, the sidebar is a hamburger-triggered slide-over instead of
-  // two always-expanded cards pushing the content down the page.
+  // Below `md` (768px — small laptops and phones), the sidebar is a
+  // hamburger-triggered slide-over instead of two always-expanded cards
+  // pushing the content down the page; `md`+ gets the full desktop layout.
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [data, setData] = useState<Partial<CMSData>>({});
   const [loading, setLoading] = useState(true);
@@ -311,7 +312,7 @@ export default function AdminDashboard() {
         {/* Mobile-only top bar: hamburger + current section name — replaces
             the always-expanded sidebar cards, which used to push all page
             content down below the fold on small screens. */}
-        <div className="lg:hidden flex items-center gap-2 mb-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm px-3 py-2.5">
+        <div className="md:hidden flex items-center gap-2 mb-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm px-3 py-2.5">
           <button
             type="button"
             onClick={() => setMobileNavOpen(true)}
@@ -327,15 +328,23 @@ export default function AdminDashboard() {
           </span>
         </div>
 
-        {mobileNavOpen && (
-          <div className="fixed inset-0 z-50 lg:hidden">
-            <div
-              className="absolute inset-0 bg-black/40"
-              onClick={() => setMobileNavOpen(false)}
-              aria-hidden="true"
-            />
-            <div className="absolute inset-y-0 left-0 w-72 max-w-[85vw] bg-gray-50 dark:bg-gray-900 overflow-y-auto p-3 space-y-4 shadow-xl">
-              <div className="flex items-center justify-between px-1">
+        <div
+          className={`fixed inset-0 z-50 md:hidden transition-opacity duration-300 ease-out ${
+            mobileNavOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+          }`}
+          aria-hidden={!mobileNavOpen}
+        >
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={() => setMobileNavOpen(false)}
+            aria-hidden="true"
+          />
+          <div
+            className={`absolute inset-y-0 left-0 w-72 max-w-[85vw] bg-gray-50 dark:bg-gray-900 overflow-y-auto p-3 space-y-4 shadow-xl transition-transform duration-300 ease-out ${
+              mobileNavOpen ? 'translate-x-0' : '-translate-x-full'
+            }`}
+          >
+            <div className="flex items-center justify-between px-1">
                 <span className="text-sm font-semibold text-gray-900 dark:text-white">Menu</span>
                 <button
                   type="button"
@@ -402,15 +411,14 @@ export default function AdminDashboard() {
               })}
             </div>
           </div>
-        )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-6 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-4 sm:gap-6">
           {/* Sidebar — Website and App are two separate cards with a gap
               between them (not one nav block), both open by default; each
               still collapses independently via its own accordion toggle.
-              Hidden below `lg` — the mobile hamburger drawer above replaces
+              Hidden below `md` — the mobile hamburger drawer above replaces
               it there. */}
-          <div className="hidden lg:block lg:col-span-1 space-y-4">
+          <div className="hidden md:block md:col-span-1 space-y-4">
             {sectionGroups.map((group) => {
               const isOpen = openGroups[group.id];
               return (
@@ -466,7 +474,7 @@ export default function AdminDashboard() {
           </div>
 
           {/* Main Content */}
-          <div className="lg:col-span-5">
+          <div className="md:col-span-5">
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 sm:p-6">
               {sectionLoading ? (
                 <div

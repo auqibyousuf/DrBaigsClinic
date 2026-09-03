@@ -1,6 +1,6 @@
 'use client';
 
-import { Check, Loader2 } from 'lucide-react';
+import { Check, CircleNotch } from '@phosphor-icons/react';
 
 interface AdminSaveButtonProps {
   saving: boolean;
@@ -21,7 +21,7 @@ export default function AdminSaveButton({ saving, label = 'Save Changes', saving
     >
       {saving ? (
         <>
-          <Loader2 className="w-4 h-4 animate-spin" />
+          <CircleNotch className="w-4 h-4 animate-spin" />
           <span>{savingLabel}</span>
         </>
       ) : (

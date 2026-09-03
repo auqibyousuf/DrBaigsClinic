@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { type ColumnDef } from '@tanstack/react-table';
-import { Printer, Pencil } from 'lucide-react';
+import { Printer, PencilSimple } from '@phosphor-icons/react';
 import { DataTable, type DataTableFilter } from '@/components/ui/data-table';
 import Modal from '@/components/Modal';
 import InvoiceEditor from '@/components/admin/InvoiceEditor';
@@ -150,7 +150,7 @@ export default function BillingListView() {
             className="text-primary-600 hover:text-primary-700 dark:text-primary-400 p-2 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/20 cursor-pointer"
             title="Edit bill"
           >
-            <Pencil className="w-4 h-4" />
+            <PencilSimple className="w-4 h-4" />
           </button>
         </div>
       ),

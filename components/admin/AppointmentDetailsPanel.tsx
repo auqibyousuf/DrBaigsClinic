@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Lock } from '@phosphor-icons/react';
-import { Pencil } from 'lucide-react';
+import { PencilSimple } from '@phosphor-icons/react';
 import { useToast } from '@/components/ToastProvider';
 import { useCMSData } from '@/lib/cms-client';
 import { getConfiguredSlots } from '@/lib/appointments';
@@ -258,7 +258,7 @@ export default function AppointmentDetailsPanel({
                 onClick={onRequestEdit}
                 className="inline-flex items-center gap-1 text-xs font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400 cursor-pointer"
               >
-                <Pencil className="w-3.5 h-3.5" />
+                <PencilSimple className="w-3.5 h-3.5" />
                 Edit
               </button>
             )}

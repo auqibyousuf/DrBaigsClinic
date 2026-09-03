@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Plus, Trash, Clock } from 'lucide-react';
+import { Plus, Trash, Clock } from '@phosphor-icons/react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { AdminInput, AdminSelect } from '@/components/admin/AdminField';
 import { useToast } from '@/components/ToastProvider';

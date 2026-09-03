@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus } from '@phosphor-icons/react';
 import { fieldStyle, fieldClasses } from '@/components/FloatingLabelInput/FloatingLabelInput';
 
 interface ChipToggleGroupProps {

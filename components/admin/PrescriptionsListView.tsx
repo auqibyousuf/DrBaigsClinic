@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { type ColumnDef } from '@tanstack/react-table';
 import { CalendarCheck } from '@phosphor-icons/react';
-import { Eye, Pencil, Trash2 } from 'lucide-react';
+import { Eye, PencilSimple, TrashSimple } from '@phosphor-icons/react';
 import { DataTable, type DataTableFilter } from '@/components/ui/data-table';
 import Button from '@/components/Button';
 import DropdownMenu from '@/components/admin/DropdownMenu';
@@ -140,12 +140,12 @@ export default function PrescriptionsListView({ doctors }: PrescriptionsListView
                 },
                 {
                   label: 'Edit',
-                  icon: <Pencil className="w-4 h-4" />,
+                  icon: <PencilSimple className="w-4 h-4" />,
                   onClick: () => setEditingRow(p),
                 },
                 {
                   label: 'Delete',
-                  icon: <Trash2 className="w-4 h-4" />,
+                  icon: <TrashSimple className="w-4 h-4" />,
                   danger: true,
                   onClick: () => deletePrescriptionRow(p),
                 },

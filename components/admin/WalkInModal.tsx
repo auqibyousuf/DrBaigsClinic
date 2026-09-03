@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus } from '@phosphor-icons/react';
 import { useToast } from '@/components/ToastProvider';
 import Modal from '@/components/Modal';
 import Button from '@/components/Button';

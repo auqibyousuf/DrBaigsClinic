@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Trash, Receipt, Percent, Wallet } from 'lucide-react';
+import { Plus, Trash, Receipt, Percent, Wallet } from '@phosphor-icons/react';
 import { useToast } from '@/components/ToastProvider';
 import { AdminInput, AdminSelect, AdminTextarea } from '@/components/admin/AdminField';
 import SectionCard from '@/components/admin/SectionCard';
