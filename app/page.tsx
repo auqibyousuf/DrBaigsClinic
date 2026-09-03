@@ -103,7 +103,7 @@ export default function Home() {
   // reflected both in the footer and in this on-page contact section.
   const contactInfo = footerData?.contact && typeof footerData.contact === 'object'
     ? footerData.contact
-    : { address: '123 Health Street\nCity, State 12345', phone: '+1 (234) 567-890', email: 'info@glowclinic.com' };
+    : { address: '123 Health Street\nCity, State 12345', phone: '+1 (234) 567-890', email: 'info@drbaigsclinic.com' };
 
   // The address field stores one branch per line as "Label: street details"
   // (multiple clinic locations) — split it into distinct labeled entries

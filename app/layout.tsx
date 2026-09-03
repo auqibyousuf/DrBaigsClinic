@@ -131,30 +131,32 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const cmsData = await getCMSData().catch(() => null);
+  const contact = cmsData?.footer?.contact;
+
   const structuredData = {
     '@context': 'https://schema.org',
     '@type': 'MedicalBusiness',
     name: "Dr Baig's Clinic",
     description: 'Premium skin and hair care clinic offering expert treatments including hair transplantation, hijama therapy, PRP treatments, acne treatment, and anti-aging solutions.',
     url: 'https://drbaigsclinic.com',
-    telephone: '+1-XXX-XXX-XXXX',
+    telephone: contact?.phone || undefined,
     address: {
       '@type': 'PostalAddress',
-      addressCountry: 'US',
+      streetAddress: contact?.address || undefined,
+      addressCountry: 'IN',
     },
     medicalSpecialty: ['Dermatology', 'Trichology', 'Cosmetic Surgery'],
     areaServed: {
       '@type': 'Country',
-      name: 'United States',
+      name: 'India',
     },
-    sameAs: [
-      // Add social media links here when available
-    ],
+    sameAs: (cmsData?.footer?.socialMedia || []).map((s) => s.url).filter(Boolean),
   };
 
   return (
