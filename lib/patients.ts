@@ -6,7 +6,37 @@ export interface Patient {
   name: string;
   phone: string;
   email: string | null;
+  date_of_birth: string | null;
+  gender: string | null;
+  blood_group: string | null;
+  marital_status: string | null;
+  occupation: string | null;
+  address_street: string | null;
+  address_city: string | null;
+  address_state: string | null;
+  address_pincode: string | null;
+  photo_url: string | null;
+  reference_id: string | null;
+  aadhaar_number: string | null;
   created_at: string;
+}
+
+export interface NewPatientProfile {
+  name: string;
+  phone: string;
+  email?: string;
+  date_of_birth?: string;
+  gender?: string;
+  blood_group?: string;
+  marital_status?: string;
+  occupation?: string;
+  address_street?: string;
+  address_city?: string;
+  address_state?: string;
+  address_pincode?: string;
+  photo_url?: string;
+  reference_id?: string;
+  aadhaar_number?: string;
 }
 
 function getClient() {
@@ -70,6 +100,30 @@ export async function findOrCreatePatientByPhone(
   throw new Error('Failed to generate a unique patient code, please try again.');
 }
 
+// Admin-initiated creation (the "+ Add New Patient" flow — Patients tab and
+// walk-in consultation search both use this, unlike the booking flow's
+// findOrCreatePatientByPhone which only takes name/phone/email).
+export async function createPatientProfile(input: NewPatientProfile): Promise<Patient> {
+  const supabase = getClient();
+
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const { data, error } = await supabase
+      .from('patients')
+      .insert({ patient_code: generatePatientCode(), ...input })
+      .select()
+      .single();
+
+    if (!error) {
+      return data as Patient;
+    }
+    if (error.code !== '23505') {
+      throw new Error(`Failed to create patient: ${error.message}`);
+    }
+  }
+
+  throw new Error('Failed to generate a unique patient code, please try again.');
+}
+
 export async function getPatientByCode(code: string): Promise<Patient | null> {
   const supabase = getClient();
   const { data, error } = await supabase
@@ -112,7 +166,7 @@ export async function listPatients(): Promise<Patient[]> {
 
 export async function updatePatient(
   id: string,
-  updates: { name?: string; phone?: string; email?: string }
+  updates: Partial<NewPatientProfile>
 ): Promise<Patient> {
   const supabase = getClient();
   const { data, error } = await supabase
@@ -129,11 +183,12 @@ export async function updatePatient(
   return data as Patient;
 }
 
-// Also removes this patient's appointments and prescriptions — a patient
-// record can't be deleted while visit history still points at it (FK
-// constraints on appointments.patient_id / prescriptions.patient_id).
+// Also removes this patient's invoices, prescriptions and appointments — a
+// patient record can't be deleted while visit history still points at it
+// (FK constraints on invoices/prescriptions/appointments.patient_id).
 export async function deletePatient(id: string): Promise<void> {
   const supabase = getClient();
+  await supabase.from('invoices').delete().eq('patient_id', id);
   await supabase.from('prescriptions').delete().eq('patient_id', id);
   await supabase.from('appointments').delete().eq('patient_id', id);
   const { error } = await supabase.from('patients').delete().eq('id', id);

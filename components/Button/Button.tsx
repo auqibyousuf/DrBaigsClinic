@@ -9,7 +9,7 @@ import { ButtonProps } from '@/types/component.types';
 // rather than shadcn's generic default look — migrating the architecture,
 // not the visual identity we already designed.
 const buttonVariants = cva(
-  'inline-flex items-center justify-center min-h-[44px] min-w-[44px] font-bold tracking-tight rounded-full transition-shadow duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-rest hover:shadow-hover',
+  'inline-flex items-center justify-center font-bold tracking-tight rounded-full transition-shadow duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-rest hover:shadow-hover',
   {
     variants: {
       variant: {
@@ -21,9 +21,13 @@ const buttonVariants = cva(
           'border-2 border-primary-600 dark:border-primary-400 text-primary-700 dark:text-primary-300 hover:bg-primary-50 dark:hover:bg-primary-900/30 focus-visible:ring-primary-500 dark:focus-visible:ring-primary-400 bg-white dark:bg-gray-800 shadow-none hover:shadow-none',
       },
       size: {
-        sm: 'px-6 py-2.5 text-sm',
-        md: 'px-7 py-3 text-base',
-        lg: 'px-9 py-4 text-lg',
+        // Dense-UI size (admin CMS only) — the others keep a 44px minimum
+        // tap target for the public marketing/booking site, which is too
+        // tall for a compact admin action bar.
+        xs: 'min-h-[32px] px-3.5 py-1.5 text-xs',
+        sm: 'min-h-[44px] min-w-[44px] px-6 py-2.5 text-sm',
+        md: 'min-h-[44px] min-w-[44px] px-7 py-3 text-base',
+        lg: 'min-h-[44px] min-w-[44px] px-9 py-4 text-lg',
       },
     },
     defaultVariants: {

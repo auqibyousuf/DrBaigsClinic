@@ -29,12 +29,32 @@ import type { CMSData } from '@/lib/cms';
 import ServiceDetailEditor from '@/components/admin/ServiceDetailEditor';
 import DoctorsEditor from '@/components/admin/DoctorsEditor';
 import BookingSettingsEditor from '@/components/admin/BookingSettingsEditor';
+import DashboardHome from '@/components/admin/DashboardHome';
 import AppointmentsView from '@/components/admin/AppointmentsView';
 import PrescriptionsListView from '@/components/admin/PrescriptionsListView';
 import PatientsView from '@/components/admin/PatientsView';
+// Billing disabled for now — see the commented-out sidebar entry below.
+// import BillingListView from '@/components/admin/BillingListView';
 import IconPicker from '@/components/admin/IconPicker';
 import VariableReference from '@/components/admin/VariableReference';
-import { AdminInput, AdminTextarea } from '@/components/admin/AdminField';
+import { AdminInput, AdminTextarea, AdminSelect } from '@/components/admin/AdminField';
+import AdminSaveButton from '@/components/admin/AdminSaveButton';
+import {
+  House,
+  ListBullets,
+  Image,
+  Briefcase,
+  Info,
+  TextAlignLeft,
+  EnvelopeSimple,
+  FileText,
+  UserCircle,
+  CalendarCheck,
+  ClipboardText,
+  UsersThree,
+  Envelope,
+  Gear,
+} from '@phosphor-icons/react';
 
 type CMSDataSection = keyof CMSData;
 
@@ -70,7 +90,15 @@ interface EditorProps {
 }
 
 export default function AdminDashboard() {
-  const [activeSection, setActiveSection] = useState<string>('header');
+  const [activeSection, setActiveSection] = useState<string>('dashboard');
+  // Both groups start open (each its own card) — an accordion toggle per
+  // card lets the admin collapse either one, but neither is collapsed by
+  // default the way a single-open accordion would force.
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({ website: true, app: true });
+  // Below `md` (768px — small laptops and phones), the sidebar is a
+  // hamburger-triggered slide-over instead of two always-expanded cards
+  // pushing the content down the page; `md`+ gets the full desktop layout.
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [data, setData] = useState<Partial<CMSData>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -171,194 +199,100 @@ export default function AdminDashboard() {
   const handleSectionChange = (sectionId: string) => {
     setSectionLoading(true);
     setActiveSection(sectionId);
+    setMobileNavOpen(false);
     // Simulate loading for smooth transition
     setTimeout(() => setSectionLoading(false), 300);
   };
 
   const sections = [
     {
+      id: 'dashboard',
+      name: 'Dashboard',
+      icon: <House className="w-5 h-5" />,
+    },
+    {
       id: 'header',
       name: 'Header',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M4 6h16M4 12h16M4 18h16"
-          />
-        </svg>
-      ),
+      icon: <ListBullets className="w-5 h-5" />,
     },
     {
       id: 'hero',
       name: 'Hero Section',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"
-          />
-        </svg>
-      ),
+      icon: <Image className="w-5 h-5" />,
     },
     {
       id: 'services',
       name: 'Services',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-          />
-        </svg>
-      ),
+      icon: <Briefcase className="w-5 h-5" />,
     },
     {
       id: 'about',
       name: 'About Section',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
-      ),
+      icon: <Info className="w-5 h-5" />,
     },
     {
       id: 'footer',
       name: 'Footer',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-          />
-        </svg>
-      ),
+      icon: <TextAlignLeft className="w-5 h-5" />,
     },
     {
       id: 'contact',
       name: 'Contact',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-          />
-        </svg>
-      ),
+      icon: <EnvelopeSimple className="w-5 h-5" />,
     },
     {
       id: 'serviceDetails',
       name: 'Service Details',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-          />
-        </svg>
-      ),
+      icon: <FileText className="w-5 h-5" />,
     },
     {
       id: 'doctors',
       name: 'Doctors',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-          />
-        </svg>
-      ),
+      icon: <UserCircle className="w-5 h-5" />,
     },
     {
       id: 'appointments',
       name: 'Appointments',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-          />
-        </svg>
-      ),
+      icon: <CalendarCheck className="w-5 h-5" />,
     },
     {
       id: 'prescriptions',
       name: 'Prescriptions',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-          />
-        </svg>
-      ),
+      icon: <ClipboardText className="w-5 h-5" />,
     },
+    // Billing tab disabled for now — the clinic already runs a standalone
+    // inventory/billing application; this in-app billing module may be
+    // dropped in favor of that instead of duplicating it. Commented out
+    // rather than deleted so it can come back if we decide to keep it.
+    // {
+    //   id: 'billing',
+    //   name: 'Billing',
+    //   icon: <CurrencyCircleDollar className="w-5 h-5" />,
+    // },
     {
       id: 'patients',
       name: 'Patients',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 100-8 4 4 0 000 8zm6 3c0 2-3 2-3 2s-3 0-3-2 3-2 3-2 3 0 3 2z"
-          />
-        </svg>
-      ),
+      icon: <UsersThree className="w-5 h-5" />,
     },
     {
       id: 'templates',
       name: 'Templates',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-          />
-        </svg>
-      ),
+      icon: <Envelope className="w-5 h-5" />,
     },
     {
       id: 'bookingSettings',
       name: 'Booking Settings',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-          />
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-        </svg>
-      ),
+      icon: <Gear className="w-5 h-5" />,
     },
+  ];
+
+  // Grouped into two collapsible accordion categories — the flat 14-item
+  // list was becoming unwieldy. "Website" edits public-facing content,
+  // "App" runs day-to-day clinic operations (appointments/patients/etc).
+  const WEBSITE_SECTION_IDS = ['header', 'hero', 'services', 'about', 'footer', 'contact', 'serviceDetails'];
+  const sectionGroups = [
+    { id: 'website', label: 'Website', sections: sections.filter((s) => WEBSITE_SECTION_IDS.includes(s.id)) },
+    { id: 'app', label: 'App', sections: sections.filter((s) => !WEBSITE_SECTION_IDS.includes(s.id)) },
   ];
 
   if (loading) {
@@ -374,45 +308,173 @@ export default function AdminDashboard() {
 
   return (
     <>
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
-          {/* Sidebar */}
-          <div className="lg:col-span-1">
-            <nav
-              className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-3 sm:p-4"
-              aria-label="Admin sections navigation"
-            >
-              <h2 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">
-                Sections
-              </h2>
-              <ul className="space-y-1 sm:space-y-2" role="list">
-                {sections.map((section) => (
-                  <li key={section.id}>
+      <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
+        {/* Mobile-only top bar: hamburger + current section name — replaces
+            the always-expanded sidebar cards, which used to push all page
+            content down below the fold on small screens. */}
+        <div className="md:hidden flex items-center gap-2 mb-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm px-3 py-2.5">
+          <button
+            type="button"
+            onClick={() => setMobileNavOpen(true)}
+            aria-label="Open menu"
+            className="p-1.5 -ml-1 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer flex-shrink-0"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+          <span className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+            {sections.find((s) => s.id === activeSection)?.name || 'Dashboard'}
+          </span>
+        </div>
+
+        <div
+          className={`fixed inset-0 z-50 md:hidden transition-opacity duration-300 ease-out ${
+            mobileNavOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+          }`}
+          aria-hidden={!mobileNavOpen}
+        >
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={() => setMobileNavOpen(false)}
+            aria-hidden="true"
+          />
+          <div
+            className={`absolute inset-y-0 left-0 w-72 max-w-[85vw] bg-gray-50 dark:bg-gray-900 overflow-y-auto p-3 space-y-4 shadow-xl transition-transform duration-300 ease-out ${
+              mobileNavOpen ? 'translate-x-0' : '-translate-x-full'
+            }`}
+          >
+            <div className="flex items-center justify-between px-1">
+                <span className="text-sm font-semibold text-gray-900 dark:text-white">Menu</span>
+                <button
+                  type="button"
+                  onClick={() => setMobileNavOpen(false)}
+                  aria-label="Close menu"
+                  className="p-1.5 rounded-md text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              {sectionGroups.map((group) => {
+                const isOpen = openGroups[group.id];
+                return (
+                  <nav
+                    key={group.id}
+                    className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-2"
+                    aria-label={`${group.label} sections navigation`}
+                  >
                     <button
-                      onClick={() => handleSectionChange(section.id)}
-                      aria-current={activeSection === section.id ? 'page' : undefined}
-                      className={`w-full text-left px-3 sm:px-4 py-2 sm:py-3 rounded-lg transition-all duration-200 flex items-center space-x-2 sm:space-x-3 text-sm sm:text-base ${
-                        activeSection === section.id
-                          ? 'bg-primary-600 text-white shadow-md font-medium'
-                          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2'
-                      }`}
+                      type="button"
+                      onClick={() => setOpenGroups((prev) => ({ ...prev, [group.id]: !prev[group.id] }))}
+                      aria-expanded={isOpen}
+                      className="w-full flex items-center justify-between px-2.5 py-2 text-left text-[11px] font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500 cursor-pointer"
                     >
-                      <span
-                        className={`flex-shrink-0 ${activeSection === section.id ? 'text-white' : 'text-gray-500 dark:text-gray-400'}`}
-                        aria-hidden="true"
+                      {group.label}
+                      <svg
+                        className={`w-3.5 h-3.5 transition-transform duration-150 ${isOpen ? 'rotate-180' : ''}`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
                       >
-                        {section.icon}
-                      </span>
-                      <span>{section.name}</span>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
                     </button>
-                  </li>
-                ))}
-              </ul>
-            </nav>
+                    {isOpen && (
+                      <ul className="space-y-0.5 pb-1" role="list">
+                        {group.sections.map((section) => (
+                          <li key={section.id}>
+                            <button
+                              onClick={() => handleSectionChange(section.id)}
+                              aria-current={activeSection === section.id ? 'page' : undefined}
+                              className={`w-full text-left px-2.5 py-2 rounded-lg flex items-center gap-2 text-xs cursor-pointer ${
+                                activeSection === section.id
+                                  ? 'bg-primary-600 text-white font-medium'
+                                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                              }`}
+                            >
+                              <span
+                                className={`flex-shrink-0 [&_svg]:w-4 [&_svg]:h-4 ${activeSection === section.id ? 'text-white' : 'text-gray-500 dark:text-gray-400'}`}
+                                aria-hidden="true"
+                              >
+                                {section.icon}
+                              </span>
+                              <span>{section.name}</span>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </nav>
+                );
+              })}
+            </div>
+          </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-4 sm:gap-6">
+          {/* Sidebar — Website and App are two separate cards with a gap
+              between them (not one nav block), both open by default; each
+              still collapses independently via its own accordion toggle.
+              Hidden below `md` — the mobile hamburger drawer above replaces
+              it there. */}
+          <div className="hidden md:block md:col-span-1 space-y-4">
+            {sectionGroups.map((group) => {
+              const isOpen = openGroups[group.id];
+              return (
+                <nav
+                  key={group.id}
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-2 sm:p-3"
+                  aria-label={`${group.label} sections navigation`}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setOpenGroups((prev) => ({ ...prev, [group.id]: !prev[group.id] }))}
+                    aria-expanded={isOpen}
+                    className="w-full flex items-center justify-between px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 focus-visible:outline-none focus-visible:text-gray-600 dark:focus-visible:text-gray-300 cursor-pointer"
+                  >
+                    {group.label}
+                    <svg
+                      className={`w-4 h-4 transition-transform duration-150 ${isOpen ? 'rotate-180' : ''}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  {isOpen && (
+                    <ul className="space-y-1 pb-1" role="list">
+                      {group.sections.map((section) => (
+                        <li key={section.id}>
+                          <button
+                            onClick={() => handleSectionChange(section.id)}
+                            aria-current={activeSection === section.id ? 'page' : undefined}
+                            className={`w-full text-left px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg transition-all duration-200 flex items-center space-x-2 sm:space-x-3 text-sm focus-visible:outline-none ${
+                              activeSection === section.id
+                                ? 'bg-primary-600 text-white shadow-md font-medium'
+                                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 focus-visible:bg-gray-100 dark:focus-visible:bg-gray-700'
+                            }`}
+                          >
+                            <span
+                              className={`flex-shrink-0 ${activeSection === section.id ? 'text-white' : 'text-gray-500 dark:text-gray-400'}`}
+                              aria-hidden="true"
+                            >
+                              {section.icon}
+                            </span>
+                            <span>{section.name}</span>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </nav>
+              );
+            })}
           </div>
 
           {/* Main Content */}
-          <div className="lg:col-span-3">
+          <div className="md:col-span-5">
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 sm:p-6">
               {sectionLoading ? (
                 <div
@@ -427,6 +489,7 @@ export default function AdminDashboard() {
                 </div>
               ) : (
                 <>
+                  {activeSection === 'dashboard' && <DashboardHome doctors={data.doctors?.items || []} />}
                   {activeSection === 'header' && (
                     <HeaderEditor
                       data={data.header || {}}
@@ -468,6 +531,7 @@ export default function AdminDashboard() {
                   {activeSection === 'bookingSettings' && (
                     <BookingSettingsEditor
                       data={data.bookingSettings || {}}
+                      doctors={data.doctors?.items || []}
                       onSave={handleSave}
                       saving={saving}
                     />
@@ -479,6 +543,8 @@ export default function AdminDashboard() {
                     <PrescriptionsListView doctors={data.doctors?.items || []} />
                   )}
                   {activeSection === 'patients' && <PatientsView />}
+                  {/* Billing disabled for now — see the commented-out sidebar entry above. */}
+                  {/* {activeSection === 'billing' && <BillingListView />} */}
                   {activeSection === 'templates' && (
                     <TemplatesEditor data={data.contact || {}} onSave={handleSave} saving={saving} />
                   )}
@@ -581,34 +647,23 @@ function SortableNavItem({
           </svg>
         </div>
         <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <AdminInput
+            label="Menu Label"
+            placeholder="e.g., Home, Services, About"
+            value={item.label || ''}
+            onChange={(e) => onUpdate(index, { ...item, label: e.target.value })}
+          />
           <div>
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-              Menu Label
-            </label>
-            <input
-              type="text"
-              placeholder="e.g., Home, Services, About"
-              value={item.label || ''}
-              onChange={(e) => onUpdate(index, { ...item, label: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-              Link URL
-              {!isEditLinks && (
-                <span className="ml-2 text-xs text-amber-600 dark:text-amber-400">
-                  (Disabled - Single page anchors only)
-                </span>
-              )}
-            </label>
-            <input
-              type="text"
+            <AdminInput
+              label={
+                isEditLinks
+                  ? 'Link URL'
+                  : 'Link URL (Disabled - Single page anchors only)'
+              }
               placeholder="e.g., /#services, /#about, /#contact"
               value={item.href || ''}
               onChange={(e) => onUpdate(index, { ...item, href: e.target.value })}
               disabled={!isEditLinks}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-100 dark:disabled:bg-gray-800"
             />
             {!isEditLinks && (
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
@@ -694,21 +749,14 @@ function HeaderEditor({ data, onSave, saving, isEditLinks = false }: EditorProps
         </p>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Brand Name <span className="text-red-500">*</span>
-        </label>
-        <input
-          type="text"
-          value={formData.brandName || ''}
-          onChange={(e) => setFormData({ ...formData, brandName: e.target.value })}
-          placeholder="e.g., Dr Baig's Clinic"
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-        />
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          The name displayed in the header logo area
-        </p>
-      </div>
+      <AdminInput
+        label="Brand Name"
+        required
+        value={formData.brandName || ''}
+        onChange={(e) => setFormData({ ...formData, brandName: e.target.value })}
+        placeholder="e.g., Dr Baig's Clinic"
+        hint="The name displayed in the header logo area"
+      />
 
       <div>
         <ImageUpload
@@ -720,62 +768,54 @@ function HeaderEditor({ data, onSave, saving, isEditLinks = false }: EditorProps
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          CTA Button Text <span className="text-red-500">*</span>
-        </label>
-        <input
-          type="text"
-          value={formData.ctaButton?.text || ''}
-          onChange={(e) =>
-            setFormData({
-              ...formData,
-              ctaButton: {
-                ...formData.ctaButton,
-                text: e.target.value,
-                href: formData.ctaButton?.href || '',
-              },
-            })
-          }
-          placeholder="e.g., Book Appointment"
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+        <ImageUpload
+          value={formData.favicon || ''}
+          onChange={(url) => setFormData({ ...formData, favicon: url })}
+          label="Favicon"
+          description="The small icon shown in the browser tab. Falls back to the logo above if not set. Recommended: a square image, 32x32px or larger."
         />
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          Text displayed on the call-to-action button in the header
-        </p>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          CTA Button Link <span className="text-red-500">*</span>
-          {!isEditLinks && (
-            <span className="ml-2 text-xs text-amber-600 dark:text-amber-400">
-              (Disabled - Single page anchors only)
-            </span>
-          )}
-        </label>
-        <input
-          type="text"
-          value={formData.ctaButton?.href || ''}
-          onChange={(e) =>
-            setFormData({
-              ...formData,
-              ctaButton: { text: formData.ctaButton?.text || '', href: e.target.value },
-            })
-          }
-          placeholder="e.g., #contact"
-          disabled={!isEditLinks}
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-100 dark:disabled:bg-gray-800"
-        />
-        {!isEditLinks ? (
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            Links are disabled for single-page anchor navigation.
-          </p>
-        ) : (
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            Where the button should link to (use #contact for same page anchor)
-          </p>
-        )}
-      </div>
+      <AdminInput
+        label="CTA Button Text"
+        required
+        value={formData.ctaButton?.text || ''}
+        onChange={(e) =>
+          setFormData({
+            ...formData,
+            ctaButton: {
+              ...formData.ctaButton,
+              text: e.target.value,
+              href: formData.ctaButton?.href || '',
+            },
+          })
+        }
+        placeholder="e.g., Book Appointment"
+        hint="Text displayed on the call-to-action button in the header"
+      />
+
+      <AdminInput
+        label={
+          isEditLinks
+            ? 'CTA Button Link'
+            : 'CTA Button Link (Disabled - Single page anchors only)'
+        }
+        required
+        value={formData.ctaButton?.href || ''}
+        onChange={(e) =>
+          setFormData({
+            ...formData,
+            ctaButton: { text: formData.ctaButton?.text || '', href: e.target.value },
+          })
+        }
+        placeholder="e.g., #contact"
+        disabled={!isEditLinks}
+        hint={
+          isEditLinks
+            ? 'Where the button should link to (use #contact for same page anchor)'
+            : 'Links are disabled for single-page anchor navigation.'
+        }
+      />
 
       <div>
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
@@ -824,30 +864,7 @@ function HeaderEditor({ data, onSave, saving, isEditLinks = false }: EditorProps
       </div>
 
       <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-        <button
-          type="submit"
-          disabled={saving}
-          className="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 px-4 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 transition-colors"
-        >
-          {saving ? (
-            <>
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              <span>Saving Changes...</span>
-            </>
-          ) : (
-            <>
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-              <span>Save Changes</span>
-            </>
-          )}
-        </button>
+        <AdminSaveButton saving={saving} />
       </div>
     </form>
   );
@@ -876,81 +893,51 @@ function HeroEditor({ data, onSave, saving, isEditLinks = false }: EditorProps) 
         </p>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Hero Title <span className="text-red-500">*</span>
-        </label>
-        <input
-          type="text"
-          value={formData.title || ''}
-          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-          placeholder="e.g., Transform Your Skin & Hair"
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-        />
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          Main headline displayed prominently on the hero section
-        </p>
-      </div>
+      <AdminInput
+        label="Hero Title"
+        required
+        value={formData.title || ''}
+        onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+        placeholder="e.g., Transform Your Skin & Hair"
+        hint="Main headline displayed prominently on the hero section"
+      />
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Hero Subtitle <span className="text-red-500">*</span>
-        </label>
-        <textarea
-          value={formData.subtitle || ''}
-          onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
-          rows={3}
-          placeholder="e.g., Experience world-class treatments at Dr Baig's Clinic. Your journey to confidence starts here."
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-        />
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          Supporting text that appears below the main title
-        </p>
-      </div>
+      <AdminTextarea
+        label="Hero Subtitle"
+        required
+        value={formData.subtitle || ''}
+        onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
+        rows={3}
+        placeholder="e.g., Experience world-class treatments at Dr Baig's Clinic. Your journey to confidence starts here."
+        hint="Supporting text that appears below the main title"
+      />
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          CTA Button Text <span className="text-red-500">*</span>
-        </label>
-        <input
-          type="text"
-          value={formData.ctaText || ''}
-          onChange={(e) => setFormData({ ...formData, ctaText: e.target.value })}
-          placeholder="e.g., Book Consultation"
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-        />
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          Text on the call-to-action button in the hero section
-        </p>
-      </div>
+      <AdminInput
+        label="CTA Button Text"
+        required
+        value={formData.ctaText || ''}
+        onChange={(e) => setFormData({ ...formData, ctaText: e.target.value })}
+        placeholder="e.g., Book Consultation"
+        hint="Text on the call-to-action button in the hero section"
+      />
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          CTA Button Link <span className="text-red-500">*</span>
-          {!isEditLinks && (
-            <span className="ml-2 text-xs text-amber-600 dark:text-amber-400">
-              (Disabled - Single page anchors only)
-            </span>
-          )}
-        </label>
-        <input
-          type="text"
-          value={formData.ctaHref || ''}
-          onChange={(e) => setFormData({ ...formData, ctaHref: e.target.value })}
-          placeholder="e.g., #contact"
-          disabled={!isEditLinks}
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-100 dark:disabled:bg-gray-800"
-        />
-        {!isEditLinks ? (
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            Links are disabled for single-page anchor navigation.
-          </p>
-        ) : (
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            Where the hero CTA button should link to (use #contact for same page anchor)
-          </p>
-        )}
-      </div>
+      <AdminInput
+        label={
+          isEditLinks
+            ? 'CTA Button Link'
+            : 'CTA Button Link (Disabled - Single page anchors only)'
+        }
+        required
+        value={formData.ctaHref || ''}
+        onChange={(e) => setFormData({ ...formData, ctaHref: e.target.value })}
+        placeholder="e.g., #contact"
+        disabled={!isEditLinks}
+        hint={
+          isEditLinks
+            ? 'Where the hero CTA button should link to (use #contact for same page anchor)'
+            : 'Links are disabled for single-page anchor navigation.'
+        }
+      />
 
       <div>
         <ImageUpload
@@ -962,30 +949,7 @@ function HeroEditor({ data, onSave, saving, isEditLinks = false }: EditorProps) 
       </div>
 
       <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-        <button
-          type="submit"
-          disabled={saving}
-          className="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 px-4 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 transition-colors"
-        >
-          {saving ? (
-            <>
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              <span>Saving Changes...</span>
-            </>
-          ) : (
-            <>
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-              <span>Save Changes</span>
-            </>
-          )}
-        </button>
+        <AdminSaveButton saving={saving} />
       </div>
     </form>
   );
@@ -1039,30 +1003,21 @@ function SortableServiceItem({ service, index, onUpdate, onDelete }: SortableSer
           </svg>
         </div>
         <div className="flex-1 space-y-3 min-w-0">
-          <div>
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-              Service Title <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              placeholder="e.g., Hair Restoration, Skin Care"
-              value={service.title || ''}
-              onChange={(e) => onUpdate(index, { ...service, title: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-              Description <span className="text-red-500">*</span>
-            </label>
-            <textarea
-              placeholder="e.g., Advanced hair restoration treatments..."
-              value={service.description || ''}
-              onChange={(e) => onUpdate(index, { ...service, description: e.target.value })}
-              rows={2}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
-            />
-          </div>
+          <AdminInput
+            label="Service Title"
+            required
+            placeholder="e.g., Hair Restoration, Skin Care"
+            value={service.title || ''}
+            onChange={(e) => onUpdate(index, { ...service, title: e.target.value })}
+          />
+          <AdminTextarea
+            label="Description"
+            required
+            placeholder="e.g., Advanced hair restoration treatments..."
+            value={service.description || ''}
+            onChange={(e) => onUpdate(index, { ...service, description: e.target.value })}
+            rows={2}
+          />
           <div>
             <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
               Service Image
@@ -1075,30 +1030,18 @@ function SortableServiceItem({ service, index, onUpdate, onDelete }: SortableSer
             />
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                Duration
-              </label>
-              <input
-                type="text"
-                placeholder="e.g., 60-90 minutes"
-                value={service.duration || ''}
-                onChange={(e) => onUpdate(index, { ...service, duration: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                Price
-              </label>
-              <input
-                type="text"
-                placeholder="e.g., Starting from $299"
-                value={service.price || ''}
-                onChange={(e) => onUpdate(index, { ...service, price: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
-              />
-            </div>
+            <AdminInput
+              label="Duration"
+              placeholder="e.g., 60-90 minutes"
+              value={service.duration || ''}
+              onChange={(e) => onUpdate(index, { ...service, duration: e.target.value })}
+            />
+            <AdminInput
+              label="Price"
+              placeholder="e.g., Starting from $299"
+              value={service.price || ''}
+              onChange={(e) => onUpdate(index, { ...service, price: e.target.value })}
+            />
           </div>
         </div>
         <button
@@ -1177,37 +1120,23 @@ function ServicesEditor({ data, onSave, saving }: EditorProps) {
         </p>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Section Title <span className="text-red-500">*</span>
-        </label>
-        <input
-          type="text"
-          value={formData.title || ''}
-          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-          placeholder="e.g., Our Services"
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-        />
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          Main heading for the services section
-        </p>
-      </div>
+      <AdminInput
+        label="Section Title"
+        required
+        value={formData.title || ''}
+        onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+        placeholder="e.g., Our Services"
+        hint="Main heading for the services section"
+      />
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Section Subtitle
-        </label>
-        <textarea
-          value={formData.subtitle || ''}
-          onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
-          rows={2}
-          placeholder="e.g., Comprehensive skin and hair care solutions tailored to your needs"
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-        />
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          Supporting text below the section title
-        </p>
-      </div>
+      <AdminTextarea
+        label="Section Subtitle"
+        value={formData.subtitle || ''}
+        onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
+        rows={2}
+        placeholder="e.g., Comprehensive skin and hair care solutions tailored to your needs"
+        hint="Supporting text below the section title"
+      />
 
       <div>
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Service Items</h3>
@@ -1264,30 +1193,7 @@ function ServicesEditor({ data, onSave, saving }: EditorProps) {
       </div>
 
       <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-        <button
-          type="submit"
-          disabled={saving}
-          className="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 px-4 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 transition-colors"
-        >
-          {saving ? (
-            <>
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              <span>Saving Changes...</span>
-            </>
-          ) : (
-            <>
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-              <span>Save Changes</span>
-            </>
-          )}
-        </button>
+        <AdminSaveButton saving={saving} />
       </div>
     </form>
   );
@@ -1316,37 +1222,22 @@ function AboutEditor({ data, onSave, saving }: EditorProps) {
         </p>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Section Title <span className="text-red-500">*</span>
-        </label>
-        <input
-          type="text"
-          value={formData.title || ''}
-          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-          placeholder="e.g., Why Choose Baig's Clinic?"
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-        />
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          Main heading for the about section
-        </p>
-      </div>
+      <AdminInput
+        label="Section Title"
+        required
+        value={formData.title || ''}
+        onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+        placeholder="e.g., Why Choose Baig's Clinic?"
+        hint="Main heading for the about section"
+      />
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Section Subtitle
-        </label>
-        <input
-          type="text"
-          value={formData.subtitle || ''}
-          onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
-          placeholder="e.g., Excellence in every treatment"
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-        />
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          Supporting text below the title
-        </p>
-      </div>
+      <AdminInput
+        label="Section Subtitle"
+        value={formData.subtitle || ''}
+        onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
+        placeholder="e.g., Excellence in every treatment"
+        hint="Supporting text below the title"
+      />
 
       <div>
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Feature Cards</h3>
@@ -1359,11 +1250,9 @@ function AboutEditor({ data, onSave, saving }: EditorProps) {
             className="mb-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900/50"
           >
             <div className="mb-2">
-              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                Feature Title <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
+              <AdminInput
+                label="Feature Title"
+                required
                 placeholder="e.g., Expert Team, Advanced Technology"
                 value={feature.title || ''}
                 onChange={(e) => {
@@ -1371,14 +1260,12 @@ function AboutEditor({ data, onSave, saving }: EditorProps) {
                   (newFeatures[index] as AboutFeature).title = e.target.value;
                   setFormData({ ...formData, features: newFeatures });
                 }}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               />
             </div>
             <div className="mb-3">
-              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                Description <span className="text-red-500">*</span>
-              </label>
-              <textarea
+              <AdminTextarea
+                label="Description"
+                required
                 placeholder="e.g., Board-certified specialists with years of experience..."
                 value={feature.description || ''}
                 onChange={(e) => {
@@ -1387,7 +1274,6 @@ function AboutEditor({ data, onSave, saving }: EditorProps) {
                   setFormData({ ...formData, features: newFeatures });
                 }}
                 rows={3}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               />
             </div>
             <button
@@ -1433,30 +1319,7 @@ function AboutEditor({ data, onSave, saving }: EditorProps) {
       </div>
 
       <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-        <button
-          type="submit"
-          disabled={saving}
-          className="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 px-4 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 transition-colors"
-        >
-          {saving ? (
-            <>
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              <span>Saving Changes...</span>
-            </>
-          ) : (
-            <>
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-              <span>Save Changes</span>
-            </>
-          )}
-        </button>
+        <AdminSaveButton saving={saving} />
       </div>
     </form>
   );
@@ -1512,21 +1375,14 @@ function FooterEditor({ data, onSave, saving }: EditorProps) {
         </p>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Brand Name <span className="text-red-500">*</span>
-        </label>
-        <input
-          type="text"
-          value={formData.brandName || ''}
-          onChange={(e) => setFormData({ ...formData, brandName: e.target.value })}
-          placeholder="e.g., Dr Baig's Clinic"
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-        />
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          Brand name displayed in the footer
-        </p>
-      </div>
+      <AdminInput
+        label="Brand Name"
+        required
+        value={formData.brandName || ''}
+        onChange={(e) => setFormData({ ...formData, brandName: e.target.value })}
+        placeholder="e.g., Dr Baig's Clinic"
+        hint="Brand name displayed in the footer"
+      />
 
       <div>
         <ImageUpload
@@ -1537,21 +1393,14 @@ function FooterEditor({ data, onSave, saving }: EditorProps) {
         />
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Footer Description
-        </label>
-        <textarea
-          value={formData.description || ''}
-          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          rows={3}
-          placeholder="e.g., Your trusted partner for comprehensive skin and hair care solutions..."
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-        />
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          Brief description about your clinic shown in the footer
-        </p>
-      </div>
+      <AdminTextarea
+        label="Footer Description"
+        value={formData.description || ''}
+        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+        rows={3}
+        placeholder="e.g., Your trusted partner for comprehensive skin and hair care solutions..."
+        hint="Brief description about your clinic shown in the footer"
+      />
 
       <div>
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
@@ -1561,69 +1410,53 @@ function FooterEditor({ data, onSave, saving }: EditorProps) {
           Contact details displayed in the footer
         </p>
         <div className="space-y-3">
-          <div>
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-              Address
-            </label>
-            <textarea
-              placeholder="e.g., 123 Health Street\nCity, State 12345"
-              value={formData.contact?.address || ''}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  contact: {
-                    address: e.target.value,
-                    phone: formData.contact?.phone || '',
-                    email: formData.contact?.email || '',
-                  },
-                })
-              }
-              rows={2}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-              Phone Number
-            </label>
-            <input
-              type="text"
-              placeholder="e.g., +1 (234) 567-890"
-              value={formData.contact?.phone || ''}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  contact: {
-                    address: formData.contact?.address || '',
-                    phone: e.target.value,
-                    email: formData.contact?.email || '',
-                  },
-                })
-              }
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-              Email Address
-            </label>
-            <input
-              type="email"
-              placeholder="e.g., info@clinic.com"
-              value={formData.contact?.email || ''}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  contact: {
-                    address: formData.contact?.address || '',
-                    phone: formData.contact?.phone || '',
-                    email: e.target.value,
-                  },
-                })
-              }
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            />
-          </div>
+          <AdminTextarea
+            label="Address"
+            placeholder="e.g., 123 Health Street\nCity, State 12345"
+            value={formData.contact?.address || ''}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                contact: {
+                  address: e.target.value,
+                  phone: formData.contact?.phone || '',
+                  email: formData.contact?.email || '',
+                },
+              })
+            }
+            rows={2}
+          />
+          <AdminInput
+            label="Phone Number"
+            placeholder="e.g., +1 (234) 567-890"
+            value={formData.contact?.phone || ''}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                contact: {
+                  address: formData.contact?.address || '',
+                  phone: e.target.value,
+                  email: formData.contact?.email || '',
+                },
+              })
+            }
+          />
+          <AdminInput
+            label="Email Address"
+            type="email"
+            placeholder="e.g., info@clinic.com"
+            value={formData.contact?.email || ''}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                contact: {
+                  address: formData.contact?.address || '',
+                  phone: formData.contact?.phone || '',
+                  email: e.target.value,
+                },
+              })
+            }
+          />
         </div>
       </div>
 
@@ -1661,30 +1494,20 @@ function FooterEditor({ data, onSave, saving }: EditorProps) {
                 </button>
               </div>
               <div className="space-y-3">
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                    Platform Name <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g., Facebook, Instagram, Twitter, LinkedIn, etc."
-                    value={item.name || ''}
-                    onChange={(e) => updateSocialMediaItem(index, 'name', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                    URL <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g., https://facebook.com/yourpage"
-                    value={item.url || ''}
-                    onChange={(e) => updateSocialMediaItem(index, 'url', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
-                  />
-                </div>
+                <AdminInput
+                  label="Platform Name"
+                  required
+                  placeholder="e.g., Facebook, Instagram, Twitter, LinkedIn, etc."
+                  value={item.name || ''}
+                  onChange={(e) => updateSocialMediaItem(index, 'name', e.target.value)}
+                />
+                <AdminInput
+                  label="URL"
+                  required
+                  placeholder="e.g., https://facebook.com/yourpage"
+                  value={item.url || ''}
+                  onChange={(e) => updateSocialMediaItem(index, 'url', e.target.value)}
+                />
                 <div>
                   <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                     Custom Icon (Optional)
@@ -1717,47 +1540,16 @@ function FooterEditor({ data, onSave, saving }: EditorProps) {
         </div>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Copyright Text
-        </label>
-        <input
-          type="text"
-          value={formData.copyright || ''}
-          onChange={(e) => setFormData({ ...formData, copyright: e.target.value })}
-          placeholder="e.g., Glow Clinic or Dr Baig's Clinic"
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-        />
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          Text shown in the copyright notice (year is added automatically)
-        </p>
-      </div>
+      <AdminInput
+        label="Copyright Text"
+        value={formData.copyright || ''}
+        onChange={(e) => setFormData({ ...formData, copyright: e.target.value })}
+        placeholder="e.g., Glow Clinic or Dr Baig's Clinic"
+        hint="Text shown in the copyright notice (year is added automatically)"
+      />
 
       <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-        <button
-          type="submit"
-          disabled={saving}
-          className="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 px-4 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 transition-colors"
-        >
-          {saving ? (
-            <>
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              <span>Saving Changes...</span>
-            </>
-          ) : (
-            <>
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-              <span>Save Changes</span>
-            </>
-          )}
-        </button>
+        <AdminSaveButton saving={saving} />
       </div>
     </form>
   );
@@ -1824,30 +1616,7 @@ function ContactEditor({ data, onSave, saving }: EditorProps) {
       />
 
       <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-        <button
-          type="submit"
-          disabled={saving}
-          className="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 px-4 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 transition-colors"
-        >
-          {saving ? (
-            <>
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              <span>Saving Changes...</span>
-            </>
-          ) : (
-            <>
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-              <span>Save Changes</span>
-            </>
-          )}
-        </button>
+        <AdminSaveButton saving={saving} />
         <p className="text-xs text-gray-500 dark:text-gray-400 mt-3 text-center">
           Looking for the email/SMS/WhatsApp message templates? They moved to their own{' '}
           <span className="font-medium">Templates</span> tab in the sidebar.
@@ -1975,30 +1744,7 @@ function TemplatesEditor({ data, onSave, saving }: EditorProps) {
       />
 
       <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-        <button
-          type="submit"
-          disabled={saving}
-          className="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 px-4 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 transition-colors"
-        >
-          {saving ? (
-            <>
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              <span>Saving Changes...</span>
-            </>
-          ) : (
-            <>
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-              <span>Save Changes</span>
-            </>
-          )}
-        </button>
+        <AdminSaveButton saving={saving} />
       </div>
     </form>
   );

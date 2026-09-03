@@ -28,6 +28,8 @@ export async function GET(request: NextRequest) {
         ]);
         return {
           id: p.id,
+          appointmentId: p.appointment_id,
+          doctorId: p.doctor_id,
           createdAt: p.created_at,
           diagnosis: p.diagnosis,
           pdfUrl: p.pdf_url,
@@ -37,6 +39,19 @@ export async function GET(request: NextRequest) {
           patientPhone: patient?.phone || appointment?.patient_phone || null,
           appointmentDate: appointment?.appointment_date || null,
           slot: appointment?.slot_start || null,
+          reason: appointment?.reason || '',
+          medications: p.medications,
+          symptoms: p.symptoms,
+          examinations: p.examinations,
+          investigations: p.investigations,
+          advices: p.advices,
+          vitals: p.vitals,
+          followUpDate: p.follow_up_date,
+          additionalNotes: p.additional_notes,
+          privateNotes: p.private_notes,
+          medicalHistoryTags: p.medical_history_tags,
+          medicalHistoryNoKnown: p.medical_history_no_known,
+          medicalRecords: p.medical_records,
         };
       })
     );

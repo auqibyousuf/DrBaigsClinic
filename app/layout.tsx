@@ -8,6 +8,7 @@ import ToastProvider from '@/components/ToastProvider';
 import PageTransition from '@/components/PageTransition';
 import BookingModalProvider from '@/components/BookingModalProvider';
 import { cn } from '@/lib/utils';
+import { getCMSData } from '@/lib/cms';
 
 // Body: Plus Jakarta Sans — clean, confident, modern grotesque.
 const plusJakarta = Plus_Jakarta_Sans({
@@ -27,7 +28,7 @@ const sora = Sora({
   weight: ['500', '600', '700', '800'],
 });
 
-export const metadata: Metadata = {
+const staticMetadata: Metadata = {
   title: {
     default: "Dr Baig's Clinic - Premium Skin & Hair Care Solutions",
     template: "%s | Dr Baig's Clinic",
@@ -97,11 +98,6 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  icons: {
-    icon: '/icon.svg',
-    apple: '/icon.svg',
-    shortcut: '/icon.svg',
-  },
   manifest: '/site.webmanifest',
   verification: {
     google: 'your-google-verification-code',
@@ -111,6 +107,29 @@ export const metadata: Metadata = {
     'color-scheme': 'light dark',
   },
 };
+
+// CMS-controlled favicon (falls back to the header logo, then the static
+// default) — this has to be generateMetadata rather than a static export
+// since it needs the CMS data, which is only available at request time.
+export async function generateMetadata(): Promise<Metadata> {
+  let iconUrl = '/icon.svg';
+  try {
+    const cmsData = await getCMSData();
+    iconUrl = cmsData.header?.favicon || cmsData.header?.logo || '/icon.svg';
+  } catch {
+    // CMS unavailable — fall back to the static default rather than
+    // failing the whole page render over a favicon.
+  }
+
+  return {
+    ...staticMetadata,
+    icons: {
+      icon: iconUrl,
+      apple: iconUrl,
+      shortcut: iconUrl,
+    },
+  };
+}
 
 export default function RootLayout({
   children,
