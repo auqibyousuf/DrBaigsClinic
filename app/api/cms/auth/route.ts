@@ -1,6 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { checkLoginLockout, getClientIp, recordFailedLogin } from '@/lib/login-attempts';
 
+async function verifyRecaptcha(token: string | undefined): Promise<boolean> {
+  const secret = process.env.RECAPTCHA_SECRET_KEY;
+  // Not configured — nothing to verify against, so don't block login on it
+  // (matches the client, which doesn't render the widget either in that case).
+  if (!secret) return true;
+  if (!token) return false;
+
+  try {
+    const res = await fetch('https://www.google.com/recaptcha/api/siteverify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ secret, response: token }),
+    });
+    const result = await res.json();
+    return result.success === true;
+  } catch (err) {
+    console.error('reCAPTCHA verification request failed:', err);
+    return false;
+  }
+}
+
 export async function GET(request: NextRequest) {
   const sessionToken = request.cookies.get('cms-auth')?.value;
   const isValid = sessionToken === process.env.CMS_AUTH_TOKEN;
@@ -18,11 +39,11 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { password } = body;
+    const { username, password, recaptchaToken } = body;
 
-    if (!password) {
+    if (!username || !password) {
       return NextResponse.json(
-        { error: 'Password is required' },
+        { error: 'Username and password are required' },
         { status: 400 }
       );
     }
@@ -36,11 +57,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Simple password check (in production, use proper authentication)
+    const recaptchaOk = await verifyRecaptcha(recaptchaToken);
+    if (!recaptchaOk) {
+      await recordFailedLogin(ip);
+      return NextResponse.json(
+        { error: 'reCAPTCHA verification failed. Please try again.' },
+        { status: 400 }
+      );
+    }
+
+    // Simple credential check (in production, use proper authentication)
+    const correctUsername = process.env.CMS_USERNAME || 'admin';
     const correctPassword = process.env.CMS_PASSWORD || 'admin123';
     const authToken = process.env.CMS_AUTH_TOKEN || 'dev-token';
 
-    if (password === correctPassword) {
+    if (username === correctUsername && password === correctPassword) {
       const response = NextResponse.json({ success: true });
 
       // Set auth cookie (in production, use secure, httpOnly cookies)
@@ -57,7 +88,7 @@ export async function POST(request: NextRequest) {
 
     await recordFailedLogin(ip);
     return NextResponse.json(
-      { error: 'Invalid password' },
+      { error: 'Invalid username or password' },
       { status: 401 }
     );
   } catch (error) {

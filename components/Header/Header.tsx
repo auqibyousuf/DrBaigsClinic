@@ -35,12 +35,12 @@ const Header = () => {
   const { data: headerData } = useCMSData('header');
 
   // The admin/CMS panel lives at a deliberately unlisted path — not linked
-  // from anywhere on the public site (see app/staff-x7k2q) — so it isn't
+  // from anywhere on the public site (see app/clinic-office) — so it isn't
   // advertised to visitors or crawlers. Staff reach it via a bookmarked URL.
-  const isAdminLoginPage = pathname === '/staff-x7k2q';
-  // The whole admin section has its own header (app/staff-x7k2q/layout.tsx)
+  const isAdminLoginPage = pathname === '/clinic-office';
+  // The whole admin section has its own header (app/clinic-office/layout.tsx)
   // — the public site nav has no business rendering there too.
-  const isAdminSection = pathname?.startsWith('/staff-x7k2q');
+  const isAdminSection = pathname?.startsWith('/clinic-office');
 
   useEffect(() => {
     const handleScroll = () => {

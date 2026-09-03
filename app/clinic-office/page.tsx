@@ -1,13 +1,26 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { LockKey, ArrowLeft, SignIn } from '@phosphor-icons/react';
+import Script from 'next/script';
+import { LockKey, User, ArrowLeft, SignIn } from '@phosphor-icons/react';
 import FloatingLabelInput from '@/components/FloatingLabelInput';
 import Button from '@/components/Button';
 
+declare global {
+  interface Window {
+    grecaptcha?: {
+      getResponse: (widgetId?: number) => string;
+      reset: (widgetId?: number) => void;
+    };
+  }
+}
+
+const RECAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
+
 export default function AdminLogin() {
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -15,26 +28,40 @@ export default function AdminLogin() {
 
   const handleLogin = async () => {
     setError('');
+
+    // Only meaningful once RECAPTCHA_SITE_KEY is configured — see
+    // WHATSAPP_SETUP.md-style note in .env.example. Without it, the widget
+    // never renders and this check is skipped (login still requires
+    // username + password + the server-side lockout either way).
+    if (RECAPTCHA_SITE_KEY && !window.grecaptcha?.getResponse()) {
+      setError('Please complete the reCAPTCHA challenge.');
+      return;
+    }
+
     setLoading(true);
 
     try {
+      const recaptchaToken = RECAPTCHA_SITE_KEY ? window.grecaptcha?.getResponse() : undefined;
+
       const response = await fetch('/api/cms/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password }),
+        body: JSON.stringify({ username, password, recaptchaToken }),
         credentials: 'include',
       });
 
       const data = await response.json();
 
       if (response.ok && data.success) {
-        router.push('/staff-x7k2q/dashboard');
+        router.push('/clinic-office/dashboard');
       } else {
-        setError(data.error || 'Invalid password. Please try again.');
+        setError(data.error || 'Invalid username or password. Please try again.');
+        window.grecaptcha?.reset();
       }
     } catch (err) {
       console.error('Login error:', err);
       setError('Failed to authenticate. Please check your connection and try again.');
+      window.grecaptcha?.reset();
     } finally {
       setLoading(false);
     }
@@ -42,6 +69,9 @@ export default function AdminLogin() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-accent-50 dark:from-gray-900 dark:to-gray-800 px-4">
+      {RECAPTCHA_SITE_KEY && (
+        <Script src="https://www.google.com/recaptcha/api.js" strategy="afterInteractive" />
+      )}
       <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 animate-fade-in-up">
         <div className="text-center mb-8 animate-fade-in-up" style={{ animationDelay: '0.1s', animationFillMode: 'both' }}>
           <div className="mb-4 animate-fade-in-up" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
@@ -54,16 +84,32 @@ export default function AdminLogin() {
             Admin Login
           </h1>
           <p className="text-gray-600 dark:text-gray-400 animate-fade-in-up" style={{ animationDelay: '0.4s', animationFillMode: 'both' }}>
-            Enter your password to access the CMS
+            Sign in to access the CMS
           </p>
         </div>
 
         <div className="space-y-6 animate-fade-in-up" style={{ animationDelay: '0.5s', animationFillMode: 'both' }}>
           <FloatingLabelInput
+            id="username"
+            name="username"
+            type="text"
+            placeholder="Username *"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                handleLogin();
+              }
+            }}
+            icon={<User className="w-4 h-4" weight="duotone" />}
+          />
+
+          <FloatingLabelInput
             id="password"
             name="password"
             type="password"
-            placeholder="Enter admin password *"
+            placeholder="Password *"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             onKeyDown={(e) => {
@@ -74,6 +120,12 @@ export default function AdminLogin() {
             }}
             icon={<LockKey className="w-4 h-4" weight="duotone" />}
           />
+
+          {RECAPTCHA_SITE_KEY && (
+            <div className="flex justify-center">
+              <div className="g-recaptcha" data-sitekey={RECAPTCHA_SITE_KEY} />
+            </div>
+          )}
 
           {error && (
             <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg animate-fade-in-up">

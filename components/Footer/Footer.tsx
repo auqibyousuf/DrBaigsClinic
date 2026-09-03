@@ -47,7 +47,7 @@ const Footer = () => {
   const { data: servicesData } = useCMSData('services');
 
   // The admin section has its own self-contained layout — no public footer there.
-  if (pathname?.startsWith('/staff-x7k2q')) {
+  if (pathname?.startsWith('/clinic-office')) {
     return null;
   }
 
