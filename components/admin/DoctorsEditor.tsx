@@ -132,7 +132,7 @@ function SortableDoctorItem({
           <DotsSixVertical className="w-5 h-5 text-gray-400" />
         </div>
         <div className="flex-1 space-y-3 min-w-0">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <AdminInput
               label="Name"
               required
@@ -164,7 +164,7 @@ function SortableDoctorItem({
               description="Photo shown in the doctor selection dropdown (optional)"
             />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <AdminInput
               label="Notification Phone"
               required
