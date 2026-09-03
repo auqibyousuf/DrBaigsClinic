@@ -35,6 +35,7 @@ interface Patient {
   aadhaar_number: string | null;
   created_at: string;
   appointmentStatus: 'Upcoming' | 'In Progress' | 'Completed' | 'Cancelled' | 'No Visits';
+  lastVisitReason: string | null;
 }
 
 const STATUS_STYLES: Record<Patient['appointmentStatus'], string> = {
@@ -222,6 +223,16 @@ export default function PatientsView() {
       accessorKey: 'phone',
       header: 'Phone',
       cell: ({ row }) => <span className="whitespace-nowrap">{row.original.phone}</span>,
+    },
+    {
+      accessorKey: 'lastVisitReason',
+      header: 'Reason',
+      cell: ({ row }) => (
+        <span className="block max-w-[10rem] truncate text-xs text-gray-600 dark:text-gray-300">
+          {row.original.lastVisitReason || '—'}
+        </span>
+      ),
+      enableSorting: false,
     },
     {
       accessorKey: 'appointmentStatus',

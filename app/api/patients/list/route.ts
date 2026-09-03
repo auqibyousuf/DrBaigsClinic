@@ -25,17 +25,24 @@ export async function GET(request: NextRequest) {
     const enriched = await Promise.all(
       patients.map(async (p) => {
         const visits = await getAppointmentsForPatient(p.id);
+        // A "confirmed" appointment is a queue item until it's explicitly
+        // finished/cancelled — regardless of date (see MEDISRAY_AUDIT.md
+        // finding #1a, no time-gating). A confirmed visit whose date has
+        // already passed is still pending action, not "no visits" — that
+        // was the bug: past-dated-but-still-confirmed visits fell through
+        // to the default instead of surfacing as needing attention.
+        const pendingQueueVisit = visits.find((v) => v.status === 'confirmed' && v.appointment_date <= today);
         const upcoming = visits.find((v) => v.status === 'confirmed' && v.appointment_date > today);
-        const today_visit = visits.find((v) => v.status === 'confirmed' && v.appointment_date === today);
         const mostRecent = visits[0];
+        const relevantVisit = pendingQueueVisit || upcoming || mostRecent;
 
         let appointmentStatus = 'No Visits';
-        if (today_visit) appointmentStatus = 'In Progress';
+        if (pendingQueueVisit) appointmentStatus = 'In Progress';
         else if (upcoming) appointmentStatus = 'Upcoming';
         else if (mostRecent?.status === 'finished') appointmentStatus = 'Completed';
         else if (mostRecent?.status === 'cancelled') appointmentStatus = 'Cancelled';
 
-        return { ...p, appointmentStatus };
+        return { ...p, appointmentStatus, lastVisitReason: relevantVisit?.reason || null };
       })
     );
 
