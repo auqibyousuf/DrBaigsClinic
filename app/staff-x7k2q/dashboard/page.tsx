@@ -145,21 +145,21 @@ export default function AdminDashboard() {
 
       if (!response.ok) {
         console.log('Not authenticated, redirecting to login');
-        router.push('/admin');
+        router.push('/staff-x7k2q');
         return false;
       }
 
       const data = await response.json();
       if (!data.authenticated) {
         console.log('Not authenticated, redirecting to login');
-        router.push('/admin');
+        router.push('/staff-x7k2q');
         return false;
       }
 
       return true;
     } catch (error) {
       console.error('Auth check error:', error);
-      router.push('/admin');
+      router.push('/staff-x7k2q');
       return false;
     }
   };
@@ -173,7 +173,7 @@ export default function AdminDashboard() {
       if (!response.ok) {
         if (response.status === 401) {
           console.log('Unauthorized, redirecting to login');
-          router.push('/admin');
+          router.push('/staff-x7k2q');
           return;
         }
         throw new Error('Failed to fetch data');

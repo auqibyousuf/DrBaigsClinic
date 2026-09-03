@@ -28,7 +28,7 @@ export default function AdminLogin() {
       const data = await response.json();
 
       if (response.ok && data.success) {
-        router.push('/admin/dashboard');
+        router.push('/staff-x7k2q/dashboard');
       } else {
         setError(data.error || 'Invalid password. Please try again.');
       }

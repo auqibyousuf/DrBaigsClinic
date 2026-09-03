@@ -26,7 +26,7 @@ export default function AdminLayout({
   };
 
   // Don't show header on login page
-  if (pathname === '/admin' && !pathname.includes('dashboard')) {
+  if (pathname === '/staff-x7k2q' && !pathname.includes('dashboard')) {
     return <>{children}</>;
   }
 

@@ -10,7 +10,7 @@ import ThemeToggle from '@/components/ThemeToggle';
 import Logo from '@/components/Logo';
 import { useCMSData } from '@/lib/cms-client';
 import { useBookingModal } from '@/components/BookingModalProvider';
-import { CalendarCheck, ShieldCheck, List, X, House } from '@phosphor-icons/react';
+import { CalendarCheck, List, X, House } from '@phosphor-icons/react';
 import { getIcon } from '@/lib/icons';
 
 // Renders whichever icon the admin picked (any name from lib/icons.ts) —
@@ -34,11 +34,13 @@ const Header = () => {
   const { open: openBookingModal } = useBookingModal();
   const { data: headerData } = useCMSData('header');
 
-  // Check if we're on admin login page
-  const isAdminLoginPage = pathname === '/admin';
-  // The whole /admin section has its own header (app/admin/layout.tsx) — the
-  // public site nav has no business rendering there too.
-  const isAdminSection = pathname?.startsWith('/admin');
+  // The admin/CMS panel lives at a deliberately unlisted path — not linked
+  // from anywhere on the public site (see app/staff-x7k2q) — so it isn't
+  // advertised to visitors or crawlers. Staff reach it via a bookmarked URL.
+  const isAdminLoginPage = pathname === '/staff-x7k2q';
+  // The whole admin section has its own header (app/staff-x7k2q/layout.tsx)
+  // — the public site nav has no business rendering there too.
+  const isAdminSection = pathname?.startsWith('/staff-x7k2q');
 
   useEffect(() => {
     const handleScroll = () => {
@@ -134,25 +136,15 @@ const Header = () => {
               <div className="flex items-center gap-1.5 ml-1.5 pl-4 border-l border-gray-200 dark:border-gray-700">
                 <ThemeToggle />
                 {!isAdminLoginPage && (
-                  <>
-                    <Link
-                      href="/admin"
-                      className="flex items-center gap-1 px-2 xl:px-2.5 py-1.5 text-xs font-semibold text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 whitespace-nowrap"
-                      aria-label="Go to admin panel"
-                    >
-                      <ShieldCheck className="w-3.5 h-3.5" weight="duotone" />
-                      Admin
-                    </Link>
-                    <Button
-                      onClick={openBookingModal}
-                      variant="primary"
-                      size="sm"
-                      icon={<CalendarCheck weight="bold" />}
-                      className="!px-4 !py-1.5 !text-xs whitespace-nowrap"
-                    >
-                      {ctaButton.text}
-                    </Button>
-                  </>
+                  <Button
+                    onClick={openBookingModal}
+                    variant="primary"
+                    size="sm"
+                    icon={<CalendarCheck weight="bold" />}
+                    className="!px-4 !py-1.5 !text-xs whitespace-nowrap"
+                  >
+                    {ctaButton.text}
+                  </Button>
                 )}
               </div>
             </div>
@@ -208,29 +200,18 @@ const Header = () => {
                     <ThemeToggle />
                   </div>
                   {!isAdminLoginPage && (
-                    <>
-                      <Link
-                        href="/admin"
-                        className="flex items-center justify-center space-x-2 px-4 py-2.5 text-sm font-semibold text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 border border-gray-300 dark:border-gray-700 rounded-full hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-                        aria-label="Go to admin panel"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        <ShieldCheck className="w-4 h-4" weight="duotone" />
-                        <span>Admin Login</span>
-                      </Link>
-                      <Button
-                        onClick={() => {
-                          setIsMobileMenuOpen(false);
-                          openBookingModal();
-                        }}
-                        variant="primary"
-                        size="md"
-                        icon={<CalendarCheck weight="bold" />}
-                        className="w-full"
-                      >
-                        {ctaButton.text}
-                      </Button>
-                    </>
+                    <Button
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        openBookingModal();
+                      }}
+                      variant="primary"
+                      size="md"
+                      icon={<CalendarCheck weight="bold" />}
+                      className="w-full"
+                    >
+                      {ctaButton.text}
+                    </Button>
                   )}
                 </div>
               </div>
