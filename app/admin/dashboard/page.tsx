@@ -1507,18 +1507,8 @@ function FooterEditor({ data, onSave, saving }: EditorProps) {
                   placeholder="e.g., https://facebook.com/yourpage"
                   value={item.url || ''}
                   onChange={(e) => updateSocialMediaItem(index, 'url', e.target.value)}
+                  hint="Icon is picked automatically from the platform name above (Facebook, Instagram, Twitter/X, LinkedIn, YouTube, WhatsApp, TikTok, Pinterest, Threads)."
                 />
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                    Custom Icon (Optional)
-                  </label>
-                  <ImageUpload
-                    value={item.icon || ''}
-                    onChange={(url) => updateSocialMediaItem(index, 'icon', url)}
-                    label=""
-                    description="Upload a custom icon for this platform (optional)"
-                  />
-                </div>
               </div>
             </div>
           ))}
