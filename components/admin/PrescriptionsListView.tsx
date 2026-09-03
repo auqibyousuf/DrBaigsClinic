@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { type ColumnDef } from '@tanstack/react-table';
 import { CalendarCheck } from '@phosphor-icons/react';
-import { Eye, PencilSimple, TrashSimple } from '@phosphor-icons/react';
+import { Eye, PencilSimple, TrashSimple, WhatsappLogo } from '@phosphor-icons/react';
 import { DataTable, type DataTableFilter } from '@/components/ui/data-table';
 import Button from '@/components/Button';
 import DropdownMenu from '@/components/admin/DropdownMenu';
@@ -64,6 +64,20 @@ export default function PrescriptionsListView({ doctors }: PrescriptionsListView
   const [writingFor, setWritingFor] = useState<AppointmentRow | null>(null);
   const [editingRow, setEditingRow] = useState<PrescriptionRow | null>(null);
   const { showToast } = useToast();
+
+  const shareOnWhatsApp = async (row: PrescriptionRow) => {
+    try {
+      const res = await fetch(`/api/prescriptions/${row.id}/share-whatsapp`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || 'Failed to share');
+      showToast('success', `Prescription sent to ${row.patientName} on WhatsApp.`);
+    } catch (err) {
+      showToast('error', err instanceof Error ? err.message : 'Failed to share prescription');
+    }
+  };
 
   const deletePrescriptionRow = async (row: PrescriptionRow) => {
     if (!confirm(`Permanently delete the prescription for ${row.patientName}? This cannot be undone.`)) return;
@@ -138,6 +152,12 @@ export default function PrescriptionsListView({ doctors }: PrescriptionsListView
                   icon: <Eye className="w-4 h-4" />,
                   hidden: !p.pdfUrl,
                   onClick: () => window.open(p.pdfUrl!, '_blank', 'noopener,noreferrer'),
+                },
+                {
+                  label: 'Send via WhatsApp',
+                  icon: <WhatsappLogo className="w-4 h-4" />,
+                  hidden: !p.pdfUrl || !p.patientPhone,
+                  onClick: () => shareOnWhatsApp(p),
                 },
                 {
                   label: 'Edit',
