@@ -114,7 +114,7 @@ export default function AutocompleteInput({ category, value, onChange, placehold
         className={fieldClasses()}
       />
       {open &&
-        (filtered.length > 0 || trimmedValue) &&
+        (filtered.length > 0 || (trimmedValue && !exactMatch)) &&
         rect &&
         createPortal(
           <div
