@@ -35,6 +35,8 @@ export async function GET(request: NextRequest) {
                 follow_up_date: prescription.follow_up_date,
                 additional_notes: prescription.additional_notes,
                 private_notes: prescription.private_notes,
+                medical_history: prescription.medical_history,
+                medical_records: prescription.medical_records,
                 notes: prescription.notes,
                 pdfUrl: prescription.pdf_url,
               }

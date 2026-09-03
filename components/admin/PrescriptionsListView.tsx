@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { type ColumnDef } from '@tanstack/react-table';
 import { CalendarCheck } from '@phosphor-icons/react';
 import { DataTable, type DataTableFilter } from '@/components/ui/data-table';
-import Modal from '@/components/Modal';
 import Button from '@/components/Button';
 import PrescriptionEditor from '@/components/admin/PrescriptionEditor';
 
@@ -172,6 +171,27 @@ export default function PrescriptionsListView({ doctors }: PrescriptionsListView
     );
   }
 
+  if (writingFor) {
+    return (
+      <PrescriptionEditor
+        appointmentId={writingFor.id}
+        context={{
+          patientName: writingFor.patient_name,
+          patientPhone: writingFor.patient_phone,
+          date: writingFor.appointment_date,
+          slot: writingFor.slot_start || 'Walk-in',
+          reason: writingFor.reason,
+        }}
+        initial={null}
+        onClose={() => setWritingFor(null)}
+        onSaved={() => {
+          setWritingFor(null);
+          fetchAll();
+        }}
+      />
+    );
+  }
+
   return (
     <div className="space-y-8">
       <div className="border-b border-gray-200 dark:border-gray-700 pb-4 mb-2">
@@ -233,27 +253,6 @@ export default function PrescriptionsListView({ doctors }: PrescriptionsListView
           emptyMessage="No prescriptions written yet."
         />
       </div>
-
-      <Modal isOpen={!!writingFor} onClose={() => setWritingFor(null)} title="Write Prescription">
-        {writingFor && (
-          <PrescriptionEditor
-            appointmentId={writingFor.id}
-            context={{
-              patientName: writingFor.patient_name,
-              patientPhone: writingFor.patient_phone,
-              date: writingFor.appointment_date,
-              slot: writingFor.slot_start || 'Walk-in',
-              reason: writingFor.reason,
-            }}
-            initial={null}
-            onClose={() => setWritingFor(null)}
-            onSaved={() => {
-              setWritingFor(null);
-              fetchAll();
-            }}
-          />
-        )}
-      </Modal>
     </div>
   );
 }

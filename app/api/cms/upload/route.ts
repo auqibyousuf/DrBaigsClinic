@@ -26,11 +26,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate file type
-    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+    // Validate file type — images for CMS content, plus PDFs for
+    // prescription "Medical Records" attachments (old reports/scans).
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif', 'application/pdf'];
     if (!validTypes.includes(file.type)) {
       return NextResponse.json(
-        { error: 'Invalid file type. Only images are allowed.' },
+        { error: 'Invalid file type. Only images and PDFs are allowed.' },
         { status: 400 }
       );
     }

@@ -32,6 +32,8 @@ interface AppointmentPrescription {
   follow_up_date?: string | null;
   additional_notes?: string | null;
   private_notes?: string | null;
+  medical_history?: string | null;
+  medical_records?: { name: string; url: string }[];
   notes: string | null;
   pdfUrl: string | null;
 }
@@ -64,7 +66,7 @@ interface HistoryVisit {
 // The appointment has "started" once its slot's start time has passed —
 // prescriptions only make sense once the consultation is actually underway.
 // Walk-ins have no pre-picked slot and are always mid-consultation already.
-function hasStarted(appt: Appointment): boolean {
+export function hasStarted(appt: Appointment): boolean {
   if (appt.is_walk_in || !appt.slot_start) return true;
   return new Date(`${appt.appointment_date}T${appt.slot_start}:00`) <= new Date();
 }
@@ -73,26 +75,26 @@ interface AppointmentDetailsPanelProps {
   appointment: Appointment;
   doctorName: string;
   onChanged: () => void;
-  // Jumps straight into the prescription/consultation editor — used when a
-  // walk-in was just started, matching Medisray's "Consult" click going
-  // directly into the Digital-Rx screen instead of a separate step.
-  autoPrescribe?: boolean;
   // "Details" is a read-only summary; "Edit" shows the editable fields. The
   // row's own 3-dot menu picks which one to open — this panel no longer
   // decides that itself (previously Details silently let you edit, and
-  // Finish/Cancel/Delete/History were buried inside here instead of the
-  // row-level menu).
+  // Finish/Cancel/Delete/History/Add Prescription were buried inside here
+  // instead of the row-level menu).
   mode?: 'details' | 'edit';
   onRequestEdit?: () => void;
+  // Writing/editing a prescription now opens as its own modal, triggered
+  // from the row's 3-dot menu — this panel only shows the read-only result
+  // (view PDF / share / delete) once one exists.
+  onRequestPrescribe?: () => void;
 }
 
 export default function AppointmentDetailsPanel({
   appointment: appt,
   doctorName,
   onChanged,
-  autoPrescribe = false,
   mode = 'details',
   onRequestEdit,
+  onRequestPrescribe,
 }: AppointmentDetailsPanelProps) {
   const { showToast } = useToast();
   const { data: bookingSettingsData } = useCMSData('bookingSettings');
@@ -108,7 +110,6 @@ export default function AppointmentDetailsPanel({
   const [editSlot, setEditSlot] = useState(appt.slot_start || '');
   const [savingDetails, setSavingDetails] = useState(false);
 
-  const [prescribing, setPrescribing] = useState(autoPrescribe);
   const [showHistory, setShowHistory] = useState(false);
   const [historyVisits, setHistoryVisits] = useState<HistoryVisit[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
@@ -342,7 +343,8 @@ export default function AppointmentDetailsPanel({
         </div>
       )}
 
-      {/* Prescription section — only actionable once the appointment has started */}
+      {/* Prescription section — read-only result here; writing/editing one
+          happens in its own modal opened from the row's 3-dot menu. */}
       <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
         {!appt.patient_id ? (
           <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -353,75 +355,48 @@ export default function AppointmentDetailsPanel({
           <div className="flex items-start gap-2 text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-2.5">
             <Lock className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" weight="bold" />
             <span>
-              Prescription actions (create/edit/view/share/delete) unlock once this appointment
-              begins — {appt.appointment_date} at {appt.slot_start}.
+              Prescription actions unlock once this appointment begins — {appt.appointment_date} at{' '}
+              {appt.slot_start}.
             </span>
           </div>
-        ) : prescribing ? (
-          <PrescriptionEditor
-            appointmentId={appt.id}
-            context={{
-              patientName: appt.patient_name,
-              patientPhone: appt.patient_phone,
-              date: appt.appointment_date,
-              slot: appt.slot_start || 'Walk-in',
-              reason: appt.reason,
-            }}
-            initial={
-              appt.prescription
-                ? {
-                    diagnosis: appt.prescription.diagnosis,
-                    medications: appt.prescription.medications,
-                    symptoms: appt.prescription.symptoms,
-                    examinations: appt.prescription.examinations,
-                    investigations: appt.prescription.investigations,
-                    advices: appt.prescription.advices,
-                    vitals: appt.prescription.vitals,
-                    follow_up_date: appt.prescription.follow_up_date,
-                    additional_notes: appt.prescription.additional_notes,
-                    private_notes: appt.prescription.private_notes,
-                    notes: appt.prescription.notes,
-                  }
-                : null
-            }
-            onClose={() => setPrescribing(false)}
-            onSaved={() => {
-              setPrescribing(false);
-              onChanged();
-            }}
-          />
-        ) : (
+        ) : appt.prescription ? (
           <div className="flex flex-wrap items-center gap-3">
-            <Button onClick={() => setPrescribing(true)} variant="primary" size="xs">
-              {appt.prescription ? 'Edit Prescription' : 'Add Prescription'}
-            </Button>
-            {appt.prescription?.pdfUrl && (
-              <>
-                <a
-                  href={appt.prescription.pdfUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-primary-600 hover:underline font-medium"
-                >
-                  View PDF
-                </a>
-                <button
-                  onClick={() => shareOnWhatsApp(appt.prescription!.id)}
-                  className="text-sm text-green-600 hover:text-green-700 font-medium"
-                  title="Share this prescription with the patient on WhatsApp"
-                >
-                  Share on WhatsApp
-                </button>
-                <button
-                  onClick={() => deletePrescriptionAction(appt.prescription!.id)}
-                  className="text-sm text-red-600 hover:text-red-700 font-medium"
-                  title="Permanently delete this prescription"
-                >
-                  Delete
-                </button>
-              </>
+            {appt.prescription.pdfUrl && (
+              <a
+                href={appt.prescription.pdfUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-primary-600 hover:underline font-medium"
+              >
+                View PDF
+              </a>
             )}
+            <button
+              onClick={onRequestPrescribe}
+              className="text-sm text-gray-700 dark:text-gray-300 hover:underline font-medium"
+            >
+              Edit Prescription
+            </button>
+            <button
+              onClick={() => shareOnWhatsApp(appt.prescription!.id)}
+              className="text-sm text-green-600 hover:text-green-700 font-medium"
+              title="Share this prescription with the patient on WhatsApp"
+            >
+              Share on WhatsApp
+            </button>
+            <button
+              onClick={() => deletePrescriptionAction(appt.prescription!.id)}
+              className="text-sm text-red-600 hover:text-red-700 font-medium"
+              title="Permanently delete this prescription"
+            >
+              Delete
+            </button>
           </div>
+        ) : (
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            No prescription yet — use the row's <span className="font-medium">⋮ menu</span> to add
+            one.
+          </p>
         )}
       </div>
 

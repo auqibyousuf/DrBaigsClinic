@@ -101,6 +101,15 @@ export async function generatePrescriptionPdf(
     y -= 10;
   };
 
+  // ---- Medical History ---- (visible on the printed prescription, unlike
+  // private_notes which stays doctor-only)
+  if (prescription.medical_history) {
+    drawText('MEDICAL HISTORY', margin, y, 9, boldFont, accent);
+    y -= 16;
+    drawText(prescription.medical_history, margin, y, 10, font, dark);
+    y -= 28;
+  }
+
   // ---- Symptoms ----
   if (prescription.symptoms.length > 0) {
     drawText('SYMPTOMS', margin, y, 9, boldFont, accent);

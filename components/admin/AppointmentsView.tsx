@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import { type ColumnDef } from '@tanstack/react-table';
-import { Play, Eye, Pencil, CheckCircle2, Ban, Trash2 } from 'lucide-react';
+import { Play, Eye, Pencil, CheckCircle2, Ban, Trash2, FileText } from 'lucide-react';
 import type { CMSData } from '@/lib/cms';
 import { DataTable, type DataTableFilter } from '@/components/ui/data-table';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import AppointmentDetailsPanel, { type Appointment } from '@/components/admin/AppointmentDetailsPanel';
+import AppointmentDetailsPanel, { hasStarted, type Appointment } from '@/components/admin/AppointmentDetailsPanel';
+import PrescriptionEditor from '@/components/admin/PrescriptionEditor';
 import WalkInModal from '@/components/admin/WalkInModal';
 import DropdownMenu from '@/components/admin/DropdownMenu';
 import { useToast } from '@/components/ToastProvider';
@@ -30,6 +31,11 @@ export default function AppointmentsView({ doctors }: AppointmentsViewProps) {
   // (editable fields). The row's 3-dot menu picks this directly instead of
   // "Details" silently also being editable.
   const [modeByRow, setModeByRow] = useState<Record<string, 'details' | 'edit'>>({});
+  // Writing/editing a prescription replaces this whole view with a full
+  // page (not a modal) — matches how Patient/Doctor detail pages work, and
+  // gives the consultation editor room to breathe instead of being cramped
+  // in a popup.
+  const [prescribingId, setPrescribingId] = useState<string | null>(null);
   const { showToast } = useToast();
 
   const fetchAppointments = async () => {
@@ -172,6 +178,12 @@ export default function AppointmentsView({ doctors }: AppointmentsViewProps) {
                 { label: 'View Details', icon: <Eye className="w-4 h-4" />, onClick: () => openAs('details') },
                 { label: 'Edit', icon: <Pencil className="w-4 h-4" />, onClick: () => openAs('edit') },
                 {
+                  label: appt.prescription ? 'Edit Prescription' : 'Add Prescription',
+                  icon: <FileText className="w-4 h-4" />,
+                  hidden: !appt.patient_id || !hasStarted(appt),
+                  onClick: () => setPrescribingId(appt.id),
+                },
+                {
                   label: 'Finish Visit',
                   icon: <CheckCircle2 className="w-4 h-4" />,
                   hidden: appt.status !== 'confirmed',
@@ -208,6 +220,46 @@ export default function AppointmentsView({ doctors }: AppointmentsViewProps) {
       <div className="flex items-center justify-center py-12">
         <div className="w-10 h-10 border-4 border-primary-600 border-t-transparent rounded-full animate-spin" />
       </div>
+    );
+  }
+
+  const prescribingAppt = prescribingId ? appointments.find((a) => a.id === prescribingId) || null : null;
+  if (prescribingAppt) {
+    return (
+      <PrescriptionEditor
+        appointmentId={prescribingAppt.id}
+        context={{
+          patientName: prescribingAppt.patient_name,
+          patientPhone: prescribingAppt.patient_phone,
+          date: prescribingAppt.appointment_date,
+          slot: prescribingAppt.slot_start || 'Walk-in',
+          reason: prescribingAppt.reason,
+        }}
+        initial={
+          prescribingAppt.prescription
+            ? {
+                diagnosis: prescribingAppt.prescription.diagnosis,
+                medications: prescribingAppt.prescription.medications,
+                symptoms: prescribingAppt.prescription.symptoms,
+                examinations: prescribingAppt.prescription.examinations,
+                investigations: prescribingAppt.prescription.investigations,
+                advices: prescribingAppt.prescription.advices,
+                vitals: prescribingAppt.prescription.vitals,
+                follow_up_date: prescribingAppt.prescription.follow_up_date,
+                additional_notes: prescribingAppt.prescription.additional_notes,
+                private_notes: prescribingAppt.prescription.private_notes,
+                medical_history: prescribingAppt.prescription.medical_history,
+                medical_records: prescribingAppt.prescription.medical_records,
+                notes: prescribingAppt.prescription.notes,
+              }
+            : null
+        }
+        onClose={() => setPrescribingId(null)}
+        onSaved={async () => {
+          setPrescribingId(null);
+          await fetchAppointments();
+        }}
+      />
     );
   }
 
@@ -253,9 +305,9 @@ export default function AppointmentsView({ doctors }: AppointmentsViewProps) {
                 appointment={appt}
                 doctorName={doctorName(appt.doctor_id)}
                 onChanged={fetchAppointments}
-                autoPrescribe={appt.id === autoOpenId}
                 mode={appt.id === autoOpenId ? 'details' : modeByRow[appt.id] || 'details'}
                 onRequestEdit={() => setModeByRow((prev) => ({ ...prev, [appt.id]: 'edit' }))}
+                onRequestPrescribe={() => setPrescribingId(appt.id)}
               />
             )}
           />
@@ -271,6 +323,9 @@ export default function AppointmentsView({ doctors }: AppointmentsViewProps) {
             setTab('queue');
             await fetchAppointments();
             setAutoOpenId(appointmentId);
+            // Matches Medisray's "Consult" click going straight into the
+            // Digital-Rx screen instead of a separate step.
+            setPrescribingId(appointmentId);
           }}
         />
       )}

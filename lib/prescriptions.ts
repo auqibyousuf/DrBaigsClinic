@@ -28,6 +28,11 @@ export interface VitalsReading {
   rbs?: string;
 }
 
+export interface MedicalRecordFile {
+  name: string;
+  url: string;
+}
+
 export interface Prescription {
   id: string;
   appointment_id: string;
@@ -44,6 +49,11 @@ export interface Prescription {
   additional_notes: string | null;
   // Doctor-only — never rendered into the patient-facing PDF.
   private_notes: string | null;
+  // Past medical history (allergies, chronic conditions, prior surgeries,
+  // etc.) — a Medisray optional module, distinct from this visit's notes.
+  medical_history: string | null;
+  // Uploaded documents/images (old reports, scans) attached to this visit.
+  medical_records: MedicalRecordFile[];
   notes: string | null;
   pdf_url: string | null;
   created_at: string;
@@ -64,6 +74,8 @@ export interface NewPrescription {
   follow_up_date?: string | null;
   additional_notes?: string;
   private_notes?: string;
+  medical_history?: string;
+  medical_records?: MedicalRecordFile[];
   notes?: string;
 }
 
@@ -96,6 +108,8 @@ export async function upsertPrescription(input: NewPrescription): Promise<Prescr
         follow_up_date: input.follow_up_date || null,
         additional_notes: input.additional_notes || null,
         private_notes: input.private_notes || null,
+        medical_history: input.medical_history || null,
+        medical_records: input.medical_records || [],
         notes: input.notes || null,
       },
       { onConflict: 'appointment_id' }

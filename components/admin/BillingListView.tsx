@@ -192,6 +192,7 @@ export default function BillingListView() {
             setEditingInvoice(null);
           }}
           title={`Edit Bill — ${editingRow.invoiceNumber}`}
+          size="xl"
         >
           <InvoiceEditor
             appointmentId={editingRow.appointmentId}

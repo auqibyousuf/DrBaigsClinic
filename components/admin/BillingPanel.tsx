@@ -40,7 +40,7 @@ export default function BillingPanel({ appointmentId, patientId, doctorId }: Bil
 
   if (editing) {
     return (
-      <Modal isOpen onClose={() => setEditing(null)} title={editing === 'new' ? 'Create Bill' : 'Edit Bill'}>
+      <Modal isOpen onClose={() => setEditing(null)} title={editing === 'new' ? 'Create Bill' : 'Edit Bill'} size="xl">
         <InvoiceEditor
           appointmentId={appointmentId}
           patientId={patientId}

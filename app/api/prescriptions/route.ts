@@ -38,6 +38,8 @@ export async function POST(request: NextRequest) {
       followUpDate,
       additionalNotes,
       privateNotes,
+      medicalHistory,
+      medicalRecords = [],
       notes,
     } = await request.json();
 
@@ -88,6 +90,8 @@ export async function POST(request: NextRequest) {
       follow_up_date: followUpDate || null,
       additional_notes: additionalNotes,
       private_notes: privateNotes,
+      medical_history: medicalHistory,
+      medical_records: medicalRecords,
       notes,
     });
 
