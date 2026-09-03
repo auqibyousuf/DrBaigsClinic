@@ -36,6 +36,7 @@ import BillingListView from '@/components/admin/BillingListView';
 import IconPicker from '@/components/admin/IconPicker';
 import VariableReference from '@/components/admin/VariableReference';
 import { AdminInput, AdminTextarea, AdminSelect } from '@/components/admin/AdminField';
+import AdminSaveButton from '@/components/admin/AdminSaveButton';
 
 type CMSDataSection = keyof CMSData;
 
@@ -72,6 +73,7 @@ interface EditorProps {
 
 export default function AdminDashboard() {
   const [activeSection, setActiveSection] = useState<string>('header');
+  const [openGroupId, setOpenGroupId] = useState<string>('website');
   const [data, setData] = useState<Partial<CMSData>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -376,6 +378,15 @@ export default function AdminDashboard() {
     },
   ];
 
+  // Grouped into two collapsible accordion categories — the flat 14-item
+  // list was becoming unwieldy. "Website" edits public-facing content,
+  // "App" runs day-to-day clinic operations (appointments/patients/etc).
+  const WEBSITE_SECTION_IDS = ['header', 'hero', 'services', 'about', 'footer', 'contact', 'serviceDetails'];
+  const sectionGroups = [
+    { id: 'website', label: 'Website', sections: sections.filter((s) => WEBSITE_SECTION_IDS.includes(s.id)) },
+    { id: 'app', label: 'App', sections: sections.filter((s) => !WEBSITE_SECTION_IDS.includes(s.id)) },
+  ];
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
@@ -394,35 +405,57 @@ export default function AdminDashboard() {
           {/* Sidebar */}
           <div className="lg:col-span-1">
             <nav
-              className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-3 sm:p-4"
+              className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-2 sm:p-3 space-y-1"
               aria-label="Admin sections navigation"
             >
-              <h2 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">
-                Sections
-              </h2>
-              <ul className="space-y-1 sm:space-y-2" role="list">
-                {sections.map((section) => (
-                  <li key={section.id}>
+              {sectionGroups.map((group) => {
+                const isOpen = openGroupId === group.id;
+                return (
+                  <div key={group.id} className="rounded-lg overflow-hidden">
                     <button
-                      onClick={() => handleSectionChange(section.id)}
-                      aria-current={activeSection === section.id ? 'page' : undefined}
-                      className={`w-full text-left px-3 sm:px-4 py-2 sm:py-3 rounded-lg transition-all duration-200 flex items-center space-x-2 sm:space-x-3 text-sm sm:text-base ${
-                        activeSection === section.id
-                          ? 'bg-primary-600 text-white shadow-md font-medium'
-                          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2'
-                      }`}
+                      type="button"
+                      onClick={() => setOpenGroupId(isOpen ? '' : group.id)}
+                      aria-expanded={isOpen}
+                      className="w-full flex items-center justify-between px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 focus-visible:outline-none focus-visible:text-gray-600 dark:focus-visible:text-gray-300 cursor-pointer"
                     >
-                      <span
-                        className={`flex-shrink-0 ${activeSection === section.id ? 'text-white' : 'text-gray-500 dark:text-gray-400'}`}
-                        aria-hidden="true"
+                      {group.label}
+                      <svg
+                        className={`w-4 h-4 transition-transform duration-150 ${isOpen ? 'rotate-180' : ''}`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
                       >
-                        {section.icon}
-                      </span>
-                      <span>{section.name}</span>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
                     </button>
-                  </li>
-                ))}
-              </ul>
+                    {isOpen && (
+                      <ul className="space-y-1 pb-1" role="list">
+                        {group.sections.map((section) => (
+                          <li key={section.id}>
+                            <button
+                              onClick={() => handleSectionChange(section.id)}
+                              aria-current={activeSection === section.id ? 'page' : undefined}
+                              className={`w-full text-left px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg transition-all duration-200 flex items-center space-x-2 sm:space-x-3 text-sm focus-visible:outline-none ${
+                                activeSection === section.id
+                                  ? 'bg-primary-600 text-white shadow-md font-medium'
+                                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 focus-visible:bg-gray-100 dark:focus-visible:bg-gray-700'
+                              }`}
+                            >
+                              <span
+                                className={`flex-shrink-0 ${activeSection === section.id ? 'text-white' : 'text-gray-500 dark:text-gray-400'}`}
+                                aria-hidden="true"
+                              >
+                                {section.icon}
+                              </span>
+                              <span>{section.name}</span>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                );
+              })}
             </nav>
           </div>
 
@@ -806,30 +839,7 @@ function HeaderEditor({ data, onSave, saving, isEditLinks = false }: EditorProps
       </div>
 
       <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-        <button
-          type="submit"
-          disabled={saving}
-          className="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 px-4 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 transition-colors"
-        >
-          {saving ? (
-            <>
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              <span>Saving Changes...</span>
-            </>
-          ) : (
-            <>
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-              <span>Save Changes</span>
-            </>
-          )}
-        </button>
+        <AdminSaveButton saving={saving} />
       </div>
     </form>
   );
@@ -914,30 +924,7 @@ function HeroEditor({ data, onSave, saving, isEditLinks = false }: EditorProps) 
       </div>
 
       <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-        <button
-          type="submit"
-          disabled={saving}
-          className="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 px-4 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 transition-colors"
-        >
-          {saving ? (
-            <>
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              <span>Saving Changes...</span>
-            </>
-          ) : (
-            <>
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-              <span>Save Changes</span>
-            </>
-          )}
-        </button>
+        <AdminSaveButton saving={saving} />
       </div>
     </form>
   );
@@ -1181,30 +1168,7 @@ function ServicesEditor({ data, onSave, saving }: EditorProps) {
       </div>
 
       <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-        <button
-          type="submit"
-          disabled={saving}
-          className="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 px-4 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 transition-colors"
-        >
-          {saving ? (
-            <>
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              <span>Saving Changes...</span>
-            </>
-          ) : (
-            <>
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-              <span>Save Changes</span>
-            </>
-          )}
-        </button>
+        <AdminSaveButton saving={saving} />
       </div>
     </form>
   );
@@ -1330,30 +1294,7 @@ function AboutEditor({ data, onSave, saving }: EditorProps) {
       </div>
 
       <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-        <button
-          type="submit"
-          disabled={saving}
-          className="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 px-4 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 transition-colors"
-        >
-          {saving ? (
-            <>
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              <span>Saving Changes...</span>
-            </>
-          ) : (
-            <>
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-              <span>Save Changes</span>
-            </>
-          )}
-        </button>
+        <AdminSaveButton saving={saving} />
       </div>
     </form>
   );
@@ -1583,30 +1524,7 @@ function FooterEditor({ data, onSave, saving }: EditorProps) {
       />
 
       <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-        <button
-          type="submit"
-          disabled={saving}
-          className="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 px-4 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 transition-colors"
-        >
-          {saving ? (
-            <>
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              <span>Saving Changes...</span>
-            </>
-          ) : (
-            <>
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-              <span>Save Changes</span>
-            </>
-          )}
-        </button>
+        <AdminSaveButton saving={saving} />
       </div>
     </form>
   );
@@ -1673,30 +1591,7 @@ function ContactEditor({ data, onSave, saving }: EditorProps) {
       />
 
       <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-        <button
-          type="submit"
-          disabled={saving}
-          className="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 px-4 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 transition-colors"
-        >
-          {saving ? (
-            <>
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              <span>Saving Changes...</span>
-            </>
-          ) : (
-            <>
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-              <span>Save Changes</span>
-            </>
-          )}
-        </button>
+        <AdminSaveButton saving={saving} />
         <p className="text-xs text-gray-500 dark:text-gray-400 mt-3 text-center">
           Looking for the email/SMS/WhatsApp message templates? They moved to their own{' '}
           <span className="font-medium">Templates</span> tab in the sidebar.
@@ -1824,30 +1719,7 @@ function TemplatesEditor({ data, onSave, saving }: EditorProps) {
       />
 
       <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-        <button
-          type="submit"
-          disabled={saving}
-          className="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 px-4 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 transition-colors"
-        >
-          {saving ? (
-            <>
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              <span>Saving Changes...</span>
-            </>
-          ) : (
-            <>
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-              <span>Save Changes</span>
-            </>
-          )}
-        </button>
+        <AdminSaveButton saving={saving} />
       </div>
     </form>
   );

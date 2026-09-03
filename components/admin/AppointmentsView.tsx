@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { type ColumnDef } from '@tanstack/react-table';
-import { Play } from 'lucide-react';
+import { Play, Eye } from 'lucide-react';
 import type { CMSData } from '@/lib/cms';
 import { DataTable, type DataTableFilter } from '@/components/ui/data-table';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import AppointmentDetailsPanel, { type Appointment } from '@/components/admin/AppointmentDetailsPanel';
 import WalkInModal from '@/components/admin/WalkInModal';
+import DropdownMenu from '@/components/admin/DropdownMenu';
 
 interface AppointmentsViewProps {
   doctors: NonNullable<CMSData['doctors']>['items'];
@@ -104,6 +105,24 @@ export default function AppointmentsView({ doctors }: AppointmentsViewProps) {
       ),
       enableSorting: false,
     },
+    {
+      id: 'actions',
+      header: '',
+      enableSorting: false,
+      cell: ({ row }) => (
+        <div className="flex justify-end">
+          <DropdownMenu
+            actions={[
+              {
+                label: row.getIsExpanded() ? 'Hide Details' : 'View Details',
+                icon: <Eye className="w-4 h-4" />,
+                onClick: () => row.toggleExpanded(),
+              },
+            ]}
+          />
+        </div>
+      ),
+    },
   ];
 
   // Doctor is embedded in the "Visit" column rather than its own column now
@@ -125,8 +144,8 @@ export default function AppointmentsView({ doctors }: AppointmentsViewProps) {
         <div>
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Appointments</h2>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Booked appointments and walk-ins share one queue — click a row for details, editing,
-            prescriptions, and billing.
+            Booked appointments and walk-ins share one queue — use the actions menu on a row for
+            details, editing, prescriptions, and billing.
           </p>
         </div>
         <button
@@ -155,6 +174,7 @@ export default function AppointmentsView({ doctors }: AppointmentsViewProps) {
             emptyMessage={`No ${tab === 'queue' ? 'appointments in the queue' : tab} right now.`}
             getRowId={(appt) => appt.id}
             autoExpandRowId={autoOpenId}
+            manualExpandControl
             renderExpandedRow={(appt) => (
               <AppointmentDetailsPanel
                 appointment={appt}

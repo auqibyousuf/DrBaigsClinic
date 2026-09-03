@@ -280,7 +280,7 @@ export default function AppointmentDetailsPanel({
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        <Button onClick={saveDetails} disabled={savingDetails} variant="primary" size="sm">
+        <Button onClick={saveDetails} disabled={savingDetails} variant="primary" size="xs">
           {savingDetails ? 'Saving...' : 'Save Details'}
         </Button>
         <DropdownMenu
@@ -360,7 +360,7 @@ export default function AppointmentDetailsPanel({
           />
         ) : (
           <div className="flex flex-wrap items-center gap-3">
-            <Button onClick={() => setPrescribing(true)} variant="primary" size="sm">
+            <Button onClick={() => setPrescribing(true)} variant="primary" size="xs">
               {appt.prescription ? 'Edit Prescription' : 'Add Prescription'}
             </Button>
             {appt.prescription?.pdfUrl && (

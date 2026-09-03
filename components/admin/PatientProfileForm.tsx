@@ -21,6 +21,21 @@ export interface PatientProfileFormState {
   photoUrl: string;
 }
 
+// Shared validation — same rule set for both "+ Add New Patient" and the
+// edit row, run on submit before hitting the API.
+export function validatePatientProfile(
+  value: PatientProfileFormState
+): Partial<Record<keyof PatientProfileFormState, string>> {
+  const errors: Partial<Record<keyof PatientProfileFormState, string>> = {};
+  if (!value.name.trim()) errors.name = 'Name is required';
+  if (!value.phone.trim()) errors.phone = 'Mobile number is required';
+  else if (!/^\+?[0-9\s-]{7,15}$/.test(value.phone.trim())) errors.phone = 'Enter a valid phone number';
+  if (value.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.email.trim())) {
+    errors.email = 'Enter a valid email address';
+  }
+  return errors;
+}
+
 export const emptyPatientProfile: PatientProfileFormState = {
   name: '',
   phone: '',
@@ -58,12 +73,13 @@ const MARITAL_STATUS_OPTIONS = ['Single', 'Married', 'Divorced', 'Widowed'].map(
 interface PatientProfileFormProps {
   value: PatientProfileFormState;
   onChange: (next: PatientProfileFormState) => void;
+  errors?: Partial<Record<keyof PatientProfileFormState, string>>;
 }
 
 // Shared full patient profile form (MEDISRAY_AUDIT.md finding #4) — used by
 // both "+ Add New Patient" and the Patients tab's edit row, so the field set
 // stays identical instead of drifting between create and edit.
-export default function PatientProfileForm({ value, onChange }: PatientProfileFormProps) {
+export default function PatientProfileForm({ value, onChange, errors = {} }: PatientProfileFormProps) {
   const set = (field: keyof PatientProfileFormState) => (
     e: React.ChangeEvent<HTMLInputElement>
   ) => onChange({ ...value, [field]: e.target.value });
@@ -71,8 +87,22 @@ export default function PatientProfileForm({ value, onChange }: PatientProfileFo
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <AdminInput label="Full Name" required value={value.name} onChange={set('name')} placeholder="Enter full name" />
-        <AdminInput label="Mobile Number" required value={value.phone} onChange={set('phone')} placeholder="Enter mobile number" />
+        <AdminInput
+          label="Full Name"
+          required
+          value={value.name}
+          onChange={set('name')}
+          placeholder="Enter full name"
+          error={errors.name}
+        />
+        <AdminInput
+          label="Mobile Number"
+          required
+          value={value.phone}
+          onChange={set('phone')}
+          placeholder="Enter mobile number"
+          error={errors.phone}
+        />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -110,7 +140,7 @@ export default function PatientProfileForm({ value, onChange }: PatientProfileFo
           options={MARITAL_STATUS_OPTIONS}
           placeholder="Select marital status"
         />
-        <AdminInput label="Email ID" type="email" value={value.email} onChange={set('email')} placeholder="Enter email ID" />
+        <AdminInput label="Email ID" type="email" value={value.email} onChange={set('email')} placeholder="Enter email ID" error={errors.email} />
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <AdminInput label="Occupation" value={value.occupation} onChange={set('occupation')} placeholder="Enter occupation" />

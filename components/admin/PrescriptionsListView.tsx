@@ -208,7 +208,7 @@ export default function PrescriptionsListView({ doctors }: PrescriptionsListView
                 <Button
                   onClick={() => setWritingFor(appt)}
                   variant="primary"
-                  size="sm"
+                  size="xs"
                   icon={<CalendarCheck weight="bold" />}
                   className="w-full mt-auto"
                 >

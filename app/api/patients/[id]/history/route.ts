@@ -41,7 +41,17 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
           reason: v.reason,
           doctorName: doctors.find((d) => d.id === v.doctor_id)?.name || 'Unknown',
           prescription: prescription
-            ? { diagnosis: prescription.diagnosis, pdfUrl: prescription.pdf_url }
+            ? {
+                id: prescription.id,
+                diagnosis: prescription.diagnosis,
+                symptoms: prescription.symptoms,
+                medications: prescription.medications,
+                investigations: prescription.investigations,
+                advices: prescription.advices,
+                followUpDate: prescription.follow_up_date,
+                createdAt: prescription.created_at,
+                pdfUrl: prescription.pdf_url,
+              }
             : null,
         };
       })

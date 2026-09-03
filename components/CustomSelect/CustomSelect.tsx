@@ -30,6 +30,9 @@ interface CustomSelectProps {
   error?: string;
   icon?: React.ReactNode;
   className?: string;
+  // Smaller fixed padding for dense contexts (table filter bars) instead of
+  // the fluid --field-py token sized for standalone form fields.
+  compact?: boolean;
 }
 
 export default function CustomSelect({
@@ -42,6 +45,7 @@ export default function CustomSelect({
   error,
   icon,
   className = '',
+  compact = false,
 }: CustomSelectProps) {
   const selectedOption = options.find((opt) => opt.value === value);
   // The empty-value placeholder ("Select an option") is shown via `placeholder`
@@ -65,14 +69,20 @@ export default function CustomSelect({
       <Select value={value} onValueChange={handleValueChange}>
         <SelectTrigger
           id={id}
-          style={{
-            paddingBlock: 'var(--field-py)',
-            paddingInlineEnd: 'var(--field-px)',
-            paddingInlineStart: icon ? 'var(--field-pl-icon)' : 'var(--field-px)',
-            fontSize: 'var(--text-sm)',
-            borderRadius: 'var(--field-radius)',
-          }}
+          style={
+            compact
+              ? { borderRadius: 'var(--field-radius)' }
+              : {
+                  paddingBlock: 'var(--field-py)',
+                  paddingInlineEnd: 'var(--field-px)',
+                  paddingInlineStart: icon ? 'var(--field-pl-icon)' : 'var(--field-px)',
+                  fontSize: 'var(--text-sm)',
+                  borderRadius: 'var(--field-radius)',
+                }
+          }
           className={`w-full !h-auto cursor-pointer bg-gray-50 dark:bg-gray-800/60 transition-colors duration-150 data-open:bg-white dark:data-open:bg-gray-800 ${
+            compact ? 'py-1.5 px-3 text-sm' : ''
+          } ${
             error
               ? 'border border-red-300 dark:border-red-600 focus-visible:border-red-500 focus-visible:ring-2 focus-visible:ring-red-500/15'
               : 'border border-gray-200 dark:border-gray-700 focus-visible:border-primary-500 focus-visible:ring-2 focus-visible:ring-primary-500/15 hover:border-gray-300 dark:hover:border-gray-600'

@@ -8,9 +8,10 @@ import { useToast } from '@/components/ToastProvider';
 import { DataTable } from '@/components/ui/data-table';
 import Modal from '@/components/Modal';
 import Button from '@/components/Button';
-import PatientDetailsModal from '@/components/admin/PatientDetailsModal';
+import PatientDetailPage from '@/components/admin/PatientDetailPage';
 import PatientProfileForm, {
   emptyPatientProfile,
+  validatePatientProfile,
   type PatientProfileFormState,
 } from '@/components/admin/PatientProfileForm';
 
@@ -33,7 +34,16 @@ interface Patient {
   reference_id: string | null;
   aadhaar_number: string | null;
   created_at: string;
+  appointmentStatus: 'Upcoming' | 'In Progress' | 'Completed' | 'Cancelled' | 'No Visits';
 }
+
+const STATUS_STYLES: Record<Patient['appointmentStatus'], string> = {
+  Upcoming: 'bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300',
+  'In Progress': 'bg-accent-100 dark:bg-accent-900/40 text-accent-700 dark:text-accent-300',
+  Completed: 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300',
+  Cancelled: 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300',
+  'No Visits': 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400',
+};
 
 function patientToFormState(patient: Patient): PatientProfileFormState {
   return {
@@ -63,10 +73,17 @@ function EditablePatientRow({
   onChanged: () => void;
 }) {
   const [form, setForm] = useState<PatientProfileFormState>(patientToFormState(patient));
+  const [errors, setErrors] = useState<ReturnType<typeof validatePatientProfile>>({});
   const [saving, setSaving] = useState(false);
   const { showToast } = useToast();
 
   const save = async () => {
+    const validationErrors = validatePatientProfile(form);
+    setErrors(validationErrors);
+    if (Object.keys(validationErrors).length > 0) {
+      showToast('error', 'Please fix the highlighted fields');
+      return;
+    }
     setSaving(true);
     try {
       const res = await fetch(`/api/patients/${patient.id}`, {
@@ -109,7 +126,7 @@ function EditablePatientRow({
 
   return (
     <div className="p-4 space-y-4">
-      <PatientProfileForm value={form} onChange={setForm} />
+      <PatientProfileForm value={form} onChange={setForm} errors={errors} />
       <div className="flex items-center gap-3">
         <span className="text-xs text-gray-500 dark:text-gray-400">
           Patient ID: <code className="font-mono font-semibold text-gray-700 dark:text-gray-300">{patient.patient_code}</code>
@@ -124,7 +141,7 @@ function EditablePatientRow({
         </button>
       </div>
       <div className="flex flex-wrap gap-2 pt-1">
-        <Button onClick={save} disabled={saving} variant="primary" size="sm">
+        <Button onClick={save} disabled={saving} variant="primary" size="xs">
           {saving ? 'Saving...' : 'Save Changes'}
         </Button>
       </div>
@@ -137,6 +154,7 @@ export default function PatientsView() {
   const [loading, setLoading] = useState(true);
   const [addingPatient, setAddingPatient] = useState(false);
   const [newPatient, setNewPatient] = useState<PatientProfileFormState>(emptyPatientProfile);
+  const [newPatientErrors, setNewPatientErrors] = useState<ReturnType<typeof validatePatientProfile>>({});
   const [creating, setCreating] = useState(false);
   const [detailsPatientId, setDetailsPatientId] = useState<string | null>(null);
   const { showToast } = useToast();
@@ -161,8 +179,10 @@ export default function PatientsView() {
   }, []);
 
   const createPatient = async () => {
-    if (!newPatient.name.trim() || !newPatient.phone.trim()) {
-      showToast('error', 'Name and phone are required');
+    const validationErrors = validatePatientProfile(newPatient);
+    setNewPatientErrors(validationErrors);
+    if (Object.keys(validationErrors).length > 0) {
+      showToast('error', 'Please fix the highlighted fields');
       return;
     }
     setCreating(true);
@@ -178,6 +198,7 @@ export default function PatientsView() {
       showToast('success', 'Patient added.');
       setAddingPatient(false);
       setNewPatient(emptyPatientProfile);
+      setNewPatientErrors({});
       fetchPatients();
     } catch (err) {
       showToast('error', err instanceof Error ? err.message : 'Failed to create patient');
@@ -203,10 +224,13 @@ export default function PatientsView() {
       cell: ({ row }) => <span className="whitespace-nowrap">{row.original.phone}</span>,
     },
     {
-      accessorKey: 'email',
-      header: 'Email',
-      cell: ({ row }) => <span>{row.original.email || '—'}</span>,
-      enableSorting: false,
+      accessorKey: 'appointmentStatus',
+      header: 'Status',
+      cell: ({ row }) => (
+        <span className={`px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${STATUS_STYLES[row.original.appointmentStatus]}`}>
+          {row.original.appointmentStatus}
+        </span>
+      ),
     },
     {
       accessorKey: 'created_at',
@@ -263,6 +287,10 @@ export default function PatientsView() {
     },
   ];
 
+  if (detailsPatientId) {
+    return <PatientDetailPage patientId={detailsPatientId} onBack={() => setDetailsPatientId(null)} />;
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -281,7 +309,7 @@ export default function PatientsView() {
             the walk-in front-desk flow.
           </p>
         </div>
-        <Button onClick={() => setAddingPatient(true)} variant="primary" size="sm" icon={<Plus weight="bold" />}>
+        <Button onClick={() => setAddingPatient(true)} variant="primary" size="xs" icon={<Plus weight="bold" />}>
           Add New Patient
         </Button>
       </div>
@@ -291,6 +319,16 @@ export default function PatientsView() {
         data={patients}
         searchColumnId="name"
         searchPlaceholder="Search by patient name..."
+        filters={[
+          {
+            columnId: 'appointmentStatus',
+            placeholder: 'All statuses',
+            options: (['Upcoming', 'In Progress', 'Completed', 'Cancelled', 'No Visits'] as const).map((s) => ({
+              value: s,
+              label: s,
+            })),
+          },
+        ]}
         emptyMessage="No patients registered yet."
         manualExpandControl
         renderExpandedRow={(patient) => <EditablePatientRow patient={patient} onChanged={fetchPatients} />}
@@ -298,21 +336,17 @@ export default function PatientsView() {
 
       <Modal isOpen={addingPatient} onClose={() => setAddingPatient(false)} title="Add New Patient">
         <div className="space-y-4">
-          <PatientProfileForm value={newPatient} onChange={setNewPatient} />
+          <PatientProfileForm value={newPatient} onChange={setNewPatient} errors={newPatientErrors} />
           <div className="flex gap-2 pt-2">
-            <Button onClick={createPatient} disabled={creating} variant="primary" size="sm">
+            <Button onClick={createPatient} disabled={creating} variant="primary" size="xs">
               {creating ? 'Adding...' : 'Add Patient'}
             </Button>
-            <Button onClick={() => setAddingPatient(false)} variant="outline" size="sm">
+            <Button onClick={() => setAddingPatient(false)} variant="outline" size="xs">
               Cancel
             </Button>
           </div>
         </div>
       </Modal>
-
-      {detailsPatientId && (
-        <PatientDetailsModal patientId={detailsPatientId} onClose={() => setDetailsPatientId(null)} />
-      )}
     </div>
   );
 }

@@ -23,7 +23,8 @@ import { Eye } from 'lucide-react';
 import ImageUpload from '@/components/ImageUpload';
 import { useToast } from '@/components/ToastProvider';
 import { AdminInput, AdminTextarea } from '@/components/admin/AdminField';
-import DoctorDetailsModal from '@/components/admin/DoctorDetailsModal';
+import DoctorDetailPage from '@/components/admin/DoctorDetailPage';
+import AdminSaveButton from '@/components/admin/AdminSaveButton';
 import type { CMSData } from '@/lib/cms';
 
 type Doctor = NonNullable<CMSData['doctors']>['items'][number];
@@ -269,8 +270,17 @@ export default function DoctorsEditor({ data, onSave, saving }: DoctorsEditorPro
     onSave('doctors', formData as Partial<CMSData['doctors']>);
   };
 
+  if (viewingDoctor) {
+    return (
+      <DoctorDetailPage
+        doctorId={viewingDoctor.id}
+        doctorName={viewingDoctor.name || 'Untitled doctor'}
+        onBack={() => setViewingDoctor(null)}
+      />
+    );
+  }
+
   return (
-    <>
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="border-b border-gray-200 dark:border-gray-700 pb-4 mb-6">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Doctors</h2>
@@ -329,29 +339,8 @@ export default function DoctorsEditor({ data, onSave, saving }: DoctorsEditorPro
       </button>
 
       <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-        <button
-          type="submit"
-          disabled={saving}
-          className="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 px-4 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
-        >
-          {saving ? (
-            <>
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              <span>Saving Changes...</span>
-            </>
-          ) : (
-            <span>Save Changes</span>
-          )}
-        </button>
+        <AdminSaveButton saving={saving} />
       </div>
     </form>
-    {viewingDoctor && (
-      <DoctorDetailsModal
-        doctorId={viewingDoctor.id}
-        doctorName={viewingDoctor.name || 'Untitled doctor'}
-        onClose={() => setViewingDoctor(null)}
-      />
-    )}
-    </>
   );
 }

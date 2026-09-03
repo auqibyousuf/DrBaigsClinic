@@ -108,14 +108,7 @@ export function DataTable<TData, TValue>({
                 placeholder={searchPlaceholder}
                 value={globalFilter}
                 onChange={(e) => setGlobalFilter(e.target.value)}
-                style={{
-                  paddingBlock: 'var(--field-py)',
-                  paddingInlineStart: 'var(--field-pl-icon)',
-                  paddingInlineEnd: 'var(--field-px)',
-                  fontSize: 'var(--text-sm)',
-                  borderRadius: 'var(--field-radius)',
-                }}
-                className="w-full text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 transition-colors duration-150 focus:outline-none focus:bg-white dark:focus:bg-gray-800 focus:border-primary-500 dark:focus:border-primary-500 focus:ring-2 focus:ring-primary-500/15 hover:border-gray-300 dark:hover:border-gray-600 placeholder-gray-400 dark:placeholder-gray-500"
+                className="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 transition-colors duration-150 focus:outline-none focus:bg-white dark:focus:bg-gray-800 focus:border-primary-500 dark:focus:border-primary-500 focus:ring-2 focus:ring-primary-500/15 hover:border-gray-300 dark:hover:border-gray-600 placeholder-gray-400 dark:placeholder-gray-500"
               />
             </div>
           )}
@@ -131,6 +124,7 @@ export function DataTable<TData, TValue>({
                   onChange={(e) => column?.setFilterValue(e.target.value || undefined)}
                   options={[{ value: '', label: filter.placeholder || 'All' }, ...filter.options]}
                   placeholder={filter.placeholder || 'All'}
+                  compact
                 />
               </div>
             );
@@ -195,7 +189,7 @@ export function DataTable<TData, TValue>({
                   </TableRow>
                   {renderExpandedRow && row.getIsExpanded() && (
                     <TableRow key={`${row.id}-expanded`}>
-                      <TableCell colSpan={columns.length + (manualExpandControl ? 0 : 1)} className="bg-gray-50 dark:bg-gray-900/40 p-0">
+                      <TableCell colSpan={columns.length + (manualExpandControl ? 0 : 1)} className="bg-white dark:bg-gray-800 p-0">
                         <div onClick={(e) => e.stopPropagation()}>
                           {renderExpandedRow(row.original)}
                         </div>

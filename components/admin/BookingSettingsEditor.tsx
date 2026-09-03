@@ -6,6 +6,7 @@ import type { CMSData } from '@/lib/cms';
 import { DEFAULT_SLOTS } from '@/lib/appointments';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { AdminInput } from '@/components/admin/AdminField';
+import AdminSaveButton from '@/components/admin/AdminSaveButton';
 import DoctorSchedulesEditor from '@/components/admin/DoctorSchedulesEditor';
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -206,20 +207,7 @@ export default function BookingSettingsEditor({
             </div>
 
             <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-              <button
-                type="submit"
-                disabled={saving}
-                className="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 px-4 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 cursor-pointer"
-              >
-                {saving ? (
-                  <>
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span>Saving Changes...</span>
-                  </>
-                ) : (
-                  <span>Save Changes</span>
-                )}
-              </button>
+              <AdminSaveButton saving={saving} />
             </div>
           </form>
         </TabsContent>

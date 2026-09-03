@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { listPatients } from '@/lib/patients';
+import { getAppointmentsForPatient } from '@/lib/appointments';
 
 function isAuthenticated(request: NextRequest): boolean {
   const authHeader = request.headers.get('authorization');
@@ -15,7 +16,30 @@ export async function GET(request: NextRequest) {
 
   try {
     const patients = await listPatients();
-    return NextResponse.json({ patients });
+    const today = new Date().toISOString().slice(0, 10);
+
+    // Surfaced directly in the Patients table (not buried in the details
+    // drill-down) — the admin needs to see at a glance whether a patient
+    // has something upcoming, is mid-visit today, or their last visit
+    // finished/was cancelled, without opening each row.
+    const enriched = await Promise.all(
+      patients.map(async (p) => {
+        const visits = await getAppointmentsForPatient(p.id);
+        const upcoming = visits.find((v) => v.status === 'confirmed' && v.appointment_date > today);
+        const today_visit = visits.find((v) => v.status === 'confirmed' && v.appointment_date === today);
+        const mostRecent = visits[0];
+
+        let appointmentStatus = 'No Visits';
+        if (today_visit) appointmentStatus = 'In Progress';
+        else if (upcoming) appointmentStatus = 'Upcoming';
+        else if (mostRecent?.status === 'finished') appointmentStatus = 'Completed';
+        else if (mostRecent?.status === 'cancelled') appointmentStatus = 'Cancelled';
+
+        return { ...p, appointmentStatus };
+      })
+    );
+
+    return NextResponse.json({ patients: enriched });
   } catch (error) {
     console.error('List patients error:', error);
     return NextResponse.json(

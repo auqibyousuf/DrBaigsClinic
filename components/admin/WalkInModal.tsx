@@ -8,6 +8,7 @@ import Button from '@/components/Button';
 import { AdminInput, AdminSelect } from '@/components/admin/AdminField';
 import PatientProfileForm, {
   emptyPatientProfile,
+  validatePatientProfile,
   type PatientProfileFormState,
 } from '@/components/admin/PatientProfileForm';
 import type { CMSData } from '@/lib/cms';
@@ -36,6 +37,7 @@ export default function WalkInModal({ doctors, onClose, onStarted }: WalkInModal
   const [loading, setLoading] = useState(true);
   const [addingPatient, setAddingPatient] = useState(false);
   const [newPatient, setNewPatient] = useState<PatientProfileFormState>(emptyPatientProfile);
+  const [newPatientErrors, setNewPatientErrors] = useState<ReturnType<typeof validatePatientProfile>>({});
   const [starting, setStarting] = useState(false);
   const { showToast } = useToast();
 
@@ -79,8 +81,10 @@ export default function WalkInModal({ doctors, onClose, onStarted }: WalkInModal
   };
 
   const createAndStart = async () => {
-    if (!newPatient.name.trim() || !newPatient.phone.trim()) {
-      showToast('error', 'Name and phone are required');
+    const validationErrors = validatePatientProfile(newPatient);
+    setNewPatientErrors(validationErrors);
+    if (Object.keys(validationErrors).length > 0) {
+      showToast('error', 'Please fix the highlighted fields');
       return;
     }
     setStarting(true);
@@ -104,12 +108,12 @@ export default function WalkInModal({ doctors, onClose, onStarted }: WalkInModal
     <Modal isOpen onClose={onClose} title={addingPatient ? 'Add New Patient' : 'Start Walk-in Consultation'}>
       {addingPatient ? (
         <div className="space-y-4">
-          <PatientProfileForm value={newPatient} onChange={setNewPatient} />
+          <PatientProfileForm value={newPatient} onChange={setNewPatient} errors={newPatientErrors} />
           <div className="flex gap-2">
-            <Button onClick={createAndStart} disabled={starting} variant="primary" size="sm">
+            <Button onClick={createAndStart} disabled={starting} variant="primary" size="xs">
               {starting ? 'Starting...' : 'Add Patient & Start Consultation'}
             </Button>
-            <Button onClick={() => setAddingPatient(false)} variant="outline" size="sm">
+            <Button onClick={() => setAddingPatient(false)} variant="outline" size="xs">
               Back to search
             </Button>
           </div>
@@ -158,7 +162,7 @@ export default function WalkInModal({ doctors, onClose, onStarted }: WalkInModal
                       {p.phone} · {p.patient_code}
                     </p>
                   </div>
-                  <Button onClick={() => startConsultation(p.id)} disabled={starting} variant="primary" size="sm">
+                  <Button onClick={() => startConsultation(p.id)} disabled={starting} variant="primary" size="xs">
                     Consult
                   </Button>
                 </div>
