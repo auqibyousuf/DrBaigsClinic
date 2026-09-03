@@ -13,10 +13,11 @@ interface FieldWrapperProps {
   label?: string;
   required?: boolean;
   hint?: string;
+  error?: string;
   children: React.ReactNode;
 }
 
-function FieldWrapper({ label, required, hint, children }: FieldWrapperProps) {
+function FieldWrapper({ label, required, hint, error, children }: FieldWrapperProps) {
   return (
     <div>
       {label && (
@@ -25,7 +26,11 @@ function FieldWrapper({ label, required, hint, children }: FieldWrapperProps) {
         </label>
       )}
       {children}
-      {hint && <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{hint}</p>}
+      {error ? (
+        <p className="text-xs text-red-600 dark:text-red-400 mt-1">{error}</p>
+      ) : (
+        hint && <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{hint}</p>
+      )}
     </div>
   );
 }
@@ -37,11 +42,12 @@ interface AdminInputProps extends Omit<FieldWrapperProps, 'children'> {
   placeholder?: string;
   name?: string;
   id?: string;
+  disabled?: boolean;
 }
 
-export function AdminInput({ label, required, hint, type = 'text', value, onChange, placeholder, name, id }: AdminInputProps) {
+export function AdminInput({ label, required, hint, error, type = 'text', value, onChange, placeholder, name, id, disabled }: AdminInputProps) {
   return (
-    <FieldWrapper label={label} required={required} hint={hint}>
+    <FieldWrapper label={label} required={required} hint={hint} error={error}>
       <input
         id={id}
         name={name}
@@ -49,8 +55,10 @@ export function AdminInput({ label, required, hint, type = 'text', value, onChan
         value={value}
         onChange={onChange}
         placeholder={placeholder}
+        disabled={disabled}
+        aria-invalid={!!error}
         style={fieldStyle(undefined)}
-        className={fieldClasses()}
+        className={`${fieldClasses(error)} ${disabled ? 'opacity-60 cursor-not-allowed' : ''}`}
       />
     </FieldWrapper>
   );
@@ -103,9 +111,9 @@ interface AdminSelectProps extends Omit<FieldWrapperProps, 'children'> {
   id?: string;
 }
 
-export function AdminSelect({ label, required, hint, value, onChange, options, placeholder, name, id }: AdminSelectProps) {
+export function AdminSelect({ label, required, hint, error, value, onChange, options, placeholder, name, id }: AdminSelectProps) {
   return (
-    <FieldWrapper label={label} required={required} hint={hint}>
+    <FieldWrapper label={label} required={required}>
       <CustomSelect
         id={id || name || 'admin-select'}
         name={name || id || 'admin-select'}
@@ -113,7 +121,9 @@ export function AdminSelect({ label, required, hint, value, onChange, options, p
         onChange={onChange}
         options={options}
         placeholder={placeholder}
+        error={error}
       />
+      {!error && hint && <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{hint}</p>}
     </FieldWrapper>
   );
 }

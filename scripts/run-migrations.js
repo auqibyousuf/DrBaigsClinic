@@ -21,7 +21,18 @@ require('dotenv').config({ path: path.join(__dirname, '..', '.env.local') });
 // Migrations live in .migrations/ — a dedicated, read-only schema-history
 // folder (see .migrations/README.md) — not loose in the project root.
 const MIGRATIONS_DIR = '.migrations';
-const MIGRATIONS = ['001_appointments_schema.sql', '002_patients_schema.sql'];
+const MIGRATIONS = [
+  '001_appointments_schema.sql',
+  '002_patients_schema.sql',
+  '003_doctor_schedules.sql',
+  '004_prescriptions_digital_rx.sql',
+  '005_patients_profile_fields.sql',
+  '006_invoices.sql',
+  '007_invoices_storage.sql',
+  '008_appointments_finished_status.sql',
+  '009_prescriptions_history_records.sql',
+  '010_medical_history_structured.sql',
+];
 
 async function main() {
   const connectionString = process.env.SUPABASE_DB_URL;

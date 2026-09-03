@@ -121,6 +121,7 @@
     --modal-w-sm: clamp(22rem, 55vw, 32rem);
     --modal-w-md: clamp(24rem, 70vw, 44rem);
     --modal-w-lg: clamp(26rem, 85vw, 58rem);
+    --modal-w-xl: clamp(28rem, 92vw, 80rem);
 
     /* Form field sizing — comfortable but compact, scales gently rather
        than jumping between breakpoints. */

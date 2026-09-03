@@ -3,7 +3,7 @@ import { ReactNode } from 'react';
 export interface ButtonProps {
   children: ReactNode;
   variant?: 'primary' | 'secondary' | 'outline';
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'xs' | 'sm' | 'md' | 'lg';
   href?: string;
   onClick?: () => void;
   className?: string;

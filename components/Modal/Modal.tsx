@@ -14,19 +14,37 @@ interface ModalProps {
   onClose: () => void;
   title?: string;
   children: React.ReactNode;
+  // 'lg' (default) fits most forms; 'xl' is for content-heavy admin editors
+  // (prescriptions, bills) now that the CMS itself runs full-width — always
+  // clamped to 94vw first, so mobile never scrolls horizontally regardless
+  // of size.
+  size?: 'md' | 'lg' | 'xl';
 }
 
-export default function Modal({ isOpen, onClose, title, children }: ModalProps) {
+const SIZE_VAR: Record<NonNullable<ModalProps['size']>, string> = {
+  md: 'var(--modal-w-md)',
+  lg: 'var(--modal-w-lg)',
+  xl: 'var(--modal-w-xl)',
+};
+
+export default function Modal({ isOpen, onClose, title, children, size = 'lg' }: ModalProps) {
+  const widthVar = SIZE_VAR[size];
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent
-        className="w-[min(94vw,var(--modal-w-lg))] max-w-[min(94vw,var(--modal-w-lg))] sm:max-w-[min(94vw,var(--modal-w-lg))] max-h-[90vh] overflow-y-auto overflow-x-hidden rounded-2xl p-0 shadow-elevated"
+        className="w-[min(94vw,var(--modal-w))] max-w-[min(94vw,var(--modal-w))] sm:max-w-[min(94vw,var(--modal-w))] max-h-[90vh] overflow-y-auto overflow-x-hidden rounded-2xl p-0 shadow-elevated"
+        style={{ ['--modal-w' as string]: widthVar }}
       >
         {/* DialogTitle is required for accessibility (announced by screen
             readers) even when we don't want a visible header bar here — the
             actual visual heading is rendered by each modal's own content. */}
         <DialogTitle className="sr-only">{title || 'Dialog'}</DialogTitle>
-        <div style={{ padding: 'var(--space-lg)' }}>{children}</div>
+        {/* min-w-0: DialogContent is a CSS grid, so this wrapper is a grid
+            item — without it, a wide-but-meant-to-scroll descendant (e.g.
+            DateTimePicker's day strip) refuses to shrink below its own
+            content width and silently blows the whole modal out past the
+            viewport instead of scrolling internally. */}
+        <div className="min-w-0" style={{ padding: 'var(--space-lg)' }}>{children}</div>
       </DialogContent>
     </Dialog>
   );

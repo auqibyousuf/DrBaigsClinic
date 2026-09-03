@@ -1,9 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAppointmentById } from '@/lib/appointments';
+import {
+  getAppointmentById,
+  finishAppointment,
+  createFollowUpAppointment,
+  getAppointmentsForDate,
+  getAppointmentsForPatient,
+} from '@/lib/appointments';
+import { listSchedulesForDoctor, expandSlotsForDate } from '@/lib/schedules';
 import { getPatientById } from '@/lib/patients';
 import { generatePrescriptionPdf } from '@/lib/prescription-pdf';
-import { setPrescriptionPdfUrl, upsertPrescription, uploadPrescriptionPdf } from '@/lib/prescriptions';
+import {
+  setPrescriptionPdfUrl,
+  summarizeMedicalHistory,
+  upsertPrescription,
+  uploadPrescriptionPdf,
+} from '@/lib/prescriptions';
 import { getCMSData } from '@/lib/cms';
+import { sendPatientConfirmation } from '@/lib/notifications';
 
 function isAuthenticated(request: NextRequest): boolean {
   const authHeader = request.headers.get('authorization');
@@ -18,11 +31,34 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { appointmentId, diagnosis, medications, notes } = await request.json();
+    const {
+      appointmentId,
+      diagnosis,
+      medications = [],
+      symptoms = [],
+      examinations = [],
+      investigations = [],
+      advices = [],
+      vitals = [],
+      followUpDate,
+      additionalNotes,
+      privateNotes,
+      medicalHistoryTags = [],
+      medicalHistoryNoKnown = [],
+      medicalRecords = [],
+      notes,
+    } = await request.json();
 
-    if (!appointmentId || !Array.isArray(medications) || medications.length === 0) {
+    const hasAnyContent =
+      medications.length > 0 ||
+      symptoms.length > 0 ||
+      diagnosis ||
+      examinations.length > 0 ||
+      investigations.length > 0;
+
+    if (!appointmentId || !hasAnyContent) {
       return NextResponse.json(
-        { error: 'appointmentId and at least one medication are required' },
+        { error: 'appointmentId and at least one clinical entry (symptom, diagnosis, medication, etc.) are required' },
         { status: 400 }
       );
     }
@@ -52,17 +88,106 @@ export async function POST(request: NextRequest) {
       doctor_id: appointment.doctor_id,
       diagnosis,
       medications,
+      symptoms,
+      examinations,
+      investigations,
+      advices,
+      vitals,
+      follow_up_date: followUpDate || null,
+      additional_notes: additionalNotes,
+      private_notes: privateNotes,
+      medical_history: summarizeMedicalHistory(medicalHistoryTags, medicalHistoryNoKnown),
+      medical_history_tags: medicalHistoryTags,
+      medical_history_no_known: medicalHistoryNoKnown,
+      medical_records: medicalRecords,
       notes,
     });
 
-    const pdfBytes = await generatePrescriptionPdf(prescription, patient, {
-      name: doctor?.name || 'Doctor',
-      specialty: doctor?.specialty,
-    });
+    const pdfBytes = await generatePrescriptionPdf(
+      prescription,
+      patient,
+      {
+        name: doctor?.name || 'Doctor',
+        specialty: doctor?.specialty,
+        qualification: doctor?.qualification,
+      },
+      {
+        name: cmsData.footer?.brandName,
+        address: cmsData.footer?.contact?.address,
+        phone: cmsData.footer?.contact?.phone,
+      }
+    );
     const pdfUrl = await uploadPrescriptionPdf(prescription.id, pdfBytes);
     await setPrescriptionPdfUrl(prescription.id, pdfUrl);
 
-    return NextResponse.json({ success: true, prescription: { ...prescription, pdf_url: pdfUrl } });
+    // Writing a prescription is this app's "End Visit" moment — mirrors
+    // Medisray, where finishing the consultation and generating the
+    // prescription happen together, moving the appointment out of the Queue.
+    if (appointment.status === 'confirmed') {
+      await finishAppointment(appointment.id);
+    }
+
+    // A follow-up date on the prescription auto-books the next visit and
+    // tells the patient, instead of leaving them to remember to call back —
+    // matches how a booking confirmation already works. Skipped if a
+    // confirmed follow-up already exists for this patient/doctor/date (e.g.
+    // the admin re-saves the same prescription) so we don't double-book.
+    let followUpAppointment = null;
+    if (followUpDate) {
+      const existingVisits = await getAppointmentsForPatient(patient.id);
+      const alreadyBooked = existingVisits.some(
+        (v) =>
+          v.doctor_id === appointment.doctor_id &&
+          v.appointment_date === followUpDate &&
+          v.status === 'confirmed'
+      );
+
+      if (!alreadyBooked) {
+        const [bookedOnDay, schedules] = await Promise.all([
+          getAppointmentsForDate(followUpDate, appointment.doctor_id),
+          listSchedulesForDoctor(appointment.doctor_id),
+        ]);
+        const takenSlots = new Set(bookedOnDay.map((a) => a.slot_start));
+        const candidateSlots = expandSlotsForDate(schedules, followUpDate, cmsData.bookingSettings);
+        const freeSlot = candidateSlots.find((s) => !takenSlots.has(s)) || null;
+
+        followUpAppointment = await createFollowUpAppointment({
+          patient_name: patient.name,
+          patient_phone: patient.phone,
+          patient_email: patient.email || undefined,
+          patient_id: patient.id,
+          doctor_id: appointment.doctor_id,
+          appointment_date: followUpDate,
+          slot_start: freeSlot,
+          reason: `Follow-up: ${diagnosis || appointment.reason}`,
+        });
+
+        try {
+          await sendPatientConfirmation({
+            patientName: patient.name,
+            patientPhone: patient.phone,
+            patientCode: patient.patient_code,
+            doctorName: doctor?.name || 'your doctor',
+            doctorPhone: doctor?.phone,
+            date: followUpDate,
+            slot: freeSlot || 'to be confirmed by the clinic',
+            reason: followUpAppointment.reason,
+            manageLink: `${process.env.NEXT_PUBLIC_SITE_URL || ''}/manage-appointment/${followUpAppointment.manage_token}`,
+            patientSmsTemplate: cmsData.contact?.patientSmsTemplate,
+          });
+        } catch (notifyErr) {
+          // Booking succeeded even if the message failed to send — never
+          // let a notification failure undo a real appointment.
+          console.error('Follow-up notification failed:', notifyErr);
+        }
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+      prescription: { ...prescription, pdf_url: pdfUrl },
+      followUpAppointment,
+    });
   } catch (error) {
     console.error('Create prescription error:', error);
     return NextResponse.json(

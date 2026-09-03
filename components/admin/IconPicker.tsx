@@ -111,7 +111,7 @@ export default function IconPicker({ value, onChange, label = 'Icon' }: IconPick
                   fontSize: 'var(--text-sm)',
                   borderRadius: 'var(--field-radius)',
                 }}
-                className="w-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/60 text-gray-900 dark:text-gray-100 focus:outline-none focus:bg-white dark:focus:bg-gray-800 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/15"
+                className="w-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:bg-white dark:focus:bg-gray-800 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/15"
               />
             </div>
           </div>

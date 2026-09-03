@@ -19,8 +19,12 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { PencilSimple, TrashSimple, UserCircle, DotsSixVertical, Check } from '@phosphor-icons/react';
+import { Eye } from '@phosphor-icons/react';
 import ImageUpload from '@/components/ImageUpload';
 import { useToast } from '@/components/ToastProvider';
+import { AdminInput, AdminTextarea } from '@/components/admin/AdminField';
+import DoctorDetailPage from '@/components/admin/DoctorDetailPage';
+import AdminSaveButton from '@/components/admin/AdminSaveButton';
 import type { CMSData } from '@/lib/cms';
 
 type Doctor = NonNullable<CMSData['doctors']>['items'][number];
@@ -38,6 +42,7 @@ function SortableDoctorItem({
   onUpdate,
   onDelete,
   onToggleExpand,
+  onViewDetails,
 }: {
   doctor: Doctor;
   index: number;
@@ -45,6 +50,7 @@ function SortableDoctorItem({
   onUpdate: (index: number, doctor: Doctor) => void;
   onDelete: (index: number) => void;
   onToggleExpand: (id: string) => void;
+  onViewDetails: () => void;
 }) {
   const id = doctor.id || `doctor-${index}`;
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
@@ -85,6 +91,14 @@ function SortableDoctorItem({
         </div>
         <button
           type="button"
+          onClick={onViewDetails}
+          className="flex-shrink-0 text-gray-500 hover:text-primary-600 dark:hover:text-primary-400 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+          title="View details, consulted patients, and appointments"
+        >
+          <Eye className="w-4 h-4" />
+        </button>
+        <button
+          type="button"
           onClick={() => onToggleExpand(id)}
           className="flex-shrink-0 text-primary-600 hover:text-primary-700 dark:text-primary-400 p-2 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/20"
           title="Edit doctor"
@@ -119,31 +133,27 @@ function SortableDoctorItem({
         </div>
         <div className="flex-1 space-y-3 min-w-0">
           <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                Name <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                placeholder="e.g., Dr. Ahmed Baig"
-                value={doctor.name || ''}
-                onChange={(e) => onUpdate(index, { ...doctor, name: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white text-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                Specialty
-              </label>
-              <input
-                type="text"
-                placeholder="e.g., Dermatologist"
-                value={doctor.specialty || ''}
-                onChange={(e) => onUpdate(index, { ...doctor, specialty: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white text-sm"
-              />
-            </div>
+            <AdminInput
+              label="Name"
+              required
+              placeholder="e.g., Dr. Ahmed Baig"
+              value={doctor.name || ''}
+              onChange={(e) => onUpdate(index, { ...doctor, name: e.target.value })}
+            />
+            <AdminInput
+              label="Specialty"
+              placeholder="e.g., Dermatologist"
+              value={doctor.specialty || ''}
+              onChange={(e) => onUpdate(index, { ...doctor, specialty: e.target.value })}
+            />
           </div>
+          <AdminInput
+            label="Qualification"
+            placeholder="e.g., MD MS"
+            value={doctor.qualification || ''}
+            onChange={(e) => onUpdate(index, { ...doctor, qualification: e.target.value })}
+            hint="Shown under the doctor's name on the prescription document."
+          />
           <div>
             <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
               Photo
@@ -155,46 +165,30 @@ function SortableDoctorItem({
             />
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                Notification Phone <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="tel"
-                placeholder="e.g., +91XXXXXXXXXX"
-                value={doctor.phone || ''}
-                onChange={(e) => onUpdate(index, { ...doctor, phone: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white text-sm"
-              />
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                Where this doctor's WhatsApp/SMS booking alerts are sent.
-              </p>
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                Notification Email
-              </label>
-              <input
-                type="email"
-                placeholder="e.g., doctor@clinic.com"
-                value={doctor.email || ''}
-                onChange={(e) => onUpdate(index, { ...doctor, email: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white text-sm"
-              />
-            </div>
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-              Bio
-            </label>
-            <textarea
-              placeholder="Short bio shown to patients (optional)"
-              value={doctor.bio || ''}
-              onChange={(e) => onUpdate(index, { ...doctor, bio: e.target.value })}
-              rows={2}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white text-sm"
+            <AdminInput
+              label="Notification Phone"
+              required
+              type="tel"
+              placeholder="e.g., +91XXXXXXXXXX"
+              value={doctor.phone || ''}
+              onChange={(e) => onUpdate(index, { ...doctor, phone: e.target.value })}
+              hint="Where this doctor's WhatsApp/SMS booking alerts are sent."
+            />
+            <AdminInput
+              label="Notification Email"
+              type="email"
+              placeholder="e.g., doctor@clinic.com"
+              value={doctor.email || ''}
+              onChange={(e) => onUpdate(index, { ...doctor, email: e.target.value })}
             />
           </div>
+          <AdminTextarea
+            label="Bio"
+            placeholder="Short bio shown to patients (optional)"
+            value={doctor.bio || ''}
+            onChange={(e) => onUpdate(index, { ...doctor, bio: e.target.value })}
+            rows={2}
+          />
           <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
             <input
               type="checkbox"
@@ -229,6 +223,7 @@ function SortableDoctorItem({
 export default function DoctorsEditor({ data, onSave, saving }: DoctorsEditorProps) {
   const [formData, setFormData] = useState<Partial<NonNullable<CMSData['doctors']>>>(data || {});
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const [viewingDoctor, setViewingDoctor] = useState<Doctor | null>(null);
   const { showToast } = useToast();
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -275,6 +270,16 @@ export default function DoctorsEditor({ data, onSave, saving }: DoctorsEditorPro
     onSave('doctors', formData as Partial<CMSData['doctors']>);
   };
 
+  if (viewingDoctor) {
+    return (
+      <DoctorDetailPage
+        doctorId={viewingDoctor.id}
+        doctorName={viewingDoctor.name || 'Untitled doctor'}
+        onBack={() => setViewingDoctor(null)}
+      />
+    );
+  }
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="border-b border-gray-200 dark:border-gray-700 pb-4 mb-6">
@@ -297,6 +302,7 @@ export default function DoctorsEditor({ data, onSave, saving }: DoctorsEditorPro
                 onUpdate={updateDoctor}
                 onDelete={deleteDoctor}
                 onToggleExpand={toggleExpand}
+                onViewDetails={() => setViewingDoctor(doctor)}
               />
             );
           })}
@@ -333,20 +339,7 @@ export default function DoctorsEditor({ data, onSave, saving }: DoctorsEditorPro
       </button>
 
       <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-        <button
-          type="submit"
-          disabled={saving}
-          className="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 px-4 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
-        >
-          {saving ? (
-            <>
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              <span>Saving Changes...</span>
-            </>
-          ) : (
-            <span>Save Changes</span>
-          )}
-        </button>
+        <AdminSaveButton saving={saving} />
       </div>
     </form>
   );

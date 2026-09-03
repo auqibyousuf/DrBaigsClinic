@@ -8,6 +8,47 @@ export interface Medication {
   notes?: string;
 }
 
+// Structured symptom entries carry since/severity/notes like Medisray's;
+// diagnosis/examinations/investigations/advices are plain string tags.
+export interface SymptomEntry {
+  value: string;
+  since?: string;
+  severity?: string;
+  notes?: string;
+}
+
+export interface VitalsReading {
+  recorded_at: string;
+  temperature?: string;
+  pulse?: string;
+  resp_rate?: string;
+  systolic?: string;
+  diastolic?: string;
+  spo2?: string;
+  rbs?: string;
+}
+
+export interface MedicalRecordFile {
+  name: string;
+  url: string;
+  recordType?: string;
+  date?: string;
+  notes?: string;
+}
+
+export type MedicalHistoryCategory = 'condition' | 'allergy' | 'family' | 'lifestyle';
+
+// A single selected tag within a Medical History category — e.g. category
+// "condition", value "Osteoarthritis", with its own since/status/note, like
+// Medisray's per-tag detail panel.
+export interface MedicalHistoryTag {
+  category: MedicalHistoryCategory;
+  value: string;
+  since?: string;
+  status?: 'active' | 'inactive';
+  note?: string;
+}
+
 export interface Prescription {
   id: string;
   appointment_id: string;
@@ -15,6 +56,24 @@ export interface Prescription {
   doctor_id: string;
   diagnosis: string | null;
   medications: Medication[];
+  symptoms: SymptomEntry[];
+  examinations: string[];
+  investigations: string[];
+  advices: string[];
+  vitals: VitalsReading[];
+  follow_up_date: string | null;
+  additional_notes: string | null;
+  // Doctor-only — never rendered into the patient-facing PDF.
+  private_notes: string | null;
+  // Server-computed flat summary of medical_history_tags, used by the PDF —
+  // never edited directly.
+  medical_history: string | null;
+  // Structured Medical History module (Medical Condition / Allergies /
+  // Family History / Lifestyle tag pickers, Medisray-style).
+  medical_history_tags: MedicalHistoryTag[];
+  medical_history_no_known: MedicalHistoryCategory[];
+  // Uploaded documents/images (old reports, scans) attached to this visit.
+  medical_records: MedicalRecordFile[];
   notes: string | null;
   pdf_url: string | null;
   created_at: string;
@@ -27,7 +86,50 @@ export interface NewPrescription {
   doctor_id: string;
   diagnosis?: string;
   medications: Medication[];
+  symptoms?: SymptomEntry[];
+  examinations?: string[];
+  investigations?: string[];
+  advices?: string[];
+  vitals?: VitalsReading[];
+  follow_up_date?: string | null;
+  additional_notes?: string;
+  private_notes?: string;
+  medical_history?: string;
+  medical_history_tags?: MedicalHistoryTag[];
+  medical_history_no_known?: MedicalHistoryCategory[];
+  medical_records?: MedicalRecordFile[];
   notes?: string;
+}
+
+const CATEGORY_LABEL: Record<MedicalHistoryCategory, string> = {
+  condition: 'Medical Condition',
+  allergy: 'Allergies',
+  family: 'Family History',
+  lifestyle: 'Lifestyle',
+};
+
+// Flattens the structured tag picker into the plain-text summary stored in
+// `medical_history` for the PDF — the editor only ever works with the
+// structured tags/no-known-history arrays.
+export function summarizeMedicalHistory(
+  tags: MedicalHistoryTag[],
+  noKnown: MedicalHistoryCategory[]
+): string {
+  const lines: string[] = [];
+  (Object.keys(CATEGORY_LABEL) as MedicalHistoryCategory[]).forEach((category) => {
+    if (noKnown.includes(category)) {
+      lines.push(`${CATEGORY_LABEL[category]}: No known history`);
+      return;
+    }
+    const categoryTags = tags.filter((t) => t.category === category);
+    if (categoryTags.length === 0) return;
+    const parts = categoryTags.map((t) => {
+      const meta = [t.since && `since ${t.since}`, t.status].filter(Boolean).join(', ');
+      return meta ? `${t.value} (${meta})` : t.value;
+    });
+    lines.push(`${CATEGORY_LABEL[category]}: ${parts.join(', ')}`);
+  });
+  return lines.join('\n');
 }
 
 function getClient() {
@@ -51,6 +153,18 @@ export async function upsertPrescription(input: NewPrescription): Promise<Prescr
         doctor_id: input.doctor_id,
         diagnosis: input.diagnosis || null,
         medications: input.medications,
+        symptoms: input.symptoms || [],
+        examinations: input.examinations || [],
+        investigations: input.investigations || [],
+        advices: input.advices || [],
+        vitals: input.vitals || [],
+        follow_up_date: input.follow_up_date || null,
+        additional_notes: input.additional_notes || null,
+        private_notes: input.private_notes || null,
+        medical_history: input.medical_history || null,
+        medical_history_tags: input.medical_history_tags || [],
+        medical_history_no_known: input.medical_history_no_known || [],
+        medical_records: input.medical_records || [],
         notes: input.notes || null,
       },
       { onConflict: 'appointment_id' }

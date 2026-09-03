@@ -13,12 +13,30 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  const STRING_FIELDS = [
+    'name',
+    'phone',
+    'email',
+    'date_of_birth',
+    'gender',
+    'blood_group',
+    'marital_status',
+    'occupation',
+    'address_street',
+    'address_city',
+    'address_state',
+    'address_pincode',
+    'photo_url',
+    'reference_id',
+    'aadhaar_number',
+  ] as const;
+
   try {
     const body = await request.json();
-    const updates: { name?: string; phone?: string; email?: string } = {};
-    if (typeof body.name === 'string' && body.name.trim()) updates.name = body.name.trim();
-    if (typeof body.phone === 'string' && body.phone.trim()) updates.phone = body.phone.trim();
-    if (typeof body.email === 'string') updates.email = body.email.trim();
+    const updates: Record<string, string> = {};
+    for (const field of STRING_FIELDS) {
+      if (typeof body[field] === 'string') updates[field] = body[field].trim();
+    }
 
     const patient = await updatePatient(params.id, updates);
     return NextResponse.json({ success: true, patient });
