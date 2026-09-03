@@ -105,11 +105,22 @@ export default function PatientDetailPage({ patientId, onBack }: { patientId: st
       header: 'Prescription',
       cell: ({ row }) =>
         row.original.prescription ? (
-          <span className="px-1.5 py-0.5 rounded bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 text-[10px] font-semibold uppercase">
-            Rx on file
-          </span>
+          row.original.prescription.pdfUrl ? (
+            <a
+              href={row.original.prescription.pdfUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary-600 dark:text-primary-400 hover:underline text-xs font-semibold"
+            >
+              View Prescription
+            </a>
+          ) : (
+            <span className="px-1.5 py-0.5 rounded bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 text-[10px] font-semibold uppercase">
+              Rx on file
+            </span>
+          )
         ) : (
-          <span className="text-xs text-gray-400">—</span>
+          <span className="text-xs text-gray-400">No prescription created yet</span>
         ),
       enableSorting: false,
     },

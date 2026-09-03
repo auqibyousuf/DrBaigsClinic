@@ -103,11 +103,20 @@ export async function POST(request: NextRequest) {
       notes,
     });
 
-    const pdfBytes = await generatePrescriptionPdf(prescription, patient, {
-      name: doctor?.name || 'Doctor',
-      specialty: doctor?.specialty,
-      qualification: doctor?.qualification,
-    });
+    const pdfBytes = await generatePrescriptionPdf(
+      prescription,
+      patient,
+      {
+        name: doctor?.name || 'Doctor',
+        specialty: doctor?.specialty,
+        qualification: doctor?.qualification,
+      },
+      {
+        name: cmsData.footer?.brandName,
+        address: cmsData.footer?.contact?.address,
+        phone: cmsData.footer?.contact?.phone,
+      }
+    );
     const pdfUrl = await uploadPrescriptionPdf(prescription.id, pdfBytes);
     await setPrescriptionPdfUrl(prescription.id, pdfUrl);
 

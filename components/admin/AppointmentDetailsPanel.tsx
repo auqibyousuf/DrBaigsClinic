@@ -7,7 +7,8 @@ import { useToast } from '@/components/ToastProvider';
 import { useCMSData } from '@/lib/cms-client';
 import { getConfiguredSlots } from '@/lib/appointments';
 import PrescriptionEditor from '@/components/admin/PrescriptionEditor';
-import BillingPanel from '@/components/admin/BillingPanel';
+// Billing disabled for now — see the commented-out usage below.
+// import BillingPanel from '@/components/admin/BillingPanel';
 import Button from '@/components/Button';
 import { AdminInput, AdminTextarea, AdminSelect } from '@/components/admin/AdminField';
 import type { VitalsReading } from '@/components/admin/VitalsPanel';
@@ -401,11 +402,14 @@ export default function AppointmentDetailsPanel({
         )}
       </div>
 
-      {appt.patient_id && (
+      {/* Billing disabled for now — the clinic runs a separate standalone
+          billing/inventory application; decide later whether to keep this
+          in-app module or fully hand billing off to that instead. */}
+      {/* {appt.patient_id && (
         <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
           <BillingPanel appointmentId={appt.id} patientId={appt.patient_id} doctorId={appt.doctor_id} />
         </div>
-      )}
+      )} */}
     </div>
   );
 }

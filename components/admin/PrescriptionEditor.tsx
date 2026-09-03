@@ -6,6 +6,7 @@ import { useToast } from '@/components/ToastProvider';
 import Modal from '@/components/Modal';
 import { AdminInput, AdminTextarea, AdminSelect } from '@/components/admin/AdminField';
 import AutocompleteTagInput from '@/components/admin/AutocompleteTagInput';
+import AutocompleteInput from '@/components/admin/AutocompleteInput';
 import VitalsPanel, { type VitalsReading } from '@/components/admin/VitalsPanel';
 import MedicalHistoryPanel from '@/components/admin/MedicalHistoryPanel';
 import SectionCard from '@/components/admin/SectionCard';
@@ -225,7 +226,7 @@ export default function PrescriptionEditor({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[290px_1fr] gap-3 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-4 items-start">
         {/* Optional modules — matches Medisray's pattern: a left-side list
             of "+ Add" modules that open in a modal, kept separate from the
             always-visible core sections on the right so the main page
@@ -234,72 +235,72 @@ export default function PrescriptionEditor({
           <button
             type="button"
             onClick={() => setOpenModule('vitals')}
-            className="w-full flex items-center justify-start gap-3 p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 cursor-pointer text-left"
+            className="w-full flex items-center justify-start gap-3 p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 cursor-pointer text-left"
           >
             <span className="flex items-center gap-2 min-w-0">
-              <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 flex-shrink-0">
-                <Activity className="w-3.5 h-3.5" />
+              <span className="flex items-center justify-center w-9 h-9 rounded-lg bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 flex-shrink-0">
+                <Activity className="w-4 h-4" />
               </span>
-              <span className="text-sm font-medium text-gray-900 dark:text-white">Vitals & Body Composition</span>
+              <span className="text-base font-medium text-gray-900 dark:text-white">Vitals & Body Composition</span>
             </span>
             {vitalsFilled ? (
               <Check className="w-4 h-4 text-emerald-600 flex-shrink-0" />
             ) : (
-              <span className="text-xs font-medium text-primary-600 dark:text-primary-400 flex-shrink-0">+ Add</span>
+              <span className="text-sm font-medium text-primary-600 dark:text-primary-400 flex-shrink-0">+ Add</span>
             )}
           </button>
 
           <button
             type="button"
             onClick={() => setOpenModule('notes')}
-            className="w-full flex items-center justify-start gap-3 p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 cursor-pointer text-left"
+            className="w-full flex items-center justify-start gap-3 p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 cursor-pointer text-left"
           >
             <span className="flex items-center gap-2 min-w-0">
-              <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 flex-shrink-0">
-                <Lock className="w-3.5 h-3.5" />
+              <span className="flex items-center justify-center w-9 h-9 rounded-lg bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 flex-shrink-0">
+                <Lock className="w-4 h-4" />
               </span>
-              <span className="text-sm font-medium text-gray-900 dark:text-white">Private Notes</span>
+              <span className="text-base font-medium text-gray-900 dark:text-white">Private Notes</span>
             </span>
             {notesFilled ? (
               <Check className="w-4 h-4 text-emerald-600 flex-shrink-0" />
             ) : (
-              <span className="text-xs font-medium text-primary-600 dark:text-primary-400 flex-shrink-0">+ Add</span>
+              <span className="text-sm font-medium text-primary-600 dark:text-primary-400 flex-shrink-0">+ Add</span>
             )}
           </button>
 
           <button
             type="button"
             onClick={() => setOpenModule('history')}
-            className="w-full flex items-center justify-start gap-3 p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 cursor-pointer text-left"
+            className="w-full flex items-center justify-start gap-3 p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 cursor-pointer text-left"
           >
             <span className="flex items-center gap-2 min-w-0">
-              <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 flex-shrink-0">
-                <ClipboardList className="w-3.5 h-3.5" />
+              <span className="flex items-center justify-center w-9 h-9 rounded-lg bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 flex-shrink-0">
+                <ClipboardList className="w-4 h-4" />
               </span>
-              <span className="text-sm font-medium text-gray-900 dark:text-white">Medical History</span>
+              <span className="text-base font-medium text-gray-900 dark:text-white">Medical History</span>
             </span>
             {historyFilled ? (
               <Check className="w-4 h-4 text-emerald-600 flex-shrink-0" />
             ) : (
-              <span className="text-xs font-medium text-primary-600 dark:text-primary-400 flex-shrink-0">+ Add</span>
+              <span className="text-sm font-medium text-primary-600 dark:text-primary-400 flex-shrink-0">+ Add</span>
             )}
           </button>
 
           <button
             type="button"
             onClick={() => setOpenModule('records')}
-            className="w-full flex items-center justify-start gap-3 p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 cursor-pointer text-left"
+            className="w-full flex items-center justify-start gap-3 p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 cursor-pointer text-left"
           >
             <span className="flex items-center gap-2 min-w-0">
-              <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 flex-shrink-0">
-                <FolderPlus className="w-3.5 h-3.5" />
+              <span className="flex items-center justify-center w-9 h-9 rounded-lg bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 flex-shrink-0">
+                <FolderPlus className="w-4 h-4" />
               </span>
-              <span className="text-sm font-medium text-gray-900 dark:text-white">Medical Records</span>
+              <span className="text-base font-medium text-gray-900 dark:text-white">Medical Records</span>
             </span>
             {recordsFilled ? (
               <Check className="w-4 h-4 text-emerald-600 flex-shrink-0" />
             ) : (
-              <span className="text-xs font-medium text-primary-600 dark:text-primary-400 flex-shrink-0">+ Add</span>
+              <span className="text-sm font-medium text-primary-600 dark:text-primary-400 flex-shrink-0">+ Add</span>
             )}
           </button>
         </div>
@@ -345,7 +346,12 @@ export default function PrescriptionEditor({
                   {medications.map((med, index) => (
                     <tr key={index}>
                       <td className="pr-2">
-                        <AdminInput placeholder="Name" value={med.name} onChange={(e) => updateMed(index, { name: e.target.value })} />
+                        <AutocompleteInput
+                          category="medication"
+                          value={med.name}
+                          onChange={(v) => updateMed(index, { name: v })}
+                          placeholder="Name"
+                        />
                       </td>
                       <td className="pr-2">
                         <AdminInput placeholder="Dosage" value={med.dosage} onChange={(e) => updateMed(index, { dosage: e.target.value })} />
