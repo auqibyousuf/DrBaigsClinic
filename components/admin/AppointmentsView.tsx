@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import { type ColumnDef } from '@tanstack/react-table';
-import { Play, Eye } from 'lucide-react';
+import { Play, Eye, Pencil, CheckCircle2, Ban, Trash2 } from 'lucide-react';
 import type { CMSData } from '@/lib/cms';
 import { DataTable, type DataTableFilter } from '@/components/ui/data-table';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import AppointmentDetailsPanel, { type Appointment } from '@/components/admin/AppointmentDetailsPanel';
 import WalkInModal from '@/components/admin/WalkInModal';
 import DropdownMenu from '@/components/admin/DropdownMenu';
+import { useToast } from '@/components/ToastProvider';
 
 interface AppointmentsViewProps {
   doctors: NonNullable<CMSData['doctors']>['items'];
@@ -25,6 +26,11 @@ export default function AppointmentsView({ doctors }: AppointmentsViewProps) {
   const [tab, setTab] = useState('queue');
   const [showWalkIn, setShowWalkIn] = useState(false);
   const [autoOpenId, setAutoOpenId] = useState<string | null>(null);
+  // Which mode each expanded row shows — Details (read-only) vs Edit
+  // (editable fields). The row's 3-dot menu picks this directly instead of
+  // "Details" silently also being editable.
+  const [modeByRow, setModeByRow] = useState<Record<string, 'details' | 'edit'>>({});
+  const { showToast } = useToast();
 
   const fetchAppointments = async () => {
     setLoading(true);
@@ -49,6 +55,44 @@ export default function AppointmentsView({ doctors }: AppointmentsViewProps) {
   }, []);
 
   const doctorName = (id: string) => doctors.find((d) => d.id === id)?.name || 'Unknown doctor';
+
+  const handleFinish = async (id: string) => {
+    try {
+      const res = await fetch(`/api/appointment/admin/${id}/finish`, { method: 'POST', credentials: 'include' });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || 'Failed to finish visit');
+      showToast('success', 'Visit marked finished.');
+      fetchAppointments();
+    } catch (err) {
+      showToast('error', err instanceof Error ? err.message : 'Failed to finish visit');
+    }
+  };
+
+  const handleCancel = async (id: string) => {
+    if (!confirm('Cancel this appointment? The patient will be notified.')) return;
+    try {
+      const res = await fetch(`/api/appointment/admin/${id}/cancel`, { method: 'POST', credentials: 'include' });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || 'Failed to cancel');
+      showToast('success', 'Appointment cancelled and patient notified.');
+      fetchAppointments();
+    } catch (err) {
+      showToast('error', err instanceof Error ? err.message : 'Failed to cancel appointment');
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Permanently delete this appointment and any linked prescription? This cannot be undone.')) return;
+    try {
+      const res = await fetch(`/api/appointment/admin/${id}`, { method: 'DELETE', credentials: 'include' });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || 'Failed to delete');
+      showToast('success', 'Appointment deleted.');
+      fetchAppointments();
+    } catch (err) {
+      showToast('error', err instanceof Error ? err.message : 'Failed to delete appointment');
+    }
+  };
 
   const queue = appointments.filter((a) => a.status === 'confirmed');
   const finished = appointments.filter((a) => a.status === 'finished');
@@ -109,19 +153,48 @@ export default function AppointmentsView({ doctors }: AppointmentsViewProps) {
       id: 'actions',
       header: '',
       enableSorting: false,
-      cell: ({ row }) => (
-        <div className="flex justify-end">
-          <DropdownMenu
-            actions={[
-              {
-                label: row.getIsExpanded() ? 'Hide Details' : 'View Details',
-                icon: <Eye className="w-4 h-4" />,
-                onClick: () => row.toggleExpanded(),
-              },
-            ]}
-          />
-        </div>
-      ),
+      cell: ({ row }) => {
+        const appt = row.original;
+        const openAs = (nextMode: 'details' | 'edit') => {
+          const isExpanded = row.getIsExpanded();
+          const sameMode = modeByRow[appt.id] === nextMode;
+          if (isExpanded && sameMode) {
+            row.toggleExpanded(); // already showing this mode — collapse instead
+            return;
+          }
+          setModeByRow((prev) => ({ ...prev, [appt.id]: nextMode }));
+          if (!isExpanded) row.toggleExpanded();
+        };
+        return (
+          <div className="flex justify-end">
+            <DropdownMenu
+              actions={[
+                { label: 'View Details', icon: <Eye className="w-4 h-4" />, onClick: () => openAs('details') },
+                { label: 'Edit', icon: <Pencil className="w-4 h-4" />, onClick: () => openAs('edit') },
+                {
+                  label: 'Finish Visit',
+                  icon: <CheckCircle2 className="w-4 h-4" />,
+                  hidden: appt.status !== 'confirmed',
+                  onClick: () => handleFinish(appt.id),
+                },
+                {
+                  label: 'Cancel Appointment',
+                  icon: <Ban className="w-4 h-4" />,
+                  hidden: appt.status !== 'confirmed',
+                  danger: true,
+                  onClick: () => handleCancel(appt.id),
+                },
+                {
+                  label: 'Delete Permanently',
+                  icon: <Trash2 className="w-4 h-4" />,
+                  danger: true,
+                  onClick: () => handleDelete(appt.id),
+                },
+              ]}
+            />
+          </div>
+        );
+      },
     },
   ];
 
@@ -181,6 +254,8 @@ export default function AppointmentsView({ doctors }: AppointmentsViewProps) {
                 doctorName={doctorName(appt.doctor_id)}
                 onChanged={fetchAppointments}
                 autoPrescribe={appt.id === autoOpenId}
+                mode={appt.id === autoOpenId ? 'details' : modeByRow[appt.id] || 'details'}
+                onRequestEdit={() => setModeByRow((prev) => ({ ...prev, [appt.id]: 'edit' }))}
               />
             )}
           />

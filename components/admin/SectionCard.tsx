@@ -18,7 +18,7 @@ export default function SectionCard({ icon, title, children, className = '' }: S
         <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 flex-shrink-0">
           {icon}
         </span>
-        <h4 className="font-semibold text-gray-900 dark:text-white">{title}</h4>
+        <h4 className="text-sm font-semibold text-gray-900 dark:text-white leading-none">{title}</h4>
       </div>
       {children}
     </div>

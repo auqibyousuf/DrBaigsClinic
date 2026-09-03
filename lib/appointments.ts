@@ -113,6 +113,71 @@ export async function createWalkIn(input: NewWalkIn): Promise<Appointment> {
   return data as Appointment;
 }
 
+export interface NewFollowUp {
+  patient_name: string;
+  patient_phone: string;
+  patient_email?: string;
+  patient_id: string;
+  doctor_id: string;
+  appointment_date: string;
+  slot_start: string | null;
+  reason: string;
+}
+
+// Auto-created when a prescription's follow-up date is saved — the patient
+// shouldn't have to separately re-book what the doctor already scheduled.
+// Uses a real slot when one is free (see expandSlotsForDate in
+// lib/schedules.ts), otherwise a null "to be arranged" slot the same way a
+// walk-in does, rather than blocking prescription-save on slot availability.
+export async function createFollowUpAppointment(input: NewFollowUp): Promise<Appointment> {
+  const supabase = getClient();
+  const { data, error } = await supabase
+    .from('appointments')
+    .insert({
+      patient_name: input.patient_name,
+      patient_phone: input.patient_phone,
+      patient_email: input.patient_email || '',
+      patient_id: input.patient_id,
+      doctor_id: input.doctor_id,
+      reason: input.reason,
+      appointment_date: input.appointment_date,
+      slot_start: input.slot_start,
+      is_walk_in: false,
+      status: 'confirmed',
+    })
+    .select()
+    .single();
+
+  if (error) {
+    // A slot race (another booking took it between our check and insert) —
+    // fall back to an unscheduled entry rather than losing the follow-up.
+    if (error.code === '23505') {
+      const retry = await supabase
+        .from('appointments')
+        .insert({
+          patient_name: input.patient_name,
+          patient_phone: input.patient_phone,
+          patient_email: input.patient_email || '',
+          patient_id: input.patient_id,
+          doctor_id: input.doctor_id,
+          reason: input.reason,
+          appointment_date: input.appointment_date,
+          slot_start: null,
+          is_walk_in: false,
+          status: 'confirmed',
+        })
+        .select()
+        .single();
+      if (retry.error) {
+        throw new Error(`Failed to create follow-up appointment: ${retry.error.message}`);
+      }
+      return retry.data as Appointment;
+    }
+    throw new Error(`Failed to create follow-up appointment: ${error.message}`);
+  }
+  return data as Appointment;
+}
+
 export async function finishAppointment(id: string): Promise<Appointment> {
   const supabase = getClient();
   const { data, error } = await supabase

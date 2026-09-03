@@ -73,7 +73,10 @@ interface EditorProps {
 
 export default function AdminDashboard() {
   const [activeSection, setActiveSection] = useState<string>('header');
-  const [openGroupId, setOpenGroupId] = useState<string>('website');
+  // Both groups start open (each its own card) — an accordion toggle per
+  // card lets the admin collapse either one, but neither is collapsed by
+  // default the way a single-open accordion would force.
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({ website: true, app: true });
   const [data, setData] = useState<Partial<CMSData>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -402,61 +405,62 @@ export default function AdminDashboard() {
     <>
       <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-6">
-          {/* Sidebar */}
-          <div className="lg:col-span-1">
-            <nav
-              className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-2 sm:p-3 space-y-1"
-              aria-label="Admin sections navigation"
-            >
-              {sectionGroups.map((group) => {
-                const isOpen = openGroupId === group.id;
-                return (
-                  <div key={group.id} className="rounded-lg overflow-hidden">
-                    <button
-                      type="button"
-                      onClick={() => setOpenGroupId(isOpen ? '' : group.id)}
-                      aria-expanded={isOpen}
-                      className="w-full flex items-center justify-between px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 focus-visible:outline-none focus-visible:text-gray-600 dark:focus-visible:text-gray-300 cursor-pointer"
+          {/* Sidebar — Website and App are two separate cards with a gap
+              between them (not one nav block), both open by default; each
+              still collapses independently via its own accordion toggle. */}
+          <div className="lg:col-span-1 space-y-4">
+            {sectionGroups.map((group) => {
+              const isOpen = openGroups[group.id];
+              return (
+                <nav
+                  key={group.id}
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-2 sm:p-3"
+                  aria-label={`${group.label} sections navigation`}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setOpenGroups((prev) => ({ ...prev, [group.id]: !prev[group.id] }))}
+                    aria-expanded={isOpen}
+                    className="w-full flex items-center justify-between px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 focus-visible:outline-none focus-visible:text-gray-600 dark:focus-visible:text-gray-300 cursor-pointer"
+                  >
+                    {group.label}
+                    <svg
+                      className={`w-4 h-4 transition-transform duration-150 ${isOpen ? 'rotate-180' : ''}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
                     >
-                      {group.label}
-                      <svg
-                        className={`w-4 h-4 transition-transform duration-150 ${isOpen ? 'rotate-180' : ''}`}
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </button>
-                    {isOpen && (
-                      <ul className="space-y-1 pb-1" role="list">
-                        {group.sections.map((section) => (
-                          <li key={section.id}>
-                            <button
-                              onClick={() => handleSectionChange(section.id)}
-                              aria-current={activeSection === section.id ? 'page' : undefined}
-                              className={`w-full text-left px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg transition-all duration-200 flex items-center space-x-2 sm:space-x-3 text-sm focus-visible:outline-none ${
-                                activeSection === section.id
-                                  ? 'bg-primary-600 text-white shadow-md font-medium'
-                                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 focus-visible:bg-gray-100 dark:focus-visible:bg-gray-700'
-                              }`}
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  {isOpen && (
+                    <ul className="space-y-1 pb-1" role="list">
+                      {group.sections.map((section) => (
+                        <li key={section.id}>
+                          <button
+                            onClick={() => handleSectionChange(section.id)}
+                            aria-current={activeSection === section.id ? 'page' : undefined}
+                            className={`w-full text-left px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg transition-all duration-200 flex items-center space-x-2 sm:space-x-3 text-sm focus-visible:outline-none ${
+                              activeSection === section.id
+                                ? 'bg-primary-600 text-white shadow-md font-medium'
+                                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 focus-visible:bg-gray-100 dark:focus-visible:bg-gray-700'
+                            }`}
+                          >
+                            <span
+                              className={`flex-shrink-0 ${activeSection === section.id ? 'text-white' : 'text-gray-500 dark:text-gray-400'}`}
+                              aria-hidden="true"
                             >
-                              <span
-                                className={`flex-shrink-0 ${activeSection === section.id ? 'text-white' : 'text-gray-500 dark:text-gray-400'}`}
-                                aria-hidden="true"
-                              >
-                                {section.icon}
-                              </span>
-                              <span>{section.name}</span>
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                );
-              })}
-            </nav>
+                              {section.icon}
+                            </span>
+                            <span>{section.name}</span>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </nav>
+              );
+            })}
           </div>
 
           {/* Main Content */}

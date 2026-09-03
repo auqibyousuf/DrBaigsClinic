@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, X, Stethoscope, ClipboardCheck, ScanSearch, Pill, FlaskConical, MessageSquareText, CalendarClock, StickyNote } from 'lucide-react';
+import { Plus, X, Stethoscope, ClipboardCheck, ScanSearch, Pill, FlaskConical, MessageSquareText, CalendarClock, StickyNote, Activity, Lock, Check } from 'lucide-react';
 import { useToast } from '@/components/ToastProvider';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import Modal from '@/components/Modal';
 import { AdminInput, AdminTextarea } from '@/components/admin/AdminField';
 import AutocompleteTagInput from '@/components/admin/AutocompleteTagInput';
 import VitalsPanel, { type VitalsReading } from '@/components/admin/VitalsPanel';
@@ -45,9 +45,10 @@ const FOLLOW_UP_PRESETS = [
 ];
 
 // Modular Digital-Rx consultation editor (MEDISRAY_AUDIT.md finding #2) —
-// replaces the old flat "diagnosis + medications only" form. Tabbed so
-// Vitals/Private Notes stay out of the way until the doctor actually needs
-// them, instead of one long scrolling page.
+// replaces the old flat "diagnosis + medications only" form. Matches
+// Medisray's own layout: a left-side list of optional modules (Vitals,
+// Private Notes) that open in a modal, while the core sections
+// (Symptoms/Diagnosis/Medications/etc.) stay inline on the page.
 export default function PrescriptionEditor({
   appointmentId,
   context,
@@ -69,9 +70,12 @@ export default function PrescriptionEditor({
   const [followUpDate, setFollowUpDate] = useState(initial?.follow_up_date || '');
   const [additionalNotes, setAdditionalNotes] = useState(initial?.additional_notes || '');
   const [privateNotes, setPrivateNotes] = useState(initial?.private_notes || '');
-  const [tab, setTab] = useState('consultation');
   const [saving, setSaving] = useState(false);
+  const [openModule, setOpenModule] = useState<'vitals' | 'notes' | null>(null);
   const { showToast } = useToast();
+
+  const vitalsFilled = !!(vitals.temperature || vitals.pulse || vitals.systolic || vitals.spo2 || vitals.diastolic || vitals.rbs);
+  const notesFilled = !!privateNotes.trim();
 
   const updateMed = (index: number, partial: Partial<Medication>) => {
     setMedications((prev) => prev.map((m, i) => (i === index ? { ...m, ...partial } : m)));
@@ -126,7 +130,7 @@ export default function PrescriptionEditor({
   return (
     <div className="mt-3 border-2 border-primary-200 dark:border-primary-800 rounded-xl bg-primary-50/50 dark:bg-primary-900/10 overflow-hidden">
       <div className="p-4 pb-0">
-        <h4 className="font-semibold text-gray-900 dark:text-white mb-3">
+        <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
           {initial ? 'Edit Visit' : 'Write Prescription'}
         </h4>
 
@@ -152,14 +156,50 @@ export default function PrescriptionEditor({
         </div>
       </div>
 
-      <Tabs value={tab} onValueChange={setTab} className="px-4">
-        <TabsList>
-          <TabsTrigger value="consultation">Consultation</TabsTrigger>
-          <TabsTrigger value="vitals">Vitals</TabsTrigger>
-          <TabsTrigger value="notes">Private Notes</TabsTrigger>
-        </TabsList>
+      <div className="px-4 pb-4 grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-3 items-start">
+        {/* Optional modules — matches Medisray's pattern: a left-side list
+            of "+ Add" modules that open in a modal, kept separate from the
+            always-visible core sections on the right so the main page
+            doesn't grow for visits that don't need them. */}
+        <div className="space-y-2">
+          <button
+            type="button"
+            onClick={() => setOpenModule('vitals')}
+            className="w-full flex items-center justify-between gap-2 p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 cursor-pointer text-left"
+          >
+            <span className="flex items-center gap-2 min-w-0">
+              <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 flex-shrink-0">
+                <Activity className="w-3.5 h-3.5" />
+              </span>
+              <span className="text-sm font-medium text-gray-900 dark:text-white truncate">Vitals & Body Composition</span>
+            </span>
+            {vitalsFilled ? (
+              <Check className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+            ) : (
+              <span className="text-xs font-medium text-primary-600 dark:text-primary-400 flex-shrink-0">+ Add</span>
+            )}
+          </button>
 
-        <TabsContent value="consultation" className="space-y-3 pb-4">
+          <button
+            type="button"
+            onClick={() => setOpenModule('notes')}
+            className="w-full flex items-center justify-between gap-2 p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 cursor-pointer text-left"
+          >
+            <span className="flex items-center gap-2 min-w-0">
+              <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 flex-shrink-0">
+                <Lock className="w-3.5 h-3.5" />
+              </span>
+              <span className="text-sm font-medium text-gray-900 dark:text-white truncate">Private Notes</span>
+            </span>
+            {notesFilled ? (
+              <Check className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+            ) : (
+              <span className="text-xs font-medium text-primary-600 dark:text-primary-400 flex-shrink-0">+ Add</span>
+            )}
+          </button>
+        </div>
+
+        <div className="space-y-3 min-w-0">
           <SectionCard icon={<Stethoscope className="w-4 h-4" />} title="Symptoms">
             <AutocompleteTagInput
               category="symptom"
@@ -247,25 +287,25 @@ export default function PrescriptionEditor({
               />
             </SectionCard>
           </div>
-        </TabsContent>
+        </div>
+      </div>
 
-        <TabsContent value="vitals" className="pb-4">
-          <SectionCard icon={<Stethoscope className="w-4 h-4" />} title="Vitals & Body Composition">
-            <VitalsPanel reading={vitals} onChange={setVitals} />
-          </SectionCard>
-        </TabsContent>
+      {openModule === 'vitals' && (
+        <Modal isOpen onClose={() => setOpenModule(null)} title="Vitals & Body Composition">
+          <VitalsPanel reading={vitals} onChange={setVitals} />
+        </Modal>
+      )}
 
-        <TabsContent value="notes" className="pb-4">
-          <SectionCard icon={<StickyNote className="w-4 h-4" />} title="Private Notes">
-            <AdminTextarea
-              value={privateNotes}
-              onChange={(e) => setPrivateNotes(e.target.value)}
-              rows={4}
-              hint="Only visible to you — never printed or shown to the patient."
-            />
-          </SectionCard>
-        </TabsContent>
-      </Tabs>
+      {openModule === 'notes' && (
+        <Modal isOpen onClose={() => setOpenModule(null)} title="Private Notes">
+          <AdminTextarea
+            value={privateNotes}
+            onChange={(e) => setPrivateNotes(e.target.value)}
+            rows={5}
+            hint="Only visible to you — never printed or shown to the patient."
+          />
+        </Modal>
+      )}
 
       <div className="flex gap-2 p-4 pt-0">
         <button

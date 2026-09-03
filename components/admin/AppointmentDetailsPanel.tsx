@@ -2,12 +2,12 @@
 
 import { useState } from 'react';
 import { Lock } from '@phosphor-icons/react';
+import { Pencil } from 'lucide-react';
 import { useToast } from '@/components/ToastProvider';
 import { useCMSData } from '@/lib/cms-client';
 import { getConfiguredSlots } from '@/lib/appointments';
 import PrescriptionEditor from '@/components/admin/PrescriptionEditor';
 import BillingPanel from '@/components/admin/BillingPanel';
-import DropdownMenu from '@/components/admin/DropdownMenu';
 import Button from '@/components/Button';
 import { AdminInput, AdminTextarea, AdminSelect } from '@/components/admin/AdminField';
 import type { VitalsReading } from '@/components/admin/VitalsPanel';
@@ -77,6 +77,13 @@ interface AppointmentDetailsPanelProps {
   // walk-in was just started, matching Medisray's "Consult" click going
   // directly into the Digital-Rx screen instead of a separate step.
   autoPrescribe?: boolean;
+  // "Details" is a read-only summary; "Edit" shows the editable fields. The
+  // row's own 3-dot menu picks which one to open — this panel no longer
+  // decides that itself (previously Details silently let you edit, and
+  // Finish/Cancel/Delete/History were buried inside here instead of the
+  // row-level menu).
+  mode?: 'details' | 'edit';
+  onRequestEdit?: () => void;
 }
 
 export default function AppointmentDetailsPanel({
@@ -84,6 +91,8 @@ export default function AppointmentDetailsPanel({
   doctorName,
   onChanged,
   autoPrescribe = false,
+  mode = 'details',
+  onRequestEdit,
 }: AppointmentDetailsPanelProps) {
   const { showToast } = useToast();
   const { data: bookingSettingsData } = useCMSData('bookingSettings');
@@ -152,53 +161,6 @@ export default function AppointmentDetailsPanel({
     }
   };
 
-  const handleCancel = async () => {
-    if (!confirm('Cancel this appointment? The patient will be notified.')) return;
-    try {
-      const res = await fetch(`/api/appointment/admin/${appt.id}/cancel`, {
-        method: 'POST',
-        credentials: 'include',
-      });
-      const result = await res.json();
-      if (!res.ok) throw new Error(result.error || 'Failed to cancel');
-      showToast('success', 'Appointment cancelled and patient notified.');
-      onChanged();
-    } catch (err) {
-      showToast('error', err instanceof Error ? err.message : 'Failed to cancel appointment');
-    }
-  };
-
-  const handleFinish = async () => {
-    try {
-      const res = await fetch(`/api/appointment/admin/${appt.id}/finish`, {
-        method: 'POST',
-        credentials: 'include',
-      });
-      const result = await res.json();
-      if (!res.ok) throw new Error(result.error || 'Failed to finish visit');
-      showToast('success', 'Visit marked finished.');
-      onChanged();
-    } catch (err) {
-      showToast('error', err instanceof Error ? err.message : 'Failed to finish visit');
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!confirm('Permanently delete this appointment and any linked prescription? This cannot be undone.')) return;
-    try {
-      const res = await fetch(`/api/appointment/admin/${appt.id}`, {
-        method: 'DELETE',
-        credentials: 'include',
-      });
-      const result = await res.json();
-      if (!res.ok) throw new Error(result.error || 'Failed to delete');
-      showToast('success', 'Appointment deleted.');
-      onChanged();
-    } catch (err) {
-      showToast('error', err instanceof Error ? err.message : 'Failed to delete appointment');
-    }
-  };
-
   const toggleHistory = async () => {
     if (showHistory) {
       setShowHistory(false);
@@ -251,64 +213,134 @@ export default function AppointmentDetailsPanel({
 
   return (
     <div className="p-4 space-y-4">
-      {/* Editable patient/visit details */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <AdminInput label="Patient Name" value={editName} onChange={(e) => setEditName(e.target.value)} />
-        <AdminInput label="Phone" value={editPhone} onChange={(e) => setEditPhone(e.target.value)} />
-        <AdminInput label="Email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} />
-        <AdminInput label="Doctor" value={doctorName} onChange={() => {}} disabled />
-        <AdminInput
-          label="Day"
-          type="date"
-          value={editDate}
-          onChange={(e) => setEditDate(e.target.value)}
-        />
-        <AdminSelect
-          label="Time"
-          value={editSlot}
-          onChange={(e) => setEditSlot(e.target.value)}
-          options={slots.map((s) => ({ value: s, label: s }))}
-        />
-        <div className="sm:col-span-2">
-          <AdminTextarea
-            label="Reason for Consultation"
-            value={editReason}
-            onChange={(e) => setEditReason(e.target.value)}
-            rows={2}
-          />
-        </div>
-      </div>
+      {mode === 'edit' ? (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <AdminInput label="Patient Name" value={editName} onChange={(e) => setEditName(e.target.value)} />
+            <AdminInput label="Phone" value={editPhone} onChange={(e) => setEditPhone(e.target.value)} />
+            <AdminInput label="Email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} />
+            <AdminInput label="Doctor" value={doctorName} onChange={() => {}} disabled />
+            <AdminInput
+              label="Day"
+              type="date"
+              value={editDate}
+              onChange={(e) => setEditDate(e.target.value)}
+            />
+            <AdminSelect
+              label="Time"
+              value={editSlot}
+              onChange={(e) => setEditSlot(e.target.value)}
+              options={slots.map((s) => ({ value: s, label: s }))}
+            />
+            <div className="sm:col-span-2">
+              <AdminTextarea
+                label="Reason for Consultation"
+                value={editReason}
+                onChange={(e) => setEditReason(e.target.value)}
+                rows={2}
+              />
+            </div>
+          </div>
+          <Button onClick={saveDetails} disabled={savingDetails} variant="primary" size="xs">
+            {savingDetails ? 'Saving...' : 'Save Details'}
+          </Button>
+        </>
+      ) : (
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Details</h4>
+            {onRequestEdit && (
+              <button
+                type="button"
+                onClick={onRequestEdit}
+                className="inline-flex items-center gap-1 text-xs font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400 cursor-pointer"
+              >
+                <Pencil className="w-3.5 h-3.5" />
+                Edit
+              </button>
+            )}
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
+            <div>
+              <span className="block text-xs text-gray-400 dark:text-gray-500">Patient Name</span>
+              <span className="text-gray-900 dark:text-white">{appt.patient_name}</span>
+            </div>
+            <div>
+              <span className="block text-xs text-gray-400 dark:text-gray-500">Phone</span>
+              <span className="text-gray-900 dark:text-white">{appt.patient_phone}</span>
+            </div>
+            <div>
+              <span className="block text-xs text-gray-400 dark:text-gray-500">Email</span>
+              <span className="text-gray-900 dark:text-white">{appt.patient_email || '—'}</span>
+            </div>
+            <div>
+              <span className="block text-xs text-gray-400 dark:text-gray-500">Doctor</span>
+              <span className="text-gray-900 dark:text-white">{doctorName}</span>
+            </div>
+            <div>
+              <span className="block text-xs text-gray-400 dark:text-gray-500">Visit</span>
+              <span className="text-gray-900 dark:text-white">
+                {appt.appointment_date}
+                {appt.slot_start ? ` · ${appt.slot_start}` : ' · Walk-in'}
+              </span>
+            </div>
+            <div>
+              <span className="block text-xs text-gray-400 dark:text-gray-500">Status</span>
+              <span className="text-gray-900 dark:text-white capitalize">{appt.status}</span>
+            </div>
+            <div className="sm:col-span-2">
+              <span className="block text-xs text-gray-400 dark:text-gray-500">Reason for Consultation</span>
+              <span className="text-gray-900 dark:text-white">{appt.reason}</span>
+            </div>
+          </div>
 
-      <div className="flex flex-wrap items-center gap-2">
-        <Button onClick={saveDetails} disabled={savingDetails} variant="primary" size="xs">
-          {savingDetails ? 'Saving...' : 'Save Details'}
-        </Button>
-        <DropdownMenu
-          actions={[
-            {
-              label: 'Finish Visit',
-              hidden: appt.status !== 'confirmed',
-              onClick: handleFinish,
-            },
-            {
-              label: showHistory ? 'Hide Patient History' : 'View Patient History',
-              hidden: !appt.patient_id,
-              onClick: toggleHistory,
-            },
-            {
-              label: 'Cancel Appointment',
-              hidden: appt.status !== 'confirmed',
-              danger: true,
-              onClick: handleCancel,
-            },
-            {
-              label: 'Delete Permanently',
-              danger: true,
-              onClick: handleDelete,
-            },
-          ]}
-        />
-      </div>
+          {appt.patient_id && (
+            <button
+              type="button"
+              onClick={toggleHistory}
+              className="mt-3 text-xs font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400 cursor-pointer"
+            >
+              {showHistory ? 'Hide Patient History' : 'View Patient History'}
+            </button>
+          )}
+
+          {showHistory && (
+            <div className="mt-3 p-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800">
+              <h5 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">Visit History</h5>
+              {historyLoading ? (
+                <p className="text-xs text-gray-500">Loading...</p>
+              ) : historyVisits.length === 0 ? (
+                <p className="text-xs text-gray-500">No visits found.</p>
+              ) : (
+                <ul className="space-y-2">
+                  {historyVisits.map((v) => (
+                    <li key={v.id} className="text-xs text-gray-700 dark:text-gray-300">
+                      <span className="font-medium">
+                        {v.date} {v.slot}
+                      </span>{' '}
+                      — {v.doctorName} — {v.reason} ({v.status})
+                      {v.prescription?.pdfUrl && (
+                        <>
+                          {' '}
+                          ·{' '}
+                          <a
+                            href={v.prescription.pdfUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary-600 hover:underline"
+                          >
+                            Rx PDF
+                          </a>
+                        </>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Prescription section — only actionable once the appointment has started */}
       <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
@@ -396,42 +428,6 @@ export default function AppointmentDetailsPanel({
       {appt.patient_id && (
         <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
           <BillingPanel appointmentId={appt.id} patientId={appt.patient_id} doctorId={appt.doctor_id} />
-        </div>
-      )}
-
-      {showHistory && (
-        <div className="p-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800">
-          <h5 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">Visit History</h5>
-          {historyLoading ? (
-            <p className="text-xs text-gray-500">Loading...</p>
-          ) : historyVisits.length === 0 ? (
-            <p className="text-xs text-gray-500">No visits found.</p>
-          ) : (
-            <ul className="space-y-2">
-              {historyVisits.map((v) => (
-                <li key={v.id} className="text-xs text-gray-700 dark:text-gray-300">
-                  <span className="font-medium">
-                    {v.date} {v.slot}
-                  </span>{' '}
-                  — {v.doctorName} — {v.reason} ({v.status})
-                  {v.prescription?.pdfUrl && (
-                    <>
-                      {' '}
-                      ·{' '}
-                      <a
-                        href={v.prescription.pdfUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary-600 hover:underline"
-                      >
-                        Rx PDF
-                      </a>
-                    </>
-                  )}
-                </li>
-              ))}
-            </ul>
-          )}
         </div>
       )}
     </div>
