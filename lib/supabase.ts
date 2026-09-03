@@ -10,7 +10,17 @@ function getSupabaseClient() {
     return null;
   }
 
-  return createClient(supabaseUrl, supabaseAnonKey);
+  return createClient(supabaseUrl, supabaseAnonKey, {
+    global: {
+      // Next.js patches the global fetch in Server Components to cache
+      // responses by default — the cms_data row (with embedded base64
+      // images) regularly exceeds the 2MB cache limit, which just logs a
+      // noisy "Failed to set fetch cache" warning on every request. This
+      // data changes on every admin save anyway, so it should never be
+      // cached in the first place.
+      fetch: (input, init) => fetch(input, { ...init, cache: 'no-store' }),
+    },
+  });
 }
 
 // Check if Supabase is configured
