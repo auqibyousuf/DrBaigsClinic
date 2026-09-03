@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { X } from '@phosphor-icons/react';
+import { X, Plus } from '@phosphor-icons/react';
 import { fieldStyle, fieldClasses } from '@/components/FloatingLabelInput/FloatingLabelInput';
 import type { ClinicalTermCategory } from '@/lib/clinical-terms';
 
@@ -145,9 +145,10 @@ export default function AutocompleteTagInput({
             <button
               type="button"
               onClick={() => addValue(query)}
-              className="w-full text-left px-3 py-2 text-sm font-medium text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/30 cursor-pointer border-t border-gray-100 dark:border-gray-700"
+              className="w-full flex items-center gap-1.5 text-left px-3 py-2 text-xs font-medium text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/30 cursor-pointer border-t border-gray-100 dark:border-gray-700"
             >
-              + Add custom &ldquo;{query.trim()}&rdquo;
+              <Plus className="w-3.5 h-3.5 flex-shrink-0" />
+              Add &ldquo;{query.trim()}&rdquo;
             </button>
           )}
         </div>

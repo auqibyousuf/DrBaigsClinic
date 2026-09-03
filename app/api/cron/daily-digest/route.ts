@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
       const lines = doctorAppointments.map(
         (a) => `${a.slot_start} - ${a.patient_name} (${a.reason})`
       );
-      sends.push(sendDailyDigest(doctor.phone, lines));
+      sends.push(sendDailyDigest(doctor.phone, doctor.name, lines));
     });
 
     if (cmsData.contact?.notificationPhone) {
@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
         const doctor = doctors.find((d) => d.id === a.doctor_id);
         return `${a.slot_start} - ${a.patient_name} with ${doctor?.name || 'Unknown'} (${a.reason})`;
       });
-      sends.push(sendDailyDigest(cmsData.contact.notificationPhone, allLines));
+      sends.push(sendDailyDigest(cmsData.contact.notificationPhone, 'All doctors', allLines));
     }
 
     await Promise.all(sends);

@@ -9,7 +9,7 @@ import {
 import { getPatientById } from '@/lib/patients';
 import { generateInvoicePdf } from '@/lib/invoice-pdf';
 import { getCMSData } from '@/lib/cms';
-import { sendWhatsAppOrSMS } from '@/lib/notifications';
+import { sendInvoiceReady } from '@/lib/notifications';
 
 function isAuthenticated(request: NextRequest): boolean {
   const authHeader = request.headers.get('authorization');
@@ -81,11 +81,15 @@ export async function POST(request: NextRequest) {
       // prescription/follow-up alerts) — patients previously had no way to
       // know a bill existed unless staff mentioned it in person.
       const due = invoice.total_payable - invoice.paid_amount;
-      const dueLine = due > 0 ? ` Amount due: Rs. ${due.toFixed(2)}.` : ' Fully paid — thank you!';
+      const dueLine = due > 0 ? `Amount due: Rs. ${due.toFixed(2)}.` : 'Fully paid — thank you!';
       try {
-        await sendWhatsAppOrSMS(
+        await sendInvoiceReady(
           patient.phone,
-          `Hi ${patient.name}, your bill ${invoice.invoice_number} from Dr Baig's Clinic is ready — Rs. ${invoice.total_payable.toFixed(2)}.${dueLine} View: ${pdfUrl}`
+          patient.name,
+          invoice.invoice_number,
+          invoice.total_payable.toFixed(2),
+          dueLine,
+          pdfUrl
         );
       } catch (notifyErr) {
         console.error('Invoice notification failed:', notifyErr);
