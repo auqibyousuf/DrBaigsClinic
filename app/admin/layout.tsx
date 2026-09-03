@@ -3,6 +3,7 @@
 import { useRouter, usePathname } from 'next/navigation';
 import ToastProvider from '@/components/ToastProvider';
 import Logo from '@/components/Logo';
+import SiteReadyGate from '@/components/SiteReadyGate';
 import { useCMSData } from '@/lib/cms-client';
 
 export default function AdminLayout({
@@ -31,6 +32,7 @@ export default function AdminLayout({
 
   return (
     <ToastProvider>
+    <SiteReadyGate>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         {/* Admin Header */}
         <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50" role="banner">
@@ -65,6 +67,7 @@ export default function AdminLayout({
         </header>
         {children}
       </div>
+    </SiteReadyGate>
     </ToastProvider>
   );
 }
