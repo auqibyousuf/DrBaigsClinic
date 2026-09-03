@@ -34,7 +34,7 @@ import PrescriptionsListView from '@/components/admin/PrescriptionsListView';
 import PatientsView from '@/components/admin/PatientsView';
 import IconPicker from '@/components/admin/IconPicker';
 import VariableReference from '@/components/admin/VariableReference';
-import { AdminInput, AdminTextarea } from '@/components/admin/AdminField';
+import { AdminInput, AdminTextarea, AdminSelect } from '@/components/admin/AdminField';
 
 type CMSDataSection = keyof CMSData;
 
@@ -468,6 +468,7 @@ export default function AdminDashboard() {
                   {activeSection === 'bookingSettings' && (
                     <BookingSettingsEditor
                       data={data.bookingSettings || {}}
+                      doctors={data.doctors?.items || []}
                       onSave={handleSave}
                       saving={saving}
                     />
@@ -581,34 +582,23 @@ function SortableNavItem({
           </svg>
         </div>
         <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <AdminInput
+            label="Menu Label"
+            placeholder="e.g., Home, Services, About"
+            value={item.label || ''}
+            onChange={(e) => onUpdate(index, { ...item, label: e.target.value })}
+          />
           <div>
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-              Menu Label
-            </label>
-            <input
-              type="text"
-              placeholder="e.g., Home, Services, About"
-              value={item.label || ''}
-              onChange={(e) => onUpdate(index, { ...item, label: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-              Link URL
-              {!isEditLinks && (
-                <span className="ml-2 text-xs text-amber-600 dark:text-amber-400">
-                  (Disabled - Single page anchors only)
-                </span>
-              )}
-            </label>
-            <input
-              type="text"
+            <AdminInput
+              label={
+                isEditLinks
+                  ? 'Link URL'
+                  : 'Link URL (Disabled - Single page anchors only)'
+              }
               placeholder="e.g., /#services, /#about, /#contact"
               value={item.href || ''}
               onChange={(e) => onUpdate(index, { ...item, href: e.target.value })}
               disabled={!isEditLinks}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-100 dark:disabled:bg-gray-800"
             />
             {!isEditLinks && (
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
@@ -694,21 +684,14 @@ function HeaderEditor({ data, onSave, saving, isEditLinks = false }: EditorProps
         </p>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Brand Name <span className="text-red-500">*</span>
-        </label>
-        <input
-          type="text"
-          value={formData.brandName || ''}
-          onChange={(e) => setFormData({ ...formData, brandName: e.target.value })}
-          placeholder="e.g., Dr Baig's Clinic"
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-        />
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          The name displayed in the header logo area
-        </p>
-      </div>
+      <AdminInput
+        label="Brand Name"
+        required
+        value={formData.brandName || ''}
+        onChange={(e) => setFormData({ ...formData, brandName: e.target.value })}
+        placeholder="e.g., Dr Baig's Clinic"
+        hint="The name displayed in the header logo area"
+      />
 
       <div>
         <ImageUpload
@@ -719,63 +702,46 @@ function HeaderEditor({ data, onSave, saving, isEditLinks = false }: EditorProps
         />
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          CTA Button Text <span className="text-red-500">*</span>
-        </label>
-        <input
-          type="text"
-          value={formData.ctaButton?.text || ''}
-          onChange={(e) =>
-            setFormData({
-              ...formData,
-              ctaButton: {
-                ...formData.ctaButton,
-                text: e.target.value,
-                href: formData.ctaButton?.href || '',
-              },
-            })
-          }
-          placeholder="e.g., Book Appointment"
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-        />
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          Text displayed on the call-to-action button in the header
-        </p>
-      </div>
+      <AdminInput
+        label="CTA Button Text"
+        required
+        value={formData.ctaButton?.text || ''}
+        onChange={(e) =>
+          setFormData({
+            ...formData,
+            ctaButton: {
+              ...formData.ctaButton,
+              text: e.target.value,
+              href: formData.ctaButton?.href || '',
+            },
+          })
+        }
+        placeholder="e.g., Book Appointment"
+        hint="Text displayed on the call-to-action button in the header"
+      />
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          CTA Button Link <span className="text-red-500">*</span>
-          {!isEditLinks && (
-            <span className="ml-2 text-xs text-amber-600 dark:text-amber-400">
-              (Disabled - Single page anchors only)
-            </span>
-          )}
-        </label>
-        <input
-          type="text"
-          value={formData.ctaButton?.href || ''}
-          onChange={(e) =>
-            setFormData({
-              ...formData,
-              ctaButton: { text: formData.ctaButton?.text || '', href: e.target.value },
-            })
-          }
-          placeholder="e.g., #contact"
-          disabled={!isEditLinks}
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-100 dark:disabled:bg-gray-800"
-        />
-        {!isEditLinks ? (
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            Links are disabled for single-page anchor navigation.
-          </p>
-        ) : (
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            Where the button should link to (use #contact for same page anchor)
-          </p>
-        )}
-      </div>
+      <AdminInput
+        label={
+          isEditLinks
+            ? 'CTA Button Link'
+            : 'CTA Button Link (Disabled - Single page anchors only)'
+        }
+        required
+        value={formData.ctaButton?.href || ''}
+        onChange={(e) =>
+          setFormData({
+            ...formData,
+            ctaButton: { text: formData.ctaButton?.text || '', href: e.target.value },
+          })
+        }
+        placeholder="e.g., #contact"
+        disabled={!isEditLinks}
+        hint={
+          isEditLinks
+            ? 'Where the button should link to (use #contact for same page anchor)'
+            : 'Links are disabled for single-page anchor navigation.'
+        }
+      />
 
       <div>
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
@@ -876,81 +842,51 @@ function HeroEditor({ data, onSave, saving, isEditLinks = false }: EditorProps) 
         </p>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Hero Title <span className="text-red-500">*</span>
-        </label>
-        <input
-          type="text"
-          value={formData.title || ''}
-          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-          placeholder="e.g., Transform Your Skin & Hair"
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-        />
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          Main headline displayed prominently on the hero section
-        </p>
-      </div>
+      <AdminInput
+        label="Hero Title"
+        required
+        value={formData.title || ''}
+        onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+        placeholder="e.g., Transform Your Skin & Hair"
+        hint="Main headline displayed prominently on the hero section"
+      />
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Hero Subtitle <span className="text-red-500">*</span>
-        </label>
-        <textarea
-          value={formData.subtitle || ''}
-          onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
-          rows={3}
-          placeholder="e.g., Experience world-class treatments at Dr Baig's Clinic. Your journey to confidence starts here."
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-        />
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          Supporting text that appears below the main title
-        </p>
-      </div>
+      <AdminTextarea
+        label="Hero Subtitle"
+        required
+        value={formData.subtitle || ''}
+        onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
+        rows={3}
+        placeholder="e.g., Experience world-class treatments at Dr Baig's Clinic. Your journey to confidence starts here."
+        hint="Supporting text that appears below the main title"
+      />
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          CTA Button Text <span className="text-red-500">*</span>
-        </label>
-        <input
-          type="text"
-          value={formData.ctaText || ''}
-          onChange={(e) => setFormData({ ...formData, ctaText: e.target.value })}
-          placeholder="e.g., Book Consultation"
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-        />
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          Text on the call-to-action button in the hero section
-        </p>
-      </div>
+      <AdminInput
+        label="CTA Button Text"
+        required
+        value={formData.ctaText || ''}
+        onChange={(e) => setFormData({ ...formData, ctaText: e.target.value })}
+        placeholder="e.g., Book Consultation"
+        hint="Text on the call-to-action button in the hero section"
+      />
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          CTA Button Link <span className="text-red-500">*</span>
-          {!isEditLinks && (
-            <span className="ml-2 text-xs text-amber-600 dark:text-amber-400">
-              (Disabled - Single page anchors only)
-            </span>
-          )}
-        </label>
-        <input
-          type="text"
-          value={formData.ctaHref || ''}
-          onChange={(e) => setFormData({ ...formData, ctaHref: e.target.value })}
-          placeholder="e.g., #contact"
-          disabled={!isEditLinks}
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-100 dark:disabled:bg-gray-800"
-        />
-        {!isEditLinks ? (
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            Links are disabled for single-page anchor navigation.
-          </p>
-        ) : (
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            Where the hero CTA button should link to (use #contact for same page anchor)
-          </p>
-        )}
-      </div>
+      <AdminInput
+        label={
+          isEditLinks
+            ? 'CTA Button Link'
+            : 'CTA Button Link (Disabled - Single page anchors only)'
+        }
+        required
+        value={formData.ctaHref || ''}
+        onChange={(e) => setFormData({ ...formData, ctaHref: e.target.value })}
+        placeholder="e.g., #contact"
+        disabled={!isEditLinks}
+        hint={
+          isEditLinks
+            ? 'Where the hero CTA button should link to (use #contact for same page anchor)'
+            : 'Links are disabled for single-page anchor navigation.'
+        }
+      />
 
       <div>
         <ImageUpload
@@ -1039,30 +975,21 @@ function SortableServiceItem({ service, index, onUpdate, onDelete }: SortableSer
           </svg>
         </div>
         <div className="flex-1 space-y-3 min-w-0">
-          <div>
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-              Service Title <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              placeholder="e.g., Hair Restoration, Skin Care"
-              value={service.title || ''}
-              onChange={(e) => onUpdate(index, { ...service, title: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-              Description <span className="text-red-500">*</span>
-            </label>
-            <textarea
-              placeholder="e.g., Advanced hair restoration treatments..."
-              value={service.description || ''}
-              onChange={(e) => onUpdate(index, { ...service, description: e.target.value })}
-              rows={2}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
-            />
-          </div>
+          <AdminInput
+            label="Service Title"
+            required
+            placeholder="e.g., Hair Restoration, Skin Care"
+            value={service.title || ''}
+            onChange={(e) => onUpdate(index, { ...service, title: e.target.value })}
+          />
+          <AdminTextarea
+            label="Description"
+            required
+            placeholder="e.g., Advanced hair restoration treatments..."
+            value={service.description || ''}
+            onChange={(e) => onUpdate(index, { ...service, description: e.target.value })}
+            rows={2}
+          />
           <div>
             <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
               Service Image
@@ -1075,30 +1002,18 @@ function SortableServiceItem({ service, index, onUpdate, onDelete }: SortableSer
             />
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                Duration
-              </label>
-              <input
-                type="text"
-                placeholder="e.g., 60-90 minutes"
-                value={service.duration || ''}
-                onChange={(e) => onUpdate(index, { ...service, duration: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                Price
-              </label>
-              <input
-                type="text"
-                placeholder="e.g., Starting from $299"
-                value={service.price || ''}
-                onChange={(e) => onUpdate(index, { ...service, price: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
-              />
-            </div>
+            <AdminInput
+              label="Duration"
+              placeholder="e.g., 60-90 minutes"
+              value={service.duration || ''}
+              onChange={(e) => onUpdate(index, { ...service, duration: e.target.value })}
+            />
+            <AdminInput
+              label="Price"
+              placeholder="e.g., Starting from $299"
+              value={service.price || ''}
+              onChange={(e) => onUpdate(index, { ...service, price: e.target.value })}
+            />
           </div>
         </div>
         <button
@@ -1177,37 +1092,23 @@ function ServicesEditor({ data, onSave, saving }: EditorProps) {
         </p>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Section Title <span className="text-red-500">*</span>
-        </label>
-        <input
-          type="text"
-          value={formData.title || ''}
-          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-          placeholder="e.g., Our Services"
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-        />
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          Main heading for the services section
-        </p>
-      </div>
+      <AdminInput
+        label="Section Title"
+        required
+        value={formData.title || ''}
+        onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+        placeholder="e.g., Our Services"
+        hint="Main heading for the services section"
+      />
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Section Subtitle
-        </label>
-        <textarea
-          value={formData.subtitle || ''}
-          onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
-          rows={2}
-          placeholder="e.g., Comprehensive skin and hair care solutions tailored to your needs"
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-        />
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          Supporting text below the section title
-        </p>
-      </div>
+      <AdminTextarea
+        label="Section Subtitle"
+        value={formData.subtitle || ''}
+        onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
+        rows={2}
+        placeholder="e.g., Comprehensive skin and hair care solutions tailored to your needs"
+        hint="Supporting text below the section title"
+      />
 
       <div>
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Service Items</h3>
@@ -1316,37 +1217,22 @@ function AboutEditor({ data, onSave, saving }: EditorProps) {
         </p>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Section Title <span className="text-red-500">*</span>
-        </label>
-        <input
-          type="text"
-          value={formData.title || ''}
-          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-          placeholder="e.g., Why Choose Baig's Clinic?"
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-        />
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          Main heading for the about section
-        </p>
-      </div>
+      <AdminInput
+        label="Section Title"
+        required
+        value={formData.title || ''}
+        onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+        placeholder="e.g., Why Choose Baig's Clinic?"
+        hint="Main heading for the about section"
+      />
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Section Subtitle
-        </label>
-        <input
-          type="text"
-          value={formData.subtitle || ''}
-          onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
-          placeholder="e.g., Excellence in every treatment"
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-        />
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          Supporting text below the title
-        </p>
-      </div>
+      <AdminInput
+        label="Section Subtitle"
+        value={formData.subtitle || ''}
+        onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
+        placeholder="e.g., Excellence in every treatment"
+        hint="Supporting text below the title"
+      />
 
       <div>
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Feature Cards</h3>
@@ -1359,11 +1245,9 @@ function AboutEditor({ data, onSave, saving }: EditorProps) {
             className="mb-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900/50"
           >
             <div className="mb-2">
-              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                Feature Title <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
+              <AdminInput
+                label="Feature Title"
+                required
                 placeholder="e.g., Expert Team, Advanced Technology"
                 value={feature.title || ''}
                 onChange={(e) => {
@@ -1371,14 +1255,12 @@ function AboutEditor({ data, onSave, saving }: EditorProps) {
                   (newFeatures[index] as AboutFeature).title = e.target.value;
                   setFormData({ ...formData, features: newFeatures });
                 }}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               />
             </div>
             <div className="mb-3">
-              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                Description <span className="text-red-500">*</span>
-              </label>
-              <textarea
+              <AdminTextarea
+                label="Description"
+                required
                 placeholder="e.g., Board-certified specialists with years of experience..."
                 value={feature.description || ''}
                 onChange={(e) => {
@@ -1387,7 +1269,6 @@ function AboutEditor({ data, onSave, saving }: EditorProps) {
                   setFormData({ ...formData, features: newFeatures });
                 }}
                 rows={3}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               />
             </div>
             <button
@@ -1512,21 +1393,14 @@ function FooterEditor({ data, onSave, saving }: EditorProps) {
         </p>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Brand Name <span className="text-red-500">*</span>
-        </label>
-        <input
-          type="text"
-          value={formData.brandName || ''}
-          onChange={(e) => setFormData({ ...formData, brandName: e.target.value })}
-          placeholder="e.g., Dr Baig's Clinic"
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-        />
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          Brand name displayed in the footer
-        </p>
-      </div>
+      <AdminInput
+        label="Brand Name"
+        required
+        value={formData.brandName || ''}
+        onChange={(e) => setFormData({ ...formData, brandName: e.target.value })}
+        placeholder="e.g., Dr Baig's Clinic"
+        hint="Brand name displayed in the footer"
+      />
 
       <div>
         <ImageUpload
@@ -1537,21 +1411,14 @@ function FooterEditor({ data, onSave, saving }: EditorProps) {
         />
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Footer Description
-        </label>
-        <textarea
-          value={formData.description || ''}
-          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          rows={3}
-          placeholder="e.g., Your trusted partner for comprehensive skin and hair care solutions..."
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-        />
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          Brief description about your clinic shown in the footer
-        </p>
-      </div>
+      <AdminTextarea
+        label="Footer Description"
+        value={formData.description || ''}
+        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+        rows={3}
+        placeholder="e.g., Your trusted partner for comprehensive skin and hair care solutions..."
+        hint="Brief description about your clinic shown in the footer"
+      />
 
       <div>
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
@@ -1561,69 +1428,53 @@ function FooterEditor({ data, onSave, saving }: EditorProps) {
           Contact details displayed in the footer
         </p>
         <div className="space-y-3">
-          <div>
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-              Address
-            </label>
-            <textarea
-              placeholder="e.g., 123 Health Street\nCity, State 12345"
-              value={formData.contact?.address || ''}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  contact: {
-                    address: e.target.value,
-                    phone: formData.contact?.phone || '',
-                    email: formData.contact?.email || '',
-                  },
-                })
-              }
-              rows={2}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-              Phone Number
-            </label>
-            <input
-              type="text"
-              placeholder="e.g., +1 (234) 567-890"
-              value={formData.contact?.phone || ''}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  contact: {
-                    address: formData.contact?.address || '',
-                    phone: e.target.value,
-                    email: formData.contact?.email || '',
-                  },
-                })
-              }
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-              Email Address
-            </label>
-            <input
-              type="email"
-              placeholder="e.g., info@clinic.com"
-              value={formData.contact?.email || ''}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  contact: {
-                    address: formData.contact?.address || '',
-                    phone: formData.contact?.phone || '',
-                    email: e.target.value,
-                  },
-                })
-              }
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            />
-          </div>
+          <AdminTextarea
+            label="Address"
+            placeholder="e.g., 123 Health Street\nCity, State 12345"
+            value={formData.contact?.address || ''}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                contact: {
+                  address: e.target.value,
+                  phone: formData.contact?.phone || '',
+                  email: formData.contact?.email || '',
+                },
+              })
+            }
+            rows={2}
+          />
+          <AdminInput
+            label="Phone Number"
+            placeholder="e.g., +1 (234) 567-890"
+            value={formData.contact?.phone || ''}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                contact: {
+                  address: formData.contact?.address || '',
+                  phone: e.target.value,
+                  email: formData.contact?.email || '',
+                },
+              })
+            }
+          />
+          <AdminInput
+            label="Email Address"
+            type="email"
+            placeholder="e.g., info@clinic.com"
+            value={formData.contact?.email || ''}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                contact: {
+                  address: formData.contact?.address || '',
+                  phone: formData.contact?.phone || '',
+                  email: e.target.value,
+                },
+              })
+            }
+          />
         </div>
       </div>
 
@@ -1661,30 +1512,20 @@ function FooterEditor({ data, onSave, saving }: EditorProps) {
                 </button>
               </div>
               <div className="space-y-3">
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                    Platform Name <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g., Facebook, Instagram, Twitter, LinkedIn, etc."
-                    value={item.name || ''}
-                    onChange={(e) => updateSocialMediaItem(index, 'name', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                    URL <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g., https://facebook.com/yourpage"
-                    value={item.url || ''}
-                    onChange={(e) => updateSocialMediaItem(index, 'url', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
-                  />
-                </div>
+                <AdminInput
+                  label="Platform Name"
+                  required
+                  placeholder="e.g., Facebook, Instagram, Twitter, LinkedIn, etc."
+                  value={item.name || ''}
+                  onChange={(e) => updateSocialMediaItem(index, 'name', e.target.value)}
+                />
+                <AdminInput
+                  label="URL"
+                  required
+                  placeholder="e.g., https://facebook.com/yourpage"
+                  value={item.url || ''}
+                  onChange={(e) => updateSocialMediaItem(index, 'url', e.target.value)}
+                />
                 <div>
                   <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                     Custom Icon (Optional)
@@ -1717,21 +1558,13 @@ function FooterEditor({ data, onSave, saving }: EditorProps) {
         </div>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Copyright Text
-        </label>
-        <input
-          type="text"
-          value={formData.copyright || ''}
-          onChange={(e) => setFormData({ ...formData, copyright: e.target.value })}
-          placeholder="e.g., Glow Clinic or Dr Baig's Clinic"
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-        />
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          Text shown in the copyright notice (year is added automatically)
-        </p>
-      </div>
+      <AdminInput
+        label="Copyright Text"
+        value={formData.copyright || ''}
+        onChange={(e) => setFormData({ ...formData, copyright: e.target.value })}
+        placeholder="e.g., Glow Clinic or Dr Baig's Clinic"
+        hint="Text shown in the copyright notice (year is added automatically)"
+      />
 
       <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
         <button

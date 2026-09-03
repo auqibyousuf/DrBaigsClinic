@@ -20,6 +20,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import ImageUpload from '@/components/ImageUpload';
 import { useToast } from '@/components/ToastProvider';
+import { AdminInput, AdminTextarea, AdminSelect } from '@/components/admin/AdminField';
 import type { CMSData } from '@/lib/cms';
 
 type ServiceItem = CMSData['services']['items'][number];
@@ -153,23 +154,15 @@ export default function ServiceDetailEditor({ data, onSave, saving }: ServiceDet
         </p>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Choose a service to edit
-        </label>
-        <select
-          value={selectedId}
-          onChange={(e) => setSelectedId(e.target.value)}
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
-        >
-          {formItems.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.title || 'Untitled service'}
-              {s.price ? ` — ${s.price}` : ''}
-            </option>
-          ))}
-        </select>
-      </div>
+      <AdminSelect
+        label="Choose a service to edit"
+        value={selectedId}
+        onChange={(e) => setSelectedId(e.target.value)}
+        options={formItems.map((s) => ({
+          value: s.id,
+          label: `${s.title || 'Untitled service'}${s.price ? ` — ${s.price}` : ''}`,
+        }))}
+      />
 
       {/* Preview of the currently selected service — the dropdown above
           only shows a title, which isn't enough to tell services apart at a
@@ -210,18 +203,13 @@ export default function ServiceDetailEditor({ data, onSave, saving }: ServiceDet
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Treatment Overview
-            </label>
-            <textarea
-              value={selected.overview || ''}
-              onChange={(e) => updateSelected({ overview: e.target.value })}
-              rows={4}
-              placeholder="Describe this treatment in more depth..."
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
-            />
-          </div>
+          <AdminTextarea
+            label="Treatment Overview"
+            value={selected.overview || ''}
+            onChange={(e) => updateSelected({ overview: e.target.value })}
+            rows={4}
+            placeholder="Describe this treatment in more depth..."
+          />
 
           <div>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
@@ -241,8 +229,7 @@ export default function ServiceDetailEditor({ data, onSave, saving }: ServiceDet
                       showToast('info', 'Step removed. Click "Save Changes" to apply.');
                     }}
                   >
-                    <input
-                      type="text"
+                    <AdminInput
                       placeholder="Step title"
                       value={step.title}
                       onChange={(e) => {
@@ -250,9 +237,8 @@ export default function ServiceDetailEditor({ data, onSave, saving }: ServiceDet
                         next[index] = { ...next[index], title: e.target.value };
                         updateSelected({ steps: next });
                       }}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white text-sm"
                     />
-                    <textarea
+                    <AdminTextarea
                       placeholder="Step description"
                       value={step.description}
                       onChange={(e) => {
@@ -261,7 +247,6 @@ export default function ServiceDetailEditor({ data, onSave, saving }: ServiceDet
                         updateSelected({ steps: next });
                       }}
                       rows={2}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white text-sm"
                     />
                   </SortableRow>
                 ))}
@@ -292,8 +277,7 @@ export default function ServiceDetailEditor({ data, onSave, saving }: ServiceDet
                       showToast('info', 'FAQ removed. Click "Save Changes" to apply.');
                     }}
                   >
-                    <input
-                      type="text"
+                    <AdminInput
                       placeholder="Question"
                       value={faq.question}
                       onChange={(e) => {
@@ -301,9 +285,8 @@ export default function ServiceDetailEditor({ data, onSave, saving }: ServiceDet
                         next[index] = { ...next[index], question: e.target.value };
                         updateSelected({ faqs: next });
                       }}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white text-sm"
                     />
-                    <textarea
+                    <AdminTextarea
                       placeholder="Answer"
                       value={faq.answer}
                       onChange={(e) => {
@@ -312,7 +295,6 @@ export default function ServiceDetailEditor({ data, onSave, saving }: ServiceDet
                         updateSelected({ faqs: next });
                       }}
                       rows={2}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white text-sm"
                     />
                   </SortableRow>
                 ))}

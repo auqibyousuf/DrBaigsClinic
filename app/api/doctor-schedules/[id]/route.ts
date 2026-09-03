@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { updatePatient, deletePatient } from '@/lib/patients';
+import { updateSchedule, deleteSchedule } from '@/lib/schedules';
 
 function isAuthenticated(request: NextRequest): boolean {
   const authHeader = request.headers.get('authorization');
@@ -13,37 +13,20 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const STRING_FIELDS = [
-    'name',
-    'phone',
-    'email',
-    'date_of_birth',
-    'gender',
-    'blood_group',
-    'marital_status',
-    'occupation',
-    'address_street',
-    'address_city',
-    'address_state',
-    'address_pincode',
-    'photo_url',
-    'reference_id',
-    'aadhaar_number',
-  ] as const;
-
   try {
     const body = await request.json();
-    const updates: Record<string, string> = {};
-    for (const field of STRING_FIELDS) {
-      if (typeof body[field] === 'string') updates[field] = body[field].trim();
-    }
+    const updates: Record<string, unknown> = {};
+    if (body.slotDurationMinutes !== undefined) updates.slot_duration_minutes = body.slotDurationMinutes;
+    if (body.startTime !== undefined) updates.start_time = body.startTime;
+    if (body.endTime !== undefined) updates.end_time = body.endTime;
+    if (body.daysOfWeek !== undefined) updates.days_of_week = body.daysOfWeek;
 
-    const patient = await updatePatient(params.id, updates);
-    return NextResponse.json({ success: true, patient });
+    const schedule = await updateSchedule(params.id, updates);
+    return NextResponse.json({ schedule });
   } catch (error) {
-    console.error('Update patient error:', error);
+    console.error('Update schedule error:', error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to update patient' },
+      { error: error instanceof Error ? error.message : 'Failed to update schedule' },
       { status: 500 }
     );
   }
@@ -55,12 +38,12 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
   }
 
   try {
-    await deletePatient(params.id);
+    await deleteSchedule(params.id);
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Delete patient error:', error);
+    console.error('Delete schedule error:', error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to delete patient' },
+      { error: error instanceof Error ? error.message : 'Failed to delete schedule' },
       { status: 500 }
     );
   }

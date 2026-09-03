@@ -2,11 +2,15 @@
 
 import { useEffect, useState } from 'react';
 import { type ColumnDef, type Row } from '@tanstack/react-table';
-import { TrashSimple, Copy, PencilSimple } from '@phosphor-icons/react';
+import { TrashSimple, Copy, PencilSimple, Plus } from '@phosphor-icons/react';
 import { useToast } from '@/components/ToastProvider';
 import { DataTable } from '@/components/ui/data-table';
-import { Input } from '@/components/ui/input';
+import Modal from '@/components/Modal';
 import Button from '@/components/Button';
+import PatientProfileForm, {
+  emptyPatientProfile,
+  type PatientProfileFormState,
+} from '@/components/admin/PatientProfileForm';
 
 interface Patient {
   id: string;
@@ -14,7 +18,39 @@ interface Patient {
   name: string;
   phone: string;
   email: string | null;
+  date_of_birth: string | null;
+  gender: string | null;
+  blood_group: string | null;
+  marital_status: string | null;
+  occupation: string | null;
+  address_street: string | null;
+  address_city: string | null;
+  address_state: string | null;
+  address_pincode: string | null;
+  photo_url: string | null;
+  reference_id: string | null;
+  aadhaar_number: string | null;
   created_at: string;
+}
+
+function patientToFormState(patient: Patient): PatientProfileFormState {
+  return {
+    name: patient.name,
+    phone: patient.phone,
+    email: patient.email || '',
+    gender: patient.gender || '',
+    dateOfBirth: patient.date_of_birth || '',
+    referenceId: patient.reference_id || '',
+    bloodGroup: patient.blood_group || '',
+    maritalStatus: patient.marital_status || '',
+    occupation: patient.occupation || '',
+    aadhaarNumber: patient.aadhaar_number || '',
+    addressStreet: patient.address_street || '',
+    addressCity: patient.address_city || '',
+    addressState: patient.address_state || '',
+    addressPincode: patient.address_pincode || '',
+    photoUrl: patient.photo_url || '',
+  };
 }
 
 function EditablePatientRow({
@@ -24,9 +60,7 @@ function EditablePatientRow({
   patient: Patient;
   onChanged: () => void;
 }) {
-  const [name, setName] = useState(patient.name);
-  const [phone, setPhone] = useState(patient.phone);
-  const [email, setEmail] = useState(patient.email || '');
+  const [form, setForm] = useState<PatientProfileFormState>(patientToFormState(patient));
   const [saving, setSaving] = useState(false);
   const { showToast } = useToast();
 
@@ -37,7 +71,23 @@ function EditablePatientRow({
         method: 'PATCH',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, phone, email }),
+        body: JSON.stringify({
+          name: form.name,
+          phone: form.phone,
+          email: form.email,
+          gender: form.gender,
+          date_of_birth: form.dateOfBirth,
+          reference_id: form.referenceId,
+          blood_group: form.bloodGroup,
+          marital_status: form.maritalStatus,
+          occupation: form.occupation,
+          aadhaar_number: form.aadhaarNumber,
+          address_street: form.addressStreet,
+          address_city: form.addressCity,
+          address_state: form.addressState,
+          address_pincode: form.addressPincode,
+          photo_url: form.photoUrl,
+        }),
       });
       const result = await res.json();
       if (!res.ok) throw new Error(result.error || 'Failed to save');
@@ -56,21 +106,8 @@ function EditablePatientRow({
   };
 
   return (
-    <div className="p-4 space-y-3">
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div>
-          <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Name</label>
-          <Input value={name} onChange={(e) => setName(e.target.value)} className="text-sm" />
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Phone</label>
-          <Input value={phone} onChange={(e) => setPhone(e.target.value)} className="text-sm" />
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Email</label>
-          <Input value={email} onChange={(e) => setEmail(e.target.value)} className="text-sm" />
-        </div>
-      </div>
+    <div className="p-4 space-y-4">
+      <PatientProfileForm value={form} onChange={setForm} />
       <div className="flex items-center gap-3">
         <span className="text-xs text-gray-500 dark:text-gray-400">
           Patient ID: <code className="font-mono font-semibold text-gray-700 dark:text-gray-300">{patient.patient_code}</code>
@@ -96,6 +133,9 @@ function EditablePatientRow({
 export default function PatientsView() {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(true);
+  const [addingPatient, setAddingPatient] = useState(false);
+  const [newPatient, setNewPatient] = useState<PatientProfileFormState>(emptyPatientProfile);
+  const [creating, setCreating] = useState(false);
   const { showToast } = useToast();
 
   const fetchPatients = async () => {
@@ -116,6 +156,32 @@ export default function PatientsView() {
   useEffect(() => {
     fetchPatients();
   }, []);
+
+  const createPatient = async () => {
+    if (!newPatient.name.trim() || !newPatient.phone.trim()) {
+      showToast('error', 'Name and phone are required');
+      return;
+    }
+    setCreating(true);
+    try {
+      const res = await fetch('/api/patients', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newPatient),
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || 'Failed to create patient');
+      showToast('success', 'Patient added.');
+      setAddingPatient(false);
+      setNewPatient(emptyPatientProfile);
+      fetchPatients();
+    } catch (err) {
+      showToast('error', err instanceof Error ? err.message : 'Failed to create patient');
+    } finally {
+      setCreating(false);
+    }
+  };
 
   const columns: ColumnDef<Patient>[] = [
     {
@@ -196,12 +262,17 @@ export default function PatientsView() {
 
   return (
     <div className="space-y-6">
-      <div className="border-b border-gray-200 dark:border-gray-700 pb-4 mb-2">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Patients</h2>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          Every patient is registered automatically the first time they book an appointment — use
-          the Edit/Delete icons on a row to manage their record.
-        </p>
+      <div className="flex items-start justify-between gap-4 border-b border-gray-200 dark:border-gray-700 pb-4 mb-2">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Patients</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            Patients register automatically on first booking — or add one directly here, matching
+            the walk-in front-desk flow.
+          </p>
+        </div>
+        <Button onClick={() => setAddingPatient(true)} variant="primary" size="sm" icon={<Plus weight="bold" />}>
+          Add New Patient
+        </Button>
       </div>
 
       <DataTable
@@ -213,6 +284,20 @@ export default function PatientsView() {
         manualExpandControl
         renderExpandedRow={(patient) => <EditablePatientRow patient={patient} onChanged={fetchPatients} />}
       />
+
+      <Modal isOpen={addingPatient} onClose={() => setAddingPatient(false)} title="Add New Patient">
+        <div className="space-y-4">
+          <PatientProfileForm value={newPatient} onChange={setNewPatient} />
+          <div className="flex gap-2 pt-2">
+            <Button onClick={createPatient} disabled={creating} variant="primary" size="sm">
+              {creating ? 'Adding...' : 'Add Patient'}
+            </Button>
+            <Button onClick={() => setAddingPatient(false)} variant="outline" size="sm">
+              Cancel
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

@@ -21,6 +21,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { PencilSimple, TrashSimple, UserCircle, DotsSixVertical, Check } from '@phosphor-icons/react';
 import ImageUpload from '@/components/ImageUpload';
 import { useToast } from '@/components/ToastProvider';
+import { AdminInput, AdminTextarea } from '@/components/admin/AdminField';
 import type { CMSData } from '@/lib/cms';
 
 type Doctor = NonNullable<CMSData['doctors']>['items'][number];
@@ -119,31 +120,27 @@ function SortableDoctorItem({
         </div>
         <div className="flex-1 space-y-3 min-w-0">
           <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                Name <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                placeholder="e.g., Dr. Ahmed Baig"
-                value={doctor.name || ''}
-                onChange={(e) => onUpdate(index, { ...doctor, name: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white text-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                Specialty
-              </label>
-              <input
-                type="text"
-                placeholder="e.g., Dermatologist"
-                value={doctor.specialty || ''}
-                onChange={(e) => onUpdate(index, { ...doctor, specialty: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white text-sm"
-              />
-            </div>
+            <AdminInput
+              label="Name"
+              required
+              placeholder="e.g., Dr. Ahmed Baig"
+              value={doctor.name || ''}
+              onChange={(e) => onUpdate(index, { ...doctor, name: e.target.value })}
+            />
+            <AdminInput
+              label="Specialty"
+              placeholder="e.g., Dermatologist"
+              value={doctor.specialty || ''}
+              onChange={(e) => onUpdate(index, { ...doctor, specialty: e.target.value })}
+            />
           </div>
+          <AdminInput
+            label="Qualification"
+            placeholder="e.g., MD MS"
+            value={doctor.qualification || ''}
+            onChange={(e) => onUpdate(index, { ...doctor, qualification: e.target.value })}
+            hint="Shown under the doctor's name on the prescription document."
+          />
           <div>
             <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
               Photo
@@ -155,46 +152,30 @@ function SortableDoctorItem({
             />
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                Notification Phone <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="tel"
-                placeholder="e.g., +91XXXXXXXXXX"
-                value={doctor.phone || ''}
-                onChange={(e) => onUpdate(index, { ...doctor, phone: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white text-sm"
-              />
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                Where this doctor's WhatsApp/SMS booking alerts are sent.
-              </p>
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                Notification Email
-              </label>
-              <input
-                type="email"
-                placeholder="e.g., doctor@clinic.com"
-                value={doctor.email || ''}
-                onChange={(e) => onUpdate(index, { ...doctor, email: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white text-sm"
-              />
-            </div>
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-              Bio
-            </label>
-            <textarea
-              placeholder="Short bio shown to patients (optional)"
-              value={doctor.bio || ''}
-              onChange={(e) => onUpdate(index, { ...doctor, bio: e.target.value })}
-              rows={2}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white text-sm"
+            <AdminInput
+              label="Notification Phone"
+              required
+              type="tel"
+              placeholder="e.g., +91XXXXXXXXXX"
+              value={doctor.phone || ''}
+              onChange={(e) => onUpdate(index, { ...doctor, phone: e.target.value })}
+              hint="Where this doctor's WhatsApp/SMS booking alerts are sent."
+            />
+            <AdminInput
+              label="Notification Email"
+              type="email"
+              placeholder="e.g., doctor@clinic.com"
+              value={doctor.email || ''}
+              onChange={(e) => onUpdate(index, { ...doctor, email: e.target.value })}
             />
           </div>
+          <AdminTextarea
+            label="Bio"
+            placeholder="Short bio shown to patients (optional)"
+            value={doctor.bio || ''}
+            onChange={(e) => onUpdate(index, { ...doctor, bio: e.target.value })}
+            rows={2}
+          />
           <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
             <input
               type="checkbox"

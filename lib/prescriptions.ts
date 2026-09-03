@@ -8,6 +8,26 @@ export interface Medication {
   notes?: string;
 }
 
+// Structured symptom entries carry since/severity/notes like Medisray's;
+// diagnosis/examinations/investigations/advices are plain string tags.
+export interface SymptomEntry {
+  value: string;
+  since?: string;
+  severity?: string;
+  notes?: string;
+}
+
+export interface VitalsReading {
+  recorded_at: string;
+  temperature?: string;
+  pulse?: string;
+  resp_rate?: string;
+  systolic?: string;
+  diastolic?: string;
+  spo2?: string;
+  rbs?: string;
+}
+
 export interface Prescription {
   id: string;
   appointment_id: string;
@@ -15,6 +35,15 @@ export interface Prescription {
   doctor_id: string;
   diagnosis: string | null;
   medications: Medication[];
+  symptoms: SymptomEntry[];
+  examinations: string[];
+  investigations: string[];
+  advices: string[];
+  vitals: VitalsReading[];
+  follow_up_date: string | null;
+  additional_notes: string | null;
+  // Doctor-only — never rendered into the patient-facing PDF.
+  private_notes: string | null;
   notes: string | null;
   pdf_url: string | null;
   created_at: string;
@@ -27,6 +56,14 @@ export interface NewPrescription {
   doctor_id: string;
   diagnosis?: string;
   medications: Medication[];
+  symptoms?: SymptomEntry[];
+  examinations?: string[];
+  investigations?: string[];
+  advices?: string[];
+  vitals?: VitalsReading[];
+  follow_up_date?: string | null;
+  additional_notes?: string;
+  private_notes?: string;
   notes?: string;
 }
 
@@ -51,6 +88,14 @@ export async function upsertPrescription(input: NewPrescription): Promise<Prescr
         doctor_id: input.doctor_id,
         diagnosis: input.diagnosis || null,
         medications: input.medications,
+        symptoms: input.symptoms || [],
+        examinations: input.examinations || [],
+        investigations: input.investigations || [],
+        advices: input.advices || [],
+        vitals: input.vitals || [],
+        follow_up_date: input.follow_up_date || null,
+        additional_notes: input.additional_notes || null,
+        private_notes: input.private_notes || null,
         notes: input.notes || null,
       },
       { onConflict: 'appointment_id' }

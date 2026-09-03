@@ -9,6 +9,8 @@ export function getConfiguredSlots(bookingSettings?: { slots?: string[] } | null
   return bookingSettings?.slots?.length ? bookingSettings.slots : [...DEFAULT_SLOTS];
 }
 
+export type AppointmentStatus = 'confirmed' | 'finished' | 'cancelled';
+
 export interface Appointment {
   id: string;
   patient_name: string;
@@ -19,8 +21,9 @@ export interface Appointment {
   service_id: string | null;
   doctor_id: string;
   appointment_date: string;
-  slot_start: string;
-  status: 'confirmed' | 'cancelled';
+  slot_start: string | null;
+  status: AppointmentStatus;
+  is_walk_in: boolean;
   manage_token: string;
   created_at: string;
   updated_at: string;
@@ -36,6 +39,17 @@ export interface NewAppointment {
   doctor_id: string;
   appointment_date: string;
   slot_start: string;
+}
+
+// A walk-in creates-and-enters a consultation in the same motion — no
+// pre-picked slot, no availability check (see MEDISRAY_AUDIT.md finding #1).
+export interface NewWalkIn {
+  patient_name: string;
+  patient_phone: string;
+  patient_email?: string;
+  patient_id: string;
+  doctor_id: string;
+  reason?: string;
 }
 
 function getClient() {
@@ -73,6 +87,47 @@ export async function createAppointment(input: NewAppointment): Promise<Appointm
   return data as Appointment;
 }
 
+export async function createWalkIn(input: NewWalkIn): Promise<Appointment> {
+  const supabase = getClient();
+  const today = new Date().toISOString().slice(0, 10);
+  const { data, error } = await supabase
+    .from('appointments')
+    .insert({
+      patient_name: input.patient_name,
+      patient_phone: input.patient_phone,
+      patient_email: input.patient_email || '',
+      patient_id: input.patient_id,
+      doctor_id: input.doctor_id,
+      reason: input.reason || 'Walk-in consultation',
+      appointment_date: today,
+      slot_start: null,
+      is_walk_in: true,
+      status: 'confirmed',
+    })
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error(`Failed to start walk-in consultation: ${error.message}`);
+  }
+  return data as Appointment;
+}
+
+export async function finishAppointment(id: string): Promise<Appointment> {
+  const supabase = getClient();
+  const { data, error } = await supabase
+    .from('appointments')
+    .update({ status: 'finished' })
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error(`Failed to finish appointment: ${error.message}`);
+  }
+  return data as Appointment;
+}
+
 export async function getAppointmentsForDate(
   date: string,
   doctorId: string
@@ -83,7 +138,7 @@ export async function getAppointmentsForDate(
     .select('*')
     .eq('appointment_date', date)
     .eq('doctor_id', doctorId)
-    .eq('status', 'confirmed');
+    .in('status', ['confirmed', 'finished']);
 
   if (error) {
     throw new Error(`Failed to fetch appointments: ${error.message}`);
@@ -98,7 +153,7 @@ export async function listAppointmentsForDate(date: string): Promise<Appointment
     .from('appointments')
     .select('*')
     .eq('appointment_date', date)
-    .eq('status', 'confirmed')
+    .in('status', ['confirmed', 'finished'])
     .order('slot_start', { ascending: true });
 
   if (error) {
@@ -235,6 +290,7 @@ export async function cancelAppointment(id: string): Promise<Appointment> {
 // since a prescription can't outlive the appointment it belongs to.
 export async function deleteAppointment(id: string): Promise<void> {
   const supabase = getClient();
+  await supabase.from('invoices').delete().eq('appointment_id', id);
   await supabase.from('prescriptions').delete().eq('appointment_id', id);
   const { error } = await supabase.from('appointments').delete().eq('id', id);
   if (error) {

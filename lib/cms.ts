@@ -51,6 +51,7 @@ export interface CMSData {
       id: string;
       name: string;
       specialty: string;
+      qualification?: string;
       photo?: string;
       phone: string;
       email: string;

@@ -37,9 +37,10 @@ interface AdminInputProps extends Omit<FieldWrapperProps, 'children'> {
   placeholder?: string;
   name?: string;
   id?: string;
+  disabled?: boolean;
 }
 
-export function AdminInput({ label, required, hint, type = 'text', value, onChange, placeholder, name, id }: AdminInputProps) {
+export function AdminInput({ label, required, hint, type = 'text', value, onChange, placeholder, name, id, disabled }: AdminInputProps) {
   return (
     <FieldWrapper label={label} required={required} hint={hint}>
       <input
@@ -49,8 +50,9 @@ export function AdminInput({ label, required, hint, type = 'text', value, onChan
         value={value}
         onChange={onChange}
         placeholder={placeholder}
+        disabled={disabled}
         style={fieldStyle(undefined)}
-        className={fieldClasses()}
+        className={`${fieldClasses()} ${disabled ? 'opacity-60 cursor-not-allowed' : ''}`}
       />
     </FieldWrapper>
   );

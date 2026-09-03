@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAppointmentById } from '@/lib/appointments';
+import { getAppointmentById, finishAppointment } from '@/lib/appointments';
 import { getPatientById } from '@/lib/patients';
 import { generatePrescriptionPdf } from '@/lib/prescription-pdf';
 import { setPrescriptionPdfUrl, upsertPrescription, uploadPrescriptionPdf } from '@/lib/prescriptions';
@@ -18,11 +18,31 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { appointmentId, diagnosis, medications, notes } = await request.json();
+    const {
+      appointmentId,
+      diagnosis,
+      medications = [],
+      symptoms = [],
+      examinations = [],
+      investigations = [],
+      advices = [],
+      vitals = [],
+      followUpDate,
+      additionalNotes,
+      privateNotes,
+      notes,
+    } = await request.json();
 
-    if (!appointmentId || !Array.isArray(medications) || medications.length === 0) {
+    const hasAnyContent =
+      medications.length > 0 ||
+      symptoms.length > 0 ||
+      diagnosis ||
+      examinations.length > 0 ||
+      investigations.length > 0;
+
+    if (!appointmentId || !hasAnyContent) {
       return NextResponse.json(
-        { error: 'appointmentId and at least one medication are required' },
+        { error: 'appointmentId and at least one clinical entry (symptom, diagnosis, medication, etc.) are required' },
         { status: 400 }
       );
     }
@@ -52,15 +72,31 @@ export async function POST(request: NextRequest) {
       doctor_id: appointment.doctor_id,
       diagnosis,
       medications,
+      symptoms,
+      examinations,
+      investigations,
+      advices,
+      vitals,
+      follow_up_date: followUpDate || null,
+      additional_notes: additionalNotes,
+      private_notes: privateNotes,
       notes,
     });
 
     const pdfBytes = await generatePrescriptionPdf(prescription, patient, {
       name: doctor?.name || 'Doctor',
       specialty: doctor?.specialty,
+      qualification: doctor?.qualification,
     });
     const pdfUrl = await uploadPrescriptionPdf(prescription.id, pdfBytes);
     await setPrescriptionPdfUrl(prescription.id, pdfUrl);
+
+    // Writing a prescription is this app's "End Visit" moment — mirrors
+    // Medisray, where finishing the consultation and generating the
+    // prescription happen together, moving the appointment out of the Queue.
+    if (appointment.status === 'confirmed') {
+      await finishAppointment(appointment.id);
+    }
 
     return NextResponse.json({ success: true, prescription: { ...prescription, pdf_url: pdfUrl } });
   } catch (error) {

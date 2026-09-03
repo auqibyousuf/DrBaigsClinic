@@ -5,6 +5,7 @@ import type { Patient } from './patients';
 interface DoctorInfo {
   name: string;
   specialty?: string;
+  qualification?: string;
 }
 
 export async function generatePrescriptionPdf(
@@ -55,7 +56,13 @@ export async function generatePrescriptionPdf(
   let y = page.getHeight() - headerHeight - 34;
 
   // ---- Doctor / date row ----
-  drawText(`${doctor.name}${doctor.specialty ? '  ·  ' + doctor.specialty : ''}`, margin, y, 12, boldFont, primary);
+  drawText(doctor.name, margin, y, 12, boldFont, primary);
+  if (doctor.qualification) {
+    drawText(doctor.qualification, margin, y - 14, 9, font, gray);
+  }
+  if (doctor.specialty) {
+    drawText(doctor.specialty, margin, y - (doctor.qualification ? 26 : 14), 9, font, gray);
+  }
   const dateLabel = new Date(prescription.created_at).toLocaleDateString(undefined, {
     year: 'numeric',
     month: 'long',
@@ -63,7 +70,8 @@ export async function generatePrescriptionPdf(
   });
   const dateWidth = font.widthOfTextAtSize(dateLabel, 11);
   drawText(dateLabel, pageWidth - margin - dateWidth, y, 11, font, gray);
-  y -= 24;
+  const doctorInfoLines = 1 + (doctor.qualification ? 1 : 0) + (doctor.specialty ? 1 : 0);
+  y -= 12 * doctorInfoLines + 12;
 
   // ---- Patient info card ----
   const cardHeight = 56;
@@ -79,6 +87,34 @@ export async function generatePrescriptionPdf(
   drawText(patient.patient_code, idColX, y - 38, 13, boldFont, primary);
   y -= cardHeight + 30;
 
+  // Only rendered when they actually have data — an empty "Diagnosis:"
+  // header with nothing under it looks broken, and most visits won't use
+  // every section (see MEDISRAY_AUDIT.md finding #3).
+  const drawBulletList = (title: string, items: string[]) => {
+    if (items.length === 0) return;
+    drawText(title, margin, y, 9, boldFont, accent);
+    y -= 16;
+    for (const item of items) {
+      drawText(`•  ${item}`, margin, y, 10.5, font, dark);
+      y -= 15;
+    }
+    y -= 10;
+  };
+
+  // ---- Symptoms ----
+  if (prescription.symptoms.length > 0) {
+    drawText('SYMPTOMS', margin, y, 9, boldFont, accent);
+    y -= 16;
+    for (const s of prescription.symptoms) {
+      const meta = [s.since && `since: ${s.since}`, s.severity && `severity: ${s.severity}`]
+        .filter(Boolean)
+        .join(', ');
+      drawText(`•  ${s.value}${meta ? `  (${meta})` : ''}`, margin, y, 10.5, font, dark);
+      y -= 15;
+    }
+    y -= 10;
+  }
+
   // ---- Diagnosis ----
   if (prescription.diagnosis) {
     drawText('DIAGNOSIS', margin, y, 9, boldFont, accent);
@@ -87,7 +123,10 @@ export async function generatePrescriptionPdf(
     y -= 28;
   }
 
+  drawBulletList('EXAMINATIONS', prescription.examinations);
+
   // ---- Medications table ----
+  if (prescription.medications.length > 0) {
   drawText('MEDICATIONS', margin, y, 9, boldFont, accent);
   y -= 18;
 
@@ -122,13 +161,28 @@ export async function generatePrescriptionPdf(
     }
     y -= 2;
   });
+  y -= 10;
+  }
+
+  drawBulletList('LAB INVESTIGATION', prescription.investigations);
+  drawBulletList('ADVICES', prescription.advices);
+
+  // ---- Follow-up ----
+  if (prescription.follow_up_date) {
+    const followUpLabel = new Date(prescription.follow_up_date).toLocaleDateString(undefined, {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+    drawText(`FOLLOW-UP: ${followUpLabel}`, margin, y, 9, boldFont, accent);
+    y -= 22;
+  }
 
   // ---- Additional notes ----
-  if (prescription.notes) {
-    y -= 14;
+  if (prescription.additional_notes || prescription.notes) {
     drawText('ADDITIONAL NOTES', margin, y, 9, boldFont, accent);
     y -= 16;
-    drawText(prescription.notes, margin, y, 10, font, dark);
+    drawText(prescription.additional_notes || prescription.notes || '', margin, y, 10, font, dark);
     y -= 10;
   }
 

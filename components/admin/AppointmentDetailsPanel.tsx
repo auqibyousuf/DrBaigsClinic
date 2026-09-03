@@ -6,15 +6,10 @@ import { useToast } from '@/components/ToastProvider';
 import { useCMSData } from '@/lib/cms-client';
 import { getConfiguredSlots } from '@/lib/appointments';
 import PrescriptionEditor from '@/components/admin/PrescriptionEditor';
+import BillingPanel from '@/components/admin/BillingPanel';
 import Button from '@/components/Button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-} from '@/components/ui/select';
+import { AdminInput, AdminTextarea, AdminSelect } from '@/components/admin/AdminField';
+import type { VitalsReading } from '@/components/admin/VitalsPanel';
 
 interface Medication {
   name: string;
@@ -28,6 +23,14 @@ interface AppointmentPrescription {
   id: string;
   diagnosis: string | null;
   medications: Medication[];
+  symptoms?: { value: string; since?: string; severity?: string; notes?: string }[];
+  examinations?: string[];
+  investigations?: string[];
+  advices?: string[];
+  vitals?: VitalsReading[];
+  follow_up_date?: string | null;
+  additional_notes?: string | null;
+  private_notes?: string | null;
   notes: string | null;
   pdfUrl: string | null;
 }
@@ -41,8 +44,9 @@ export interface Appointment {
   reason: string;
   doctor_id: string;
   appointment_date: string;
-  slot_start: string;
-  status: 'confirmed' | 'cancelled';
+  slot_start: string | null;
+  status: 'confirmed' | 'finished' | 'cancelled';
+  is_walk_in: boolean;
   prescription: AppointmentPrescription | null;
 }
 
@@ -58,7 +62,9 @@ interface HistoryVisit {
 
 // The appointment has "started" once its slot's start time has passed —
 // prescriptions only make sense once the consultation is actually underway.
+// Walk-ins have no pre-picked slot and are always mid-consultation already.
 function hasStarted(appt: Appointment): boolean {
+  if (appt.is_walk_in || !appt.slot_start) return true;
   return new Date(`${appt.appointment_date}T${appt.slot_start}:00`) <= new Date();
 }
 
@@ -84,7 +90,7 @@ export default function AppointmentDetailsPanel({
   const [editEmail, setEditEmail] = useState(appt.patient_email);
   const [editReason, setEditReason] = useState(appt.reason);
   const [editDate, setEditDate] = useState(appt.appointment_date);
-  const [editSlot, setEditSlot] = useState(appt.slot_start);
+  const [editSlot, setEditSlot] = useState(appt.slot_start || '');
   const [savingDetails, setSavingDetails] = useState(false);
 
   const [prescribing, setPrescribing] = useState(false);
@@ -102,7 +108,7 @@ export default function AppointmentDetailsPanel({
         editPhone !== appt.patient_phone ||
         editEmail !== appt.patient_email ||
         editReason !== appt.reason;
-      const scheduleChanged = editDate !== appt.appointment_date || editSlot !== appt.slot_start;
+      const scheduleChanged = editDate !== appt.appointment_date || editSlot !== (appt.slot_start || '');
 
       if (detailsChanged) {
         const res = await fetch(`/api/appointment/admin/${appt.id}`, {
@@ -153,6 +159,21 @@ export default function AppointmentDetailsPanel({
       onChanged();
     } catch (err) {
       showToast('error', err instanceof Error ? err.message : 'Failed to cancel appointment');
+    }
+  };
+
+  const handleFinish = async () => {
+    try {
+      const res = await fetch(`/api/appointment/admin/${appt.id}/finish`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || 'Failed to finish visit');
+      showToast('success', 'Visit marked finished.');
+      onChanged();
+    } catch (err) {
+      showToast('error', err instanceof Error ? err.message : 'Failed to finish visit');
     }
   };
 
@@ -226,65 +247,28 @@ export default function AppointmentDetailsPanel({
     <div className="p-4 space-y-4">
       {/* Editable patient/visit details */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div>
-          <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-            Patient Name
-          </label>
-          <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="text-sm" />
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-            Phone
-          </label>
-          <Input value={editPhone} onChange={(e) => setEditPhone(e.target.value)} className="text-sm" />
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-            Email
-          </label>
-          <Input value={editEmail} onChange={(e) => setEditEmail(e.target.value)} className="text-sm" />
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-            Doctor
-          </label>
-          <Input value={doctorName} disabled className="text-sm" />
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-            Day
-          </label>
-          <Input
-            type="date"
-            value={editDate}
-            onChange={(e) => setEditDate(e.target.value)}
-            className="text-sm"
-          />
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-            Time
-          </label>
-          <Select value={editSlot} onValueChange={(v) => setEditSlot(v ?? editSlot)}>
-            <SelectTrigger className="w-full text-sm">{editSlot}</SelectTrigger>
-            <SelectContent className="w-[var(--anchor-width)]">
-              {slots.map((s) => (
-                <SelectItem key={s} value={s}>
-                  {s}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <AdminInput label="Patient Name" value={editName} onChange={(e) => setEditName(e.target.value)} />
+        <AdminInput label="Phone" value={editPhone} onChange={(e) => setEditPhone(e.target.value)} />
+        <AdminInput label="Email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} />
+        <AdminInput label="Doctor" value={doctorName} onChange={() => {}} disabled />
+        <AdminInput
+          label="Day"
+          type="date"
+          value={editDate}
+          onChange={(e) => setEditDate(e.target.value)}
+        />
+        <AdminSelect
+          label="Time"
+          value={editSlot}
+          onChange={(e) => setEditSlot(e.target.value)}
+          options={slots.map((s) => ({ value: s, label: s }))}
+        />
         <div className="sm:col-span-2">
-          <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-            Reason for Consultation
-          </label>
-          <Textarea
+          <AdminTextarea
+            label="Reason for Consultation"
             value={editReason}
             onChange={(e) => setEditReason(e.target.value)}
             rows={2}
-            className="text-sm"
           />
         </div>
       </div>
@@ -294,15 +278,25 @@ export default function AppointmentDetailsPanel({
           {savingDetails ? 'Saving...' : 'Save Details'}
         </Button>
         {appt.status === 'confirmed' && (
-          <Button
-            onClick={handleCancel}
-            variant="outline"
-            size="sm"
-            className="!text-red-600 !border-red-300"
-            title="Mark as cancelled and notify the patient — keeps a record"
-          >
-            Cancel Appointment
-          </Button>
+          <>
+            <Button
+              onClick={handleFinish}
+              variant="outline"
+              size="sm"
+              title="Mark this visit finished — moves it out of the Queue (also happens automatically when a prescription is saved)"
+            >
+              Finish Visit
+            </Button>
+            <Button
+              onClick={handleCancel}
+              variant="outline"
+              size="sm"
+              className="!text-red-600 !border-red-300"
+              title="Mark as cancelled and notify the patient — keeps a record"
+            >
+              Cancel Appointment
+            </Button>
+          </>
         )}
         <Button
           onClick={handleDelete}
@@ -342,7 +336,7 @@ export default function AppointmentDetailsPanel({
               patientName: appt.patient_name,
               patientPhone: appt.patient_phone,
               date: appt.appointment_date,
-              slot: appt.slot_start,
+              slot: appt.slot_start || 'Walk-in',
               reason: appt.reason,
             }}
             initial={
@@ -350,6 +344,14 @@ export default function AppointmentDetailsPanel({
                 ? {
                     diagnosis: appt.prescription.diagnosis,
                     medications: appt.prescription.medications,
+                    symptoms: appt.prescription.symptoms,
+                    examinations: appt.prescription.examinations,
+                    investigations: appt.prescription.investigations,
+                    advices: appt.prescription.advices,
+                    vitals: appt.prescription.vitals,
+                    follow_up_date: appt.prescription.follow_up_date,
+                    additional_notes: appt.prescription.additional_notes,
+                    private_notes: appt.prescription.private_notes,
                     notes: appt.prescription.notes,
                   }
                 : null
@@ -394,6 +396,12 @@ export default function AppointmentDetailsPanel({
           </div>
         )}
       </div>
+
+      {appt.patient_id && (
+        <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
+          <BillingPanel appointmentId={appt.id} patientId={appt.patient_id} doctorId={appt.doctor_id} />
+        </div>
+      )}
 
       {showHistory && (
         <div className="p-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800">
