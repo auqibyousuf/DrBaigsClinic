@@ -39,6 +39,22 @@ import IconPicker from '@/components/admin/IconPicker';
 import VariableReference from '@/components/admin/VariableReference';
 import { AdminInput, AdminTextarea, AdminSelect } from '@/components/admin/AdminField';
 import AdminSaveButton from '@/components/admin/AdminSaveButton';
+import {
+  House,
+  ListBullets,
+  Image,
+  Briefcase,
+  Info,
+  TextAlignLeft,
+  EnvelopeSimple,
+  FileText,
+  UserCircle,
+  CalendarCheck,
+  ClipboardText,
+  UsersThree,
+  Envelope,
+  Gear,
+} from '@phosphor-icons/react';
 
 type CMSDataSection = keyof CMSData;
 
@@ -191,156 +207,57 @@ export default function AdminDashboard() {
     {
       id: 'dashboard',
       name: 'Dashboard',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-          />
-        </svg>
-      ),
+      icon: <House className="w-5 h-5" />,
     },
     {
       id: 'header',
       name: 'Header',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M4 6h16M4 12h16M4 18h16"
-          />
-        </svg>
-      ),
+      icon: <ListBullets className="w-5 h-5" />,
     },
     {
       id: 'hero',
       name: 'Hero Section',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"
-          />
-        </svg>
-      ),
+      icon: <Image className="w-5 h-5" />,
     },
     {
       id: 'services',
       name: 'Services',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-          />
-        </svg>
-      ),
+      icon: <Briefcase className="w-5 h-5" />,
     },
     {
       id: 'about',
       name: 'About Section',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
-      ),
+      icon: <Info className="w-5 h-5" />,
     },
     {
       id: 'footer',
       name: 'Footer',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-          />
-        </svg>
-      ),
+      icon: <TextAlignLeft className="w-5 h-5" />,
     },
     {
       id: 'contact',
       name: 'Contact',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-          />
-        </svg>
-      ),
+      icon: <EnvelopeSimple className="w-5 h-5" />,
     },
     {
       id: 'serviceDetails',
       name: 'Service Details',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-          />
-        </svg>
-      ),
+      icon: <FileText className="w-5 h-5" />,
     },
     {
       id: 'doctors',
       name: 'Doctors',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-          />
-        </svg>
-      ),
+      icon: <UserCircle className="w-5 h-5" />,
     },
     {
       id: 'appointments',
       name: 'Appointments',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-          />
-        </svg>
-      ),
+      icon: <CalendarCheck className="w-5 h-5" />,
     },
     {
       id: 'prescriptions',
       name: 'Prescriptions',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-          />
-        </svg>
-      ),
+      icon: <ClipboardText className="w-5 h-5" />,
     },
     // Billing tab disabled for now — the clinic already runs a standalone
     // inventory/billing application; this in-app billing module may be
@@ -349,59 +266,22 @@ export default function AdminDashboard() {
     // {
     //   id: 'billing',
     //   name: 'Billing',
-    //   icon: (
-    //     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    //       <path
-    //         strokeLinecap="round"
-    //         strokeLinejoin="round"
-    //         strokeWidth={2}
-    //         d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V6m0 10v2m9-8a9 9 0 11-18 0 9 9 0 0118 0z"
-    //       />
-    //     </svg>
-    //   ),
+    //   icon: <CurrencyCircleDollar className="w-5 h-5" />,
     // },
     {
       id: 'patients',
       name: 'Patients',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 100-8 4 4 0 000 8zm6 3c0 2-3 2-3 2s-3 0-3-2 3-2 3-2 3 0 3 2z"
-          />
-        </svg>
-      ),
+      icon: <UsersThree className="w-5 h-5" />,
     },
     {
       id: 'templates',
       name: 'Templates',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-          />
-        </svg>
-      ),
+      icon: <Envelope className="w-5 h-5" />,
     },
     {
       id: 'bookingSettings',
       name: 'Booking Settings',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-          />
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-        </svg>
-      ),
+      icon: <Gear className="w-5 h-5" />,
     },
   ];
 
@@ -876,6 +756,15 @@ function HeaderEditor({ data, onSave, saving, isEditLinks = false }: EditorProps
           onChange={(url) => setFormData({ ...formData, logo: url })}
           label="Logo"
           description="Upload your clinic logo or enter an image URL. Recommended size: 200x50px"
+        />
+      </div>
+
+      <div>
+        <ImageUpload
+          value={formData.favicon || ''}
+          onChange={(url) => setFormData({ ...formData, favicon: url })}
+          label="Favicon"
+          description="The small icon shown in the browser tab. Falls back to the logo above if not set. Recommended: a square image, 32x32px or larger."
         />
       </div>
 

@@ -11,6 +11,10 @@ export interface CMSData {
   header: {
     brandName: string;
     logo: string;
+    // Browser-tab icon — separate from the header logo since the logo is
+    // often a wide wordmark/lockup while a favicon needs to read at ~16px
+    // square. Falls back to `logo` when unset.
+    favicon?: string;
     navItems: Array<{
       id: string;
       label: string;

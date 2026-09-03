@@ -39,7 +39,12 @@ export default function Modal({ isOpen, onClose, title, children, size = 'lg' }:
             readers) even when we don't want a visible header bar here — the
             actual visual heading is rendered by each modal's own content. */}
         <DialogTitle className="sr-only">{title || 'Dialog'}</DialogTitle>
-        <div style={{ padding: 'var(--space-lg)' }}>{children}</div>
+        {/* min-w-0: DialogContent is a CSS grid, so this wrapper is a grid
+            item — without it, a wide-but-meant-to-scroll descendant (e.g.
+            DateTimePicker's day strip) refuses to shrink below its own
+            content width and silently blows the whole modal out past the
+            viewport instead of scrolling internally. */}
+        <div className="min-w-0" style={{ padding: 'var(--space-lg)' }}>{children}</div>
       </DialogContent>
     </Dialog>
   );

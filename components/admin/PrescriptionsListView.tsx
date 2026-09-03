@@ -3,12 +3,17 @@
 import { useEffect, useMemo, useState } from 'react';
 import { type ColumnDef } from '@tanstack/react-table';
 import { CalendarCheck } from '@phosphor-icons/react';
+import { Eye, Pencil, Trash2 } from 'lucide-react';
 import { DataTable, type DataTableFilter } from '@/components/ui/data-table';
 import Button from '@/components/Button';
+import DropdownMenu from '@/components/admin/DropdownMenu';
 import PrescriptionEditor from '@/components/admin/PrescriptionEditor';
+import { useToast } from '@/components/ToastProvider';
 
 interface PrescriptionRow {
   id: string;
+  appointmentId: string;
+  doctorId: string;
   createdAt: string;
   diagnosis: string | null;
   pdfUrl: string | null;
@@ -18,6 +23,19 @@ interface PrescriptionRow {
   patientPhone: string | null;
   appointmentDate: string | null;
   slot: string | null;
+  reason: string;
+  medications: unknown;
+  symptoms: unknown;
+  examinations: unknown;
+  investigations: unknown;
+  advices: unknown;
+  vitals: unknown;
+  followUpDate: string | null;
+  additionalNotes: string | null;
+  privateNotes: string | null;
+  medicalHistoryTags: unknown;
+  medicalHistoryNoKnown: unknown;
+  medicalRecords: unknown;
 }
 
 interface AppointmentRow {
@@ -34,71 +52,6 @@ interface AppointmentRow {
   prescription: { id: string } | null;
 }
 
-const columns: ColumnDef<PrescriptionRow>[] = [
-  {
-    accessorKey: 'createdAt',
-    header: 'Date Written',
-    cell: ({ row }) => (
-      <span className="whitespace-nowrap">
-        {new Date(row.original.createdAt).toLocaleDateString()}
-      </span>
-    ),
-  },
-  {
-    id: 'visit',
-    header: 'Visit',
-    accessorFn: (row) => (row.appointmentDate ? `${row.appointmentDate} ${row.slot}` : ''),
-    cell: ({ row }) => (
-      <span className="whitespace-nowrap">
-        {row.original.appointmentDate ? `${row.original.appointmentDate} ${row.original.slot}` : '—'}
-      </span>
-    ),
-  },
-  {
-    accessorKey: 'patientName',
-    header: 'Patient',
-    cell: ({ row }) => (
-      <div>
-        <div className="font-medium text-gray-900 dark:text-white">{row.original.patientName}</div>
-        <div className="text-xs text-gray-500 dark:text-gray-400">
-          {row.original.patientCode} {row.original.patientPhone && `· ${row.original.patientPhone}`}
-        </div>
-      </div>
-    ),
-  },
-  {
-    accessorKey: 'doctorName',
-    header: 'Doctor',
-    cell: ({ row }) => <span className="whitespace-nowrap">{row.original.doctorName}</span>,
-  },
-  {
-    accessorKey: 'diagnosis',
-    header: 'Diagnosis',
-    cell: ({ row }) => (
-      <span className="block max-w-xs truncate">{row.original.diagnosis || '—'}</span>
-    ),
-    enableSorting: false,
-  },
-  {
-    id: 'pdf',
-    header: 'PDF',
-    cell: ({ row }) =>
-      row.original.pdfUrl ? (
-        <a
-          href={row.original.pdfUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-primary-600 hover:underline font-medium"
-        >
-          View
-        </a>
-      ) : (
-        '—'
-      ),
-    enableSorting: false,
-  },
-];
-
 interface PrescriptionsListViewProps {
   doctors: { id: string; name: string }[];
 }
@@ -108,6 +61,101 @@ export default function PrescriptionsListView({ doctors }: PrescriptionsListView
   const [pending, setPending] = useState<AppointmentRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [writingFor, setWritingFor] = useState<AppointmentRow | null>(null);
+  const [editingRow, setEditingRow] = useState<PrescriptionRow | null>(null);
+  const { showToast } = useToast();
+
+  const deletePrescriptionRow = async (row: PrescriptionRow) => {
+    if (!confirm(`Permanently delete the prescription for ${row.patientName}? This cannot be undone.`)) return;
+    try {
+      const res = await fetch(`/api/prescriptions/${row.id}`, { method: 'DELETE', credentials: 'include' });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || 'Failed to delete prescription');
+      showToast('success', 'Prescription deleted.');
+      fetchAll();
+    } catch (err) {
+      showToast('error', err instanceof Error ? err.message : 'Failed to delete prescription');
+    }
+  };
+
+  const columns: ColumnDef<PrescriptionRow>[] = [
+    {
+      accessorKey: 'createdAt',
+      header: 'Date Written',
+      cell: ({ row }) => (
+        <span className="whitespace-nowrap">
+          {new Date(row.original.createdAt).toLocaleDateString()}
+        </span>
+      ),
+    },
+    {
+      id: 'visit',
+      header: 'Visit',
+      accessorFn: (row) => (row.appointmentDate ? `${row.appointmentDate} ${row.slot}` : ''),
+      cell: ({ row }) => (
+        <span className="whitespace-nowrap">
+          {row.original.appointmentDate ? `${row.original.appointmentDate} ${row.original.slot}` : '—'}
+        </span>
+      ),
+    },
+    {
+      accessorKey: 'patientName',
+      header: 'Patient',
+      cell: ({ row }) => (
+        <div>
+          <div className="font-medium text-gray-900 dark:text-white">{row.original.patientName}</div>
+          <div className="text-xs text-gray-500 dark:text-gray-400">
+            {row.original.patientCode} {row.original.patientPhone && `· ${row.original.patientPhone}`}
+          </div>
+        </div>
+      ),
+    },
+    {
+      accessorKey: 'doctorName',
+      header: 'Doctor',
+      cell: ({ row }) => <span className="whitespace-nowrap">{row.original.doctorName}</span>,
+    },
+    {
+      accessorKey: 'diagnosis',
+      header: 'Diagnosis',
+      cell: ({ row }) => (
+        <span className="block max-w-xs truncate">{row.original.diagnosis || '—'}</span>
+      ),
+      enableSorting: false,
+    },
+    {
+      id: 'actions',
+      header: '',
+      enableSorting: false,
+      cell: ({ row }) => {
+        const p = row.original;
+        return (
+          <div className="flex justify-end">
+            <DropdownMenu
+              actions={[
+                {
+                  label: 'View PDF',
+                  icon: <Eye className="w-4 h-4" />,
+                  hidden: !p.pdfUrl,
+                  onClick: () => window.open(p.pdfUrl!, '_blank', 'noopener,noreferrer'),
+                },
+                {
+                  label: 'Edit',
+                  icon: <Pencil className="w-4 h-4" />,
+                  onClick: () => setEditingRow(p),
+                },
+                {
+                  label: 'Delete',
+                  icon: <Trash2 className="w-4 h-4" />,
+                  danger: true,
+                  onClick: () => deletePrescriptionRow(p),
+                },
+              ]}
+            />
+          </div>
+        );
+      },
+    },
+  ];
 
   const doctorName = (id: string) => doctors.find((d) => d.id === id)?.name || 'Unknown doctor';
 
@@ -186,6 +234,42 @@ export default function PrescriptionsListView({ doctors }: PrescriptionsListView
         onClose={() => setWritingFor(null)}
         onSaved={() => {
           setWritingFor(null);
+          fetchAll();
+        }}
+      />
+    );
+  }
+
+  if (editingRow) {
+    return (
+      <PrescriptionEditor
+        appointmentId={editingRow.appointmentId}
+        context={{
+          patientName: editingRow.patientName,
+          patientPhone: editingRow.patientPhone || '',
+          date: editingRow.appointmentDate || '',
+          slot: editingRow.slot || 'Walk-in',
+          reason: editingRow.reason,
+        }}
+        initial={{
+          diagnosis: editingRow.diagnosis,
+          medications: (editingRow.medications as never) || [],
+          symptoms: editingRow.symptoms as never,
+          examinations: editingRow.examinations as never,
+          investigations: editingRow.investigations as never,
+          advices: editingRow.advices as never,
+          vitals: editingRow.vitals as never,
+          follow_up_date: editingRow.followUpDate,
+          additional_notes: editingRow.additionalNotes,
+          private_notes: editingRow.privateNotes,
+          medical_history_tags: editingRow.medicalHistoryTags as never,
+          medical_history_no_known: editingRow.medicalHistoryNoKnown as never,
+          medical_records: editingRow.medicalRecords as never,
+          notes: null,
+        }}
+        onClose={() => setEditingRow(null)}
+        onSaved={() => {
+          setEditingRow(null);
           fetchAll();
         }}
       />

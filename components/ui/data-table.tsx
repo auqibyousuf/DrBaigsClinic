@@ -108,7 +108,7 @@ export function DataTable<TData, TValue>({
                 placeholder={searchPlaceholder}
                 value={globalFilter}
                 onChange={(e) => setGlobalFilter(e.target.value)}
-                className="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 transition-colors duration-150 focus:outline-none focus:bg-white dark:focus:bg-gray-800 focus:border-primary-500 dark:focus:border-primary-500 focus:ring-2 focus:ring-primary-500/15 hover:border-gray-300 dark:hover:border-gray-600 placeholder-gray-400 dark:placeholder-gray-500"
+                className="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 transition-colors duration-150 focus:outline-none focus-visible:outline-none focus:bg-white dark:focus:bg-gray-800 focus:border-primary-500 dark:focus:border-primary-500 focus:ring-2 focus:ring-primary-500/15 hover:border-gray-300 dark:hover:border-gray-600 placeholder-gray-400 dark:placeholder-gray-500"
               />
             </div>
           )}

@@ -172,6 +172,7 @@ export default function PatientDetailPage({ patientId, onBack }: { patientId: st
             target="_blank"
             rel="noopener noreferrer"
             className="text-gray-500 hover:text-primary-600 dark:hover:text-primary-400 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 inline-flex"
+            title="Print / view bill"
           >
             <Printer className="w-4 h-4" />
           </a>
