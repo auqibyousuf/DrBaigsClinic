@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { fieldStyle, fieldClasses } from '@/components/FloatingLabelInput/FloatingLabelInput';
 import type { ClinicalTermCategory } from '@/lib/clinical-terms';
 
 interface AutocompleteInputProps {
@@ -10,14 +12,19 @@ interface AutocompleteInputProps {
   placeholder?: string;
 }
 
-// Single-value sibling of AutocompleteTagInput — for fields like a
-// medication's name, where each row is one value (not a multi-value tag
-// list), but should still suggest from and save to the shared clinical
-// terms list like Symptoms/Diagnosis/etc.
+// Single-value sibling of AutocompleteTagInput — same field look (shared
+// fieldStyle/fieldClasses) and same "search or add" behavior, just for a
+// field like a medication's name where each row is one value, not a
+// multi-value tag list. The suggestion list is portaled to document.body
+// (like CustomSelect/DropdownMenu already do) because this input lives
+// inside the Medications table's horizontally-scrolling wrapper, which
+// would otherwise clip an absolutely-positioned dropdown.
 export default function AutocompleteInput({ category, value, onChange, placeholder }: AutocompleteInputProps) {
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [open, setOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [rect, setRect] = useState<{ top: number; left: number; width: number } | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handle = setTimeout(async () => {
@@ -38,13 +45,26 @@ export default function AutocompleteInput({ category, value, onChange, placehold
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      if (
+        inputRef.current &&
+        !inputRef.current.contains(e.target as Node) &&
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node)
+      ) {
         setOpen(false);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  const openDropdown = () => {
+    if (inputRef.current) {
+      const r = inputRef.current.getBoundingClientRect();
+      setRect({ top: r.bottom + window.scrollY + 4, left: r.left + window.scrollX, width: r.width });
+    }
+    setOpen(true);
+  };
 
   const persistTerm = async (v: string) => {
     const trimmed = v.trim();
@@ -64,38 +84,48 @@ export default function AutocompleteInput({ category, value, onChange, placehold
   const filtered = suggestions.filter((s) => s.toLowerCase() !== value.trim().toLowerCase());
 
   return (
-    <div ref={containerRef} className="relative">
+    <div className="relative">
       <input
+        ref={inputRef}
         type="text"
         value={value}
         onChange={(e) => {
           onChange(e.target.value);
-          setOpen(true);
+          openDropdown();
         }}
-        onFocus={() => setOpen(true)}
+        onFocus={openDropdown}
         onBlur={() => persistTerm(value)}
         placeholder={placeholder}
-        className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white outline-none focus-visible:outline-none focus:ring-1 focus:ring-primary-500"
+        style={fieldStyle(undefined)}
+        className={fieldClasses()}
       />
-      {open && filtered.length > 0 && (
-        <div className="absolute z-20 mt-1 w-full max-h-48 overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg">
-          {filtered.map((s) => (
-            <button
-              key={s}
-              type="button"
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={() => {
-                onChange(s);
-                setOpen(false);
-                persistTerm(s);
-              }}
-              className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-primary-50 dark:hover:bg-primary-900/30 cursor-pointer"
-            >
-              {s}
-            </button>
-          ))}
-        </div>
-      )}
+      {open &&
+        filtered.length > 0 &&
+        rect &&
+        createPortal(
+          <div
+            ref={dropdownRef}
+            style={{ position: 'absolute', top: rect.top, left: rect.left, width: rect.width }}
+            className="z-50 max-h-48 overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg"
+          >
+            {filtered.map((s) => (
+              <button
+                key={s}
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => {
+                  onChange(s);
+                  setOpen(false);
+                  persistTerm(s);
+                }}
+                className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-primary-50 dark:hover:bg-primary-900/30 cursor-pointer"
+              >
+                {s}
+              </button>
+            ))}
+          </div>,
+          document.body
+        )}
     </div>
   );
 }
