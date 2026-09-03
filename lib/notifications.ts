@@ -1,48 +1,86 @@
-import twilio from 'twilio';
+// Sends patient/admin notifications over WhatsApp via Meta's WhatsApp Cloud
+// API directly (no BSP middleman/markup like Twilio). See WHATSAPP_SETUP.md.
 
-function getTwilioClient() {
-  const sid = process.env.TWILIO_ACCOUNT_SID;
-  const authToken = process.env.TWILIO_AUTH_TOKEN;
-  if (!sid || !authToken) {
-    return null;
-  }
-  return twilio(sid, authToken);
+const GRAPH_VERSION = 'v20.0';
+
+function getWaConfig() {
+  const token = process.env.META_WA_TOKEN;
+  const phoneNumberId = process.env.META_WA_PHONE_NUMBER_ID;
+  if (!token || !phoneNumberId) return null;
+  return { token, phoneNumberId };
 }
 
-// Sends WhatsApp first, falls back to SMS only if WhatsApp fails — never both,
-// to avoid duplicate-message noise. Never throws: a booking must succeed even
-// if notifications aren't configured or the send fails.
+async function callGraphApi(phoneNumberId: string, token: string, payload: Record<string, unknown>) {
+  const res = await fetch(
+    `https://graph.facebook.com/${GRAPH_VERSION}/${phoneNumberId}/messages`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ messaging_product: 'whatsapp', ...payload }),
+    }
+  );
+  if (!res.ok) {
+    const detail = await res.text().catch(() => '');
+    throw new Error(`WhatsApp Cloud API error ${res.status}: ${detail}`);
+  }
+}
+
+// Sends a free-form text WhatsApp message. Only deliverable within Meta's
+// 24-hour customer-service window (i.e. the patient messaged us recently);
+// outside that window Meta silently rejects it, which is why the booking
+// flow instead sends a pre-approved template (see sendWhatsAppTemplate).
+// Never throws: a booking must succeed even if notifications aren't
+// configured or the send fails.
 export async function sendWhatsAppOrSMS(to: string, body: string): Promise<void> {
-  const client = getTwilioClient();
-  if (!client) {
-    console.warn('Twilio not configured, skipping WhatsApp/SMS notification.');
+  const config = getWaConfig();
+  if (!config) {
+    console.warn('WhatsApp Cloud API not configured, skipping notification.');
     return;
   }
 
-  const whatsappFrom = process.env.TWILIO_WHATSAPP_FROM;
-  const smsFrom = process.env.TWILIO_SMS_FROM;
+  try {
+    await callGraphApi(config.phoneNumberId, config.token, {
+      to,
+      type: 'text',
+      text: { body },
+    });
+  } catch (err) {
+    console.error('WhatsApp send failed:', err);
+  }
+}
 
-  if (whatsappFrom) {
-    try {
-      await client.messages.create({
-        from: `whatsapp:${whatsappFrom}`,
-        to: `whatsapp:${to}`,
-        body,
-      });
-      return;
-    } catch (err) {
-      console.error('WhatsApp send failed, falling back to SMS:', err);
-    }
+// Sends a pre-approved template message — required for any business-initiated
+// message outside the 24-hour customer-service window (Meta rejects free-form
+// text otherwise). `params` fill the template's numbered {{1}}, {{2}}, ...
+// placeholders in order. Never throws, same reasoning as sendWhatsAppOrSMS.
+export async function sendWhatsAppTemplate(
+  to: string,
+  templateName: string,
+  params: string[]
+): Promise<void> {
+  const config = getWaConfig();
+  if (!config) {
+    console.warn('WhatsApp Cloud API not configured, skipping template notification.');
+    return;
   }
 
-  if (smsFrom) {
-    try {
-      await client.messages.create({ from: smsFrom, to, body });
-    } catch (err) {
-      console.error('SMS send failed:', err);
-    }
-  } else {
-    console.warn('No TWILIO_SMS_FROM configured, could not fall back to SMS.');
+  try {
+    await callGraphApi(config.phoneNumberId, config.token, {
+      to,
+      type: 'template',
+      template: {
+        name: templateName,
+        language: { code: 'en' },
+        components: params.length
+          ? [{ type: 'body', parameters: params.map((text) => ({ type: 'text', text })) }]
+          : undefined,
+      },
+    });
+  } catch (err) {
+    console.error('WhatsApp template send failed:', err);
   }
 }
 
@@ -111,24 +149,23 @@ export async function sendDailyDigest(phone: string, lines: string[]): Promise<v
   await sendWhatsAppOrSMS(phone, body);
 }
 
-// Sends the prescription PDF as a WhatsApp media message (falls back to a
-// plain text message with the link if WhatsApp isn't configured).
+// Sends the prescription PDF as a WhatsApp document message (falls back to a
+// plain text message with the link if the Cloud API isn't configured or the
+// send fails).
 export async function sendPrescriptionWhatsApp(
   phone: string,
   pdfUrl: string,
   doctorName: string
 ): Promise<void> {
-  const client = getTwilioClient();
-  const whatsappFrom = process.env.TWILIO_WHATSAPP_FROM;
+  const config = getWaConfig();
   const body = `Your prescription from ${doctorName} at Dr Baig's Clinic is ready.`;
 
-  if (client && whatsappFrom) {
+  if (config) {
     try {
-      await client.messages.create({
-        from: `whatsapp:${whatsappFrom}`,
-        to: `whatsapp:${phone}`,
-        body,
-        mediaUrl: [pdfUrl],
+      await callGraphApi(config.phoneNumberId, config.token, {
+        to: phone,
+        type: 'document',
+        document: { link: pdfUrl, caption: body, filename: 'prescription.pdf' },
       });
       return;
     } catch (err) {
