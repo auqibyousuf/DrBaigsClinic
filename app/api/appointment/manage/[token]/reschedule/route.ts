@@ -8,7 +8,7 @@ import {
   getConfiguredSlots,
 } from '@/lib/appointments';
 import { getCMSData } from '@/lib/cms';
-import { sendUpdateNotification } from '@/lib/notifications';
+import { sendAppointmentRescheduled } from '@/lib/notifications';
 
 export async function POST(request: NextRequest, { params }: { params: { token: string } }) {
   try {
@@ -50,13 +50,13 @@ export async function POST(request: NextRequest, { params }: { params: { token: 
     }
 
     const doctor = cmsData.doctors?.items?.find((d) => d.id === appointment.doctor_id);
-    const message = `Your appointment with ${doctor?.name || 'your doctor'} has been moved to ${date} at ${slot}.`;
+    const doctorName = doctor?.name || 'your doctor';
 
     await Promise.all([
-      sendUpdateNotification(appointment.patient_phone, message),
-      doctor?.phone ? sendUpdateNotification(doctor.phone, `Rescheduled: ${message}`) : Promise.resolve(),
+      sendAppointmentRescheduled(appointment.patient_phone, doctorName, date, slot),
+      doctor?.phone ? sendAppointmentRescheduled(doctor.phone, doctorName, date, slot) : Promise.resolve(),
       cmsData.contact?.notificationPhone
-        ? sendUpdateNotification(cmsData.contact.notificationPhone, `Rescheduled: ${message}`)
+        ? sendAppointmentRescheduled(cmsData.contact.notificationPhone, doctorName, date, slot)
         : Promise.resolve(),
     ]);
 

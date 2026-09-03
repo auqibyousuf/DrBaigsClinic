@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAppointmentById, rescheduleAppointment, SlotTakenError, getConfiguredSlots } from '@/lib/appointments';
 import { getCMSData } from '@/lib/cms';
-import { sendUpdateNotification } from '@/lib/notifications';
+import { sendAppointmentRescheduled } from '@/lib/notifications';
 
 function isAuthenticated(request: NextRequest): boolean {
   const authHeader = request.headers.get('authorization');
@@ -38,9 +38,8 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     }
 
     const doctor = cmsDataForValidation.doctors?.items?.find((d) => d.id === appointment.doctor_id);
-    const message = `Your appointment with ${doctor?.name || 'your doctor'} has been moved to ${date} at ${slot} by the clinic.`;
 
-    await sendUpdateNotification(appointment.patient_phone, message);
+    await sendAppointmentRescheduled(appointment.patient_phone, doctor?.name || 'your doctor', date, slot);
 
     return NextResponse.json({ success: true, appointment: updated });
   } catch (error) {
