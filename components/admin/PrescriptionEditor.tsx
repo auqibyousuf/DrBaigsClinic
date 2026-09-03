@@ -225,7 +225,7 @@ export default function PrescriptionEditor({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-3 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-[290px_1fr] gap-3 items-start">
         {/* Optional modules — matches Medisray's pattern: a left-side list
             of "+ Add" modules that open in a modal, kept separate from the
             always-visible core sections on the right so the main page
@@ -234,13 +234,13 @@ export default function PrescriptionEditor({
           <button
             type="button"
             onClick={() => setOpenModule('vitals')}
-            className="w-full flex items-center justify-between gap-2 p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 cursor-pointer text-left"
+            className="w-full flex items-center justify-start gap-3 p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 cursor-pointer text-left"
           >
             <span className="flex items-center gap-2 min-w-0">
               <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 flex-shrink-0">
                 <Activity className="w-3.5 h-3.5" />
               </span>
-              <span className="text-sm font-medium text-gray-900 dark:text-white truncate">Vitals & Body Composition</span>
+              <span className="text-sm font-medium text-gray-900 dark:text-white">Vitals & Body Composition</span>
             </span>
             {vitalsFilled ? (
               <Check className="w-4 h-4 text-emerald-600 flex-shrink-0" />
@@ -252,13 +252,13 @@ export default function PrescriptionEditor({
           <button
             type="button"
             onClick={() => setOpenModule('notes')}
-            className="w-full flex items-center justify-between gap-2 p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 cursor-pointer text-left"
+            className="w-full flex items-center justify-start gap-3 p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 cursor-pointer text-left"
           >
             <span className="flex items-center gap-2 min-w-0">
               <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 flex-shrink-0">
                 <Lock className="w-3.5 h-3.5" />
               </span>
-              <span className="text-sm font-medium text-gray-900 dark:text-white truncate">Private Notes</span>
+              <span className="text-sm font-medium text-gray-900 dark:text-white">Private Notes</span>
             </span>
             {notesFilled ? (
               <Check className="w-4 h-4 text-emerald-600 flex-shrink-0" />
@@ -270,13 +270,13 @@ export default function PrescriptionEditor({
           <button
             type="button"
             onClick={() => setOpenModule('history')}
-            className="w-full flex items-center justify-between gap-2 p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 cursor-pointer text-left"
+            className="w-full flex items-center justify-start gap-3 p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 cursor-pointer text-left"
           >
             <span className="flex items-center gap-2 min-w-0">
               <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 flex-shrink-0">
                 <ClipboardList className="w-3.5 h-3.5" />
               </span>
-              <span className="text-sm font-medium text-gray-900 dark:text-white truncate">Medical History</span>
+              <span className="text-sm font-medium text-gray-900 dark:text-white">Medical History</span>
             </span>
             {historyFilled ? (
               <Check className="w-4 h-4 text-emerald-600 flex-shrink-0" />
@@ -288,13 +288,13 @@ export default function PrescriptionEditor({
           <button
             type="button"
             onClick={() => setOpenModule('records')}
-            className="w-full flex items-center justify-between gap-2 p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 cursor-pointer text-left"
+            className="w-full flex items-center justify-start gap-3 p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 cursor-pointer text-left"
           >
             <span className="flex items-center gap-2 min-w-0">
               <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 flex-shrink-0">
                 <FolderPlus className="w-3.5 h-3.5" />
               </span>
-              <span className="text-sm font-medium text-gray-900 dark:text-white truncate">Medical Records</span>
+              <span className="text-sm font-medium text-gray-900 dark:text-white">Medical Records</span>
             </span>
             {recordsFilled ? (
               <Check className="w-4 h-4 text-emerald-600 flex-shrink-0" />

@@ -44,6 +44,16 @@ interface MedicalHistoryPanelProps {
 // in the side panel; "No known history" clears and disables a category.
 export default function MedicalHistoryPanel({ tags, onChangeTags, noKnown, onChangeNoKnown }: MedicalHistoryPanelProps) {
   const [selected, setSelected] = useState<{ category: MedicalHistoryCategory; value: string } | null>(null);
+  // Custom values typed in this session — merged with presets so a typed
+  // tag stays visible as a chip even before/after it's selected.
+  const [customEntries, setCustomEntries] = useState<Record<MedicalHistoryCategory, string[]>>({
+    condition: [],
+    allergy: [],
+    family: [],
+    lifestyle: [],
+  });
+  const [addingTo, setAddingTo] = useState<MedicalHistoryCategory | null>(null);
+  const [customValue, setCustomValue] = useState('');
 
   const getTag = (category: MedicalHistoryCategory, value: string) =>
     tags.find((t) => t.category === category && t.value === value);
@@ -77,6 +87,25 @@ export default function MedicalHistoryPanel({ tags, onChangeTags, noKnown, onCha
 
   const selectedTag = selected ? getTag(selected.category, selected.value) : null;
 
+  // A previously-saved custom tag (not in the preset list) still needs a
+  // chip to render, even before this session added it to customEntries.
+  const chipsFor = (cat: (typeof CATEGORIES)[number]) => {
+    const savedCustom = tags.filter((t) => t.category === cat.id && !cat.presets.includes(t.value)).map((t) => t.value);
+    return Array.from(new Set([...cat.presets, ...customEntries[cat.id], ...savedCustom]));
+  };
+
+  const submitCustom = (category: MedicalHistoryCategory) => {
+    const value = customValue.trim();
+    if (!value) {
+      setAddingTo(null);
+      return;
+    }
+    setCustomEntries((prev) => ({ ...prev, [category]: [...prev[category], value] }));
+    if (!getTag(category, value)) toggleTag(category, value);
+    setCustomValue('');
+    setAddingTo(null);
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-4 items-start">
       <div className="space-y-5 max-h-[60vh] overflow-y-auto pr-1">
@@ -97,7 +126,7 @@ export default function MedicalHistoryPanel({ tags, onChangeTags, noKnown, onCha
                 </label>
               </div>
               <div className="flex flex-wrap gap-2">
-                {cat.presets.map((value) => {
+                {chipsFor(cat).map((value) => {
                   const active = !!getTag(cat.id, value);
                   return (
                     <div
@@ -132,6 +161,35 @@ export default function MedicalHistoryPanel({ tags, onChangeTags, noKnown, onCha
                     </div>
                   );
                 })}
+
+                {addingTo === cat.id ? (
+                  <div className="flex items-center gap-1.5 pl-3 pr-1.5 py-1.5 rounded-full border border-primary-400 bg-white dark:bg-gray-800">
+                    <input
+                      autoFocus
+                      value={customValue}
+                      onChange={(e) => setCustomValue(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') submitCustom(cat.id);
+                        if (e.key === 'Escape') {
+                          setCustomValue('');
+                          setAddingTo(null);
+                        }
+                      }}
+                      onBlur={() => submitCustom(cat.id)}
+                      placeholder="Type and press Enter"
+                      className="text-sm outline-none bg-transparent w-36 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    disabled={disabled}
+                    onClick={() => setAddingTo(cat.id)}
+                    className="flex items-center gap-1 pl-3 pr-3.5 py-1.5 rounded-full border border-dashed border-primary-300 dark:border-primary-700 text-sm text-primary-600 dark:text-primary-400 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    + Add Custom
+                  </button>
+                )}
               </div>
             </div>
           );
