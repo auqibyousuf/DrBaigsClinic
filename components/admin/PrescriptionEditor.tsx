@@ -4,11 +4,18 @@ import { useState, useRef } from 'react';
 import { Plus, X, Stethoscope, ClipboardCheck, ScanSearch, Pill, FlaskConical, MessageSquareText, CalendarClock, StickyNote, Activity, Lock, Check, ArrowLeft, ClipboardList, FolderPlus, Paperclip } from 'lucide-react';
 import { useToast } from '@/components/ToastProvider';
 import Modal from '@/components/Modal';
-import { AdminInput, AdminTextarea } from '@/components/admin/AdminField';
+import { AdminInput, AdminTextarea, AdminSelect } from '@/components/admin/AdminField';
 import AutocompleteTagInput from '@/components/admin/AutocompleteTagInput';
 import VitalsPanel, { type VitalsReading } from '@/components/admin/VitalsPanel';
+import MedicalHistoryPanel from '@/components/admin/MedicalHistoryPanel';
 import SectionCard from '@/components/admin/SectionCard';
-import type { SymptomEntry, Medication, MedicalRecordFile } from '@/lib/prescriptions';
+import type {
+  SymptomEntry,
+  Medication,
+  MedicalRecordFile,
+  MedicalHistoryTag,
+  MedicalHistoryCategory,
+} from '@/lib/prescriptions';
 
 interface PrescriptionEditorProps {
   appointmentId: string;
@@ -30,7 +37,8 @@ interface PrescriptionEditorProps {
     follow_up_date?: string | null;
     additional_notes?: string | null;
     private_notes?: string | null;
-    medical_history?: string | null;
+    medical_history_tags?: MedicalHistoryTag[];
+    medical_history_no_known?: MedicalHistoryCategory[];
     medical_records?: MedicalRecordFile[];
     notes: string | null;
   } | null;
@@ -39,6 +47,8 @@ interface PrescriptionEditorProps {
 }
 
 const emptyMed: Medication = { name: '', dosage: '', frequency: '', duration: '', notes: '' };
+
+const RECORD_TYPES = ['Lab Report', 'Imaging / Scan', 'Prescription', 'Discharge Summary', 'Other'];
 
 const FOLLOW_UP_PRESETS = [
   { label: '2 Days', days: 2 },
@@ -72,8 +82,14 @@ export default function PrescriptionEditor({
   const [followUpDate, setFollowUpDate] = useState(initial?.follow_up_date || '');
   const [additionalNotes, setAdditionalNotes] = useState(initial?.additional_notes || '');
   const [privateNotes, setPrivateNotes] = useState(initial?.private_notes || '');
-  const [medicalHistory, setMedicalHistory] = useState(initial?.medical_history || '');
+  const [medicalHistoryTags, setMedicalHistoryTags] = useState<MedicalHistoryTag[]>(initial?.medical_history_tags || []);
+  const [medicalHistoryNoKnown, setMedicalHistoryNoKnown] = useState<MedicalHistoryCategory[]>(
+    initial?.medical_history_no_known || []
+  );
   const [medicalRecords, setMedicalRecords] = useState<MedicalRecordFile[]>(initial?.medical_records || []);
+  const [draftRecordType, setDraftRecordType] = useState('');
+  const [draftRecordDate, setDraftRecordDate] = useState('');
+  const [draftRecordNotes, setDraftRecordNotes] = useState('');
   const [uploadingRecord, setUploadingRecord] = useState(false);
   const [saving, setSaving] = useState(false);
   const [openModule, setOpenModule] = useState<'vitals' | 'notes' | 'history' | 'records' | null>(null);
@@ -82,13 +98,21 @@ export default function PrescriptionEditor({
 
   const vitalsFilled = !!(vitals.temperature || vitals.pulse || vitals.systolic || vitals.spo2 || vitals.diastolic || vitals.rbs);
   const notesFilled = !!privateNotes.trim();
-  const historyFilled = !!medicalHistory.trim();
+  const historyFilled = medicalHistoryTags.length > 0 || medicalHistoryNoKnown.length > 0;
   const recordsFilled = medicalRecords.length > 0;
 
   const handleRecordUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.target.value = '';
     if (!file) return;
+    if (!draftRecordType || !draftRecordDate) {
+      showToast('error', 'Select a record type and date before uploading');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      showToast('error', 'File size must be under 5MB');
+      return;
+    }
     setUploadingRecord(true);
     try {
       const formData = new FormData();
@@ -96,7 +120,13 @@ export default function PrescriptionEditor({
       const res = await fetch('/api/cms/upload', { method: 'POST', credentials: 'include', body: formData });
       const result = await res.json();
       if (!res.ok) throw new Error(result.error || 'Failed to upload file');
-      setMedicalRecords((prev) => [...prev, { name: file.name, url: result.url }]);
+      setMedicalRecords((prev) => [
+        ...prev,
+        { name: file.name, url: result.url, recordType: draftRecordType, date: draftRecordDate, notes: draftRecordNotes },
+      ]);
+      setDraftRecordType('');
+      setDraftRecordDate('');
+      setDraftRecordNotes('');
     } catch (err) {
       showToast('error', err instanceof Error ? err.message : 'Failed to upload file');
     } finally {
@@ -141,7 +171,8 @@ export default function PrescriptionEditor({
           followUpDate: followUpDate || null,
           additionalNotes,
           privateNotes,
-          medicalHistory,
+          medicalHistoryTags,
+          medicalHistoryNoKnown,
           medicalRecords,
         }),
       });
@@ -396,14 +427,21 @@ export default function PrescriptionEditor({
       </div>
 
       {openModule === 'vitals' && (
-        <Modal isOpen onClose={() => setOpenModule(null)} title="Vitals & Body Composition">
+        <Modal isOpen onClose={() => setOpenModule(null)} title="Vitals">
           <div className="space-y-4">
             <VitalsPanel reading={vitals} onChange={setVitals} />
             <div className="flex justify-end gap-2 pt-2 border-t border-gray-200 dark:border-gray-700">
               <button
                 type="button"
                 onClick={() => setOpenModule(null)}
-                className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium cursor-pointer"
+                className="px-4 py-2 rounded-lg border border-primary-600 text-primary-600 text-sm font-semibold cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => setOpenModule(null)}
+                className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-semibold cursor-pointer"
               >
                 Save
               </button>
@@ -413,19 +451,34 @@ export default function PrescriptionEditor({
       )}
 
       {openModule === 'notes' && (
-        <Modal isOpen onClose={() => setOpenModule(null)} title="Private Notes">
-          <div className="space-y-4">
+        <Modal isOpen onClose={() => setOpenModule(null)} title="Add Private Note">
+          <div className="space-y-3">
+            <div>
+              <h4 className="text-sm font-semibold text-gray-900 dark:text-white">Private Note</h4>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                This note is only visible to you and will not be printed — you'll still be able to
+                see it in Patient Details.
+              </p>
+            </div>
             <AdminTextarea
               value={privateNotes}
               onChange={(e) => setPrivateNotes(e.target.value)}
-              rows={5}
-              hint="Only visible to you — never printed or shown to the patient."
+              rows={8}
+              placeholder="Write Your Notes"
             />
             <div className="flex justify-end gap-2 pt-2 border-t border-gray-200 dark:border-gray-700">
               <button
                 type="button"
                 onClick={() => setOpenModule(null)}
-                className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium cursor-pointer"
+                className="px-4 py-2 rounded-lg border border-primary-600 text-primary-600 text-sm font-semibold cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => setOpenModule(null)}
+                disabled={!privateNotes.trim()}
+                className="px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed text-white rounded-lg text-sm font-semibold cursor-pointer"
               >
                 Save
               </button>
@@ -435,20 +488,26 @@ export default function PrescriptionEditor({
       )}
 
       {openModule === 'history' && (
-        <Modal isOpen onClose={() => setOpenModule(null)} title="Medical History">
+        <Modal isOpen onClose={() => setOpenModule(null)} title="Medical History" size="xl">
           <div className="space-y-4">
-            <AdminTextarea
-              value={medicalHistory}
-              onChange={(e) => setMedicalHistory(e.target.value)}
-              rows={5}
-              placeholder="Allergies, chronic conditions, prior surgeries, family history, etc."
-              hint="Printed on the prescription along with this visit's details."
+            <MedicalHistoryPanel
+              tags={medicalHistoryTags}
+              onChangeTags={setMedicalHistoryTags}
+              noKnown={medicalHistoryNoKnown}
+              onChangeNoKnown={setMedicalHistoryNoKnown}
             />
             <div className="flex justify-end gap-2 pt-2 border-t border-gray-200 dark:border-gray-700">
               <button
                 type="button"
                 onClick={() => setOpenModule(null)}
-                className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium cursor-pointer"
+                className="px-4 py-2 rounded-lg border border-primary-600 text-primary-600 text-sm font-semibold cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => setOpenModule(null)}
+                className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-semibold cursor-pointer"
               >
                 Save
               </button>
@@ -458,7 +517,7 @@ export default function PrescriptionEditor({
       )}
 
       {openModule === 'records' && (
-        <Modal isOpen onClose={() => setOpenModule(null)} title="Medical Records">
+        <Modal isOpen onClose={() => setOpenModule(null)} title="Upload Medical Records" size="md">
           <div className="space-y-4">
             {medicalRecords.length > 0 && (
               <ul className="space-y-1.5">
@@ -474,7 +533,11 @@ export default function PrescriptionEditor({
                       className="flex items-center gap-2 min-w-0 text-primary-600 hover:underline"
                     >
                       <Paperclip className="w-3.5 h-3.5 flex-shrink-0" />
-                      <span className="truncate">{rec.name}</span>
+                      <span className="truncate">
+                        {rec.name}
+                        {rec.recordType ? ` · ${rec.recordType}` : ''}
+                        {rec.date ? ` · ${rec.date}` : ''}
+                      </span>
                     </a>
                     <button
                       type="button"
@@ -488,21 +551,78 @@ export default function PrescriptionEditor({
                 ))}
               </ul>
             )}
-            <input ref={fileInputRef} type="file" accept="image/*,application/pdf" onChange={handleRecordUpload} className="hidden" />
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploadingRecord}
-              className="inline-flex items-center gap-1.5 text-sm text-primary-600 hover:text-primary-700 font-medium disabled:opacity-50 cursor-pointer"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              {uploadingRecord ? 'Uploading...' : 'Upload File'}
-            </button>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-3 rounded-xl bg-gray-50 dark:bg-gray-900/40 border border-gray-200 dark:border-gray-700">
+              <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <AdminSelect
+                  label="Record Type"
+                  required
+                  value={draftRecordType}
+                  onChange={(e) => setDraftRecordType(e.target.value)}
+                  placeholder="Select Type"
+                  options={RECORD_TYPES.map((t) => ({ value: t, label: t }))}
+                />
+                <AdminInput
+                  label="Date of Investigation"
+                  required
+                  type="date"
+                  value={draftRecordDate}
+                  onChange={(e) => setDraftRecordDate(e.target.value)}
+                />
+              </div>
+              <div className="sm:col-span-2">
+                <AdminTextarea
+                  label="Notes"
+                  value={draftRecordNotes}
+                  onChange={(e) => setDraftRecordNotes(e.target.value.slice(0, 150))}
+                  rows={3}
+                  placeholder="Enter Remarks"
+                  hint={`${draftRecordNotes.length}/150`}
+                />
+              </div>
+              <div className="sm:col-span-2">
+                <span className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Attachment <span className="text-red-500">*</span>
+                </span>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*,application/pdf"
+                  onChange={handleRecordUpload}
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploadingRecord}
+                  className="w-full flex flex-col items-center justify-center gap-1.5 py-8 rounded-xl border-2 border-dashed border-primary-300 dark:border-primary-800 bg-white dark:bg-gray-800 text-center disabled:opacity-50 cursor-pointer"
+                >
+                  <FolderPlus className="w-6 h-6 text-primary-600" />
+                  <span className="text-sm">
+                    <span className="text-primary-600 font-semibold">
+                      {uploadingRecord ? 'Uploading...' : 'Click to Upload'}
+                    </span>{' '}
+                    <span className="text-gray-700 dark:text-gray-300">or drag and drop</span>
+                  </span>
+                  <span className="text-xs text-gray-400 dark:text-gray-500">
+                    Only jpg, jpeg, png or pdf files with the max size 5MB.
+                  </span>
+                </button>
+              </div>
+            </div>
+
             <div className="flex justify-end gap-2 pt-2 border-t border-gray-200 dark:border-gray-700">
               <button
                 type="button"
                 onClick={() => setOpenModule(null)}
-                className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium cursor-pointer"
+                className="px-4 py-2 rounded-lg border border-primary-600 text-primary-600 text-sm font-semibold cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => setOpenModule(null)}
+                className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-semibold cursor-pointer"
               >
                 Save
               </button>

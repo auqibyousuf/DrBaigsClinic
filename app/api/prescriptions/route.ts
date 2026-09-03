@@ -9,7 +9,12 @@ import {
 import { listSchedulesForDoctor, expandSlotsForDate } from '@/lib/schedules';
 import { getPatientById } from '@/lib/patients';
 import { generatePrescriptionPdf } from '@/lib/prescription-pdf';
-import { setPrescriptionPdfUrl, upsertPrescription, uploadPrescriptionPdf } from '@/lib/prescriptions';
+import {
+  setPrescriptionPdfUrl,
+  summarizeMedicalHistory,
+  upsertPrescription,
+  uploadPrescriptionPdf,
+} from '@/lib/prescriptions';
 import { getCMSData } from '@/lib/cms';
 import { sendPatientConfirmation } from '@/lib/notifications';
 
@@ -38,7 +43,8 @@ export async function POST(request: NextRequest) {
       followUpDate,
       additionalNotes,
       privateNotes,
-      medicalHistory,
+      medicalHistoryTags = [],
+      medicalHistoryNoKnown = [],
       medicalRecords = [],
       notes,
     } = await request.json();
@@ -90,7 +96,9 @@ export async function POST(request: NextRequest) {
       follow_up_date: followUpDate || null,
       additional_notes: additionalNotes,
       private_notes: privateNotes,
-      medical_history: medicalHistory,
+      medical_history: summarizeMedicalHistory(medicalHistoryTags, medicalHistoryNoKnown),
+      medical_history_tags: medicalHistoryTags,
+      medical_history_no_known: medicalHistoryNoKnown,
       medical_records: medicalRecords,
       notes,
     });

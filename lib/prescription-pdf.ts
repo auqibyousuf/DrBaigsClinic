@@ -106,8 +106,11 @@ export async function generatePrescriptionPdf(
   if (prescription.medical_history) {
     drawText('MEDICAL HISTORY', margin, y, 9, boldFont, accent);
     y -= 16;
-    drawText(prescription.medical_history, margin, y, 10, font, dark);
-    y -= 28;
+    for (const line of prescription.medical_history.split('\n')) {
+      drawText(line, margin, y, 10, font, dark);
+      y -= 14;
+    }
+    y -= 14;
   }
 
   // ---- Symptoms ----

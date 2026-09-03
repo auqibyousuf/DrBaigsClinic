@@ -32,8 +32,9 @@ interface AppointmentPrescription {
   follow_up_date?: string | null;
   additional_notes?: string | null;
   private_notes?: string | null;
-  medical_history?: string | null;
-  medical_records?: { name: string; url: string }[];
+  medical_history_tags?: { category: 'condition' | 'allergy' | 'family' | 'lifestyle'; value: string; since?: string; status?: 'active' | 'inactive'; note?: string }[];
+  medical_history_no_known?: ('condition' | 'allergy' | 'family' | 'lifestyle')[];
+  medical_records?: { name: string; url: string; recordType?: string; date?: string; notes?: string }[];
   notes: string | null;
   pdfUrl: string | null;
 }

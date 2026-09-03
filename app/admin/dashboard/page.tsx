@@ -29,6 +29,7 @@ import type { CMSData } from '@/lib/cms';
 import ServiceDetailEditor from '@/components/admin/ServiceDetailEditor';
 import DoctorsEditor from '@/components/admin/DoctorsEditor';
 import BookingSettingsEditor from '@/components/admin/BookingSettingsEditor';
+import DashboardHome from '@/components/admin/DashboardHome';
 import AppointmentsView from '@/components/admin/AppointmentsView';
 import PrescriptionsListView from '@/components/admin/PrescriptionsListView';
 import PatientsView from '@/components/admin/PatientsView';
@@ -72,7 +73,7 @@ interface EditorProps {
 }
 
 export default function AdminDashboard() {
-  const [activeSection, setActiveSection] = useState<string>('header');
+  const [activeSection, setActiveSection] = useState<string>('dashboard');
   // Both groups start open (each its own card) — an accordion toggle per
   // card lets the admin collapse either one, but neither is collapsed by
   // default the way a single-open accordion would force.
@@ -182,6 +183,20 @@ export default function AdminDashboard() {
   };
 
   const sections = [
+    {
+      id: 'dashboard',
+      name: 'Dashboard',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+          />
+        </svg>
+      ),
+    },
     {
       id: 'header',
       name: 'Header',
@@ -479,6 +494,7 @@ export default function AdminDashboard() {
                 </div>
               ) : (
                 <>
+                  {activeSection === 'dashboard' && <DashboardHome doctors={data.doctors?.items || []} />}
                   {activeSection === 'header' && (
                     <HeaderEditor
                       data={data.header || {}}

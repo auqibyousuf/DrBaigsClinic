@@ -248,7 +248,8 @@ export default function AppointmentsView({ doctors }: AppointmentsViewProps) {
                 follow_up_date: prescribingAppt.prescription.follow_up_date,
                 additional_notes: prescribingAppt.prescription.additional_notes,
                 private_notes: prescribingAppt.prescription.private_notes,
-                medical_history: prescribingAppt.prescription.medical_history,
+                medical_history_tags: prescribingAppt.prescription.medical_history_tags,
+                medical_history_no_known: prescribingAppt.prescription.medical_history_no_known,
                 medical_records: prescribingAppt.prescription.medical_records,
                 notes: prescribingAppt.prescription.notes,
               }

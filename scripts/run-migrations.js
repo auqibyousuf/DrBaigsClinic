@@ -31,6 +31,7 @@ const MIGRATIONS = [
   '007_invoices_storage.sql',
   '008_appointments_finished_status.sql',
   '009_prescriptions_history_records.sql',
+  '010_medical_history_structured.sql',
 ];
 
 async function main() {
