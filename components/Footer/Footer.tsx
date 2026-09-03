@@ -2,9 +2,43 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import {
+  FacebookLogo,
+  InstagramLogo,
+  XLogo,
+  LinkedinLogo,
+  YoutubeLogo,
+  WhatsappLogo,
+  TiktokLogo,
+  PinterestLogo,
+  ThreadsLogo,
+  LinkSimple,
+  type IconProps,
+} from '@phosphor-icons/react';
 
 import { useCMSData } from '@/lib/cms-client';
 import Logo from '@/components/Logo';
+
+// Social icons are derived from the platform name (CMS just needs a name +
+// URL) instead of an uploaded image — one consistent icon set (Phosphor)
+// instead of admin-supplied images of inconsistent size/style/weight.
+const SOCIAL_ICONS: Record<string, React.ComponentType<IconProps>> = {
+  facebook: FacebookLogo,
+  instagram: InstagramLogo,
+  twitter: XLogo,
+  x: XLogo,
+  linkedin: LinkedinLogo,
+  youtube: YoutubeLogo,
+  whatsapp: WhatsappLogo,
+  tiktok: TiktokLogo,
+  pinterest: PinterestLogo,
+  threads: ThreadsLogo,
+};
+
+function socialIconFor(name?: string) {
+  const key = (name || '').trim().toLowerCase();
+  return SOCIAL_ICONS[key] || LinkSimple;
+}
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -63,7 +97,7 @@ const Footer = () => {
       return { label: line.slice(0, separatorIndex).trim(), details: line.slice(separatorIndex + 1).trim() };
     });
   const socialMedia = Array.isArray(footerData?.socialMedia) ? footerData.socialMedia : [];
-  const copyright = footerData?.copyright || 'Glow Clinic';
+  const copyright = footerData?.copyright || "Dr Baig's Clinic";
   const legalLinks = Array.isArray(footerData?.legalLinks) && footerData.legalLinks.length
     ? footerData.legalLinks
     : [
@@ -99,8 +133,10 @@ const Footer = () => {
             <nav aria-label="Social media links">
               <ul className="flex flex-wrap gap-3" role="list">
                 {socialMedia.map(
-                  (item: { id?: string; name?: string; url?: string; icon?: string }, index: number) =>
-                    item?.url && (
+                  (item: { id?: string; name?: string; url?: string }, index: number) => {
+                    if (!item?.url) return null;
+                    const Icon = socialIconFor(item.name);
+                    return (
                       <li key={item.id || `social-${index}`}>
                         <a
                           href={item.url}
@@ -109,16 +145,11 @@ const Footer = () => {
                           target="_blank"
                           rel="noopener noreferrer"
                         >
-                          {item.icon ? (
-                            <img src={item.icon} alt={item.name} className="w-5 h-5" />
-                          ) : (
-                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-                            </svg>
-                          )}
+                          <Icon className="w-5 h-5" weight="fill" />
                         </a>
                       </li>
-                    )
+                    );
+                  }
                 )}
               </ul>
             </nav>
