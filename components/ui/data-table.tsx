@@ -46,6 +46,11 @@ interface DataTableProps<TData, TValue> {
   // buttons calling row.toggleExpanded() itself — clicking anywhere else on
   // the row should then do nothing, so editing is an explicit action.
   manualExpandControl?: boolean;
+  // Row-id accessor + a row id to auto-expand once (e.g. jumping straight
+  // into a just-created row's detail panel instead of making the admin find
+  // and click it themselves).
+  getRowId?: (row: TData) => string;
+  autoExpandRowId?: string | null;
 }
 
 export function DataTable<TData, TValue>({
@@ -58,11 +63,14 @@ export function DataTable<TData, TValue>({
   renderExpandedRow,
   pageSize = 10,
   manualExpandControl = false,
+  getRowId,
+  autoExpandRowId,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [expanded, setExpanded] = useState<ExpandedState>({});
   const [globalFilter, setGlobalFilter] = useState('');
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [autoExpanded, setAutoExpanded] = useState<string | null>(null);
 
   const table = useReactTable({
     data,
@@ -80,8 +88,14 @@ export function DataTable<TData, TValue>({
     getPaginationRowModel: getPaginationRowModel(),
     getExpandedRowModel: getExpandedRowModel(),
     getRowCanExpand: () => !!renderExpandedRow,
+    getRowId: getRowId ? (row) => getRowId(row) : undefined,
     initialState: { pagination: { pageSize } },
   });
+
+  if (autoExpandRowId && autoExpandRowId !== autoExpanded && table.getRowModel().rows.some((r) => r.id === autoExpandRowId)) {
+    setAutoExpanded(autoExpandRowId);
+    setExpanded({ [autoExpandRowId]: true });
+  }
 
   return (
     <div className="space-y-4">

@@ -29,8 +29,9 @@ interface AppointmentRow {
   reason: string;
   doctor_id: string;
   appointment_date: string;
-  slot_start: string;
-  status: 'confirmed' | 'cancelled';
+  slot_start: string | null;
+  status: 'confirmed' | 'finished' | 'cancelled';
+  is_walk_in: boolean;
   prescription: { id: string } | null;
 }
 
@@ -130,7 +131,9 @@ export default function PrescriptionsListView({ doctors }: PrescriptionsListView
             appt.status === 'confirmed' &&
             appt.patient_id &&
             !appt.prescription &&
-            new Date(`${appt.appointment_date}T${appt.slot_start}:00`) <= now
+            (appt.is_walk_in ||
+              !appt.slot_start ||
+              new Date(`${appt.appointment_date}T${appt.slot_start}:00`) <= now)
         );
         setPending(eligible);
       }
@@ -190,23 +193,24 @@ export default function PrescriptionsListView({ doctors }: PrescriptionsListView
             No completed visits are waiting on a prescription right now.
           </p>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 items-stretch">
             {pending.map((appt) => (
               <div
                 key={appt.id}
-                className="border border-gray-200 dark:border-gray-700 rounded-xl p-4 bg-white dark:bg-gray-800 shadow-sm"
+                className="flex flex-col h-full min-h-[9.5rem] border border-gray-200 dark:border-gray-700 rounded-xl p-4 bg-white dark:bg-gray-800 shadow-sm"
               >
                 <p className="font-medium text-gray-900 dark:text-white truncate">{appt.patient_name}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                  {doctorName(appt.doctor_id)} · {appt.appointment_date} at {appt.slot_start}
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1 truncate">
+                  {doctorName(appt.doctor_id)} · {appt.appointment_date}
+                  {appt.slot_start ? ` at ${appt.slot_start}` : ' · Walk-in'}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 truncate mb-3">{appt.reason}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 mb-3 flex-1">{appt.reason}</p>
                 <Button
                   onClick={() => setWritingFor(appt)}
                   variant="primary"
                   size="sm"
                   icon={<CalendarCheck weight="bold" />}
-                  className="w-full"
+                  className="w-full mt-auto"
                 >
                   Write Prescription
                 </Button>
@@ -238,7 +242,7 @@ export default function PrescriptionsListView({ doctors }: PrescriptionsListView
               patientName: writingFor.patient_name,
               patientPhone: writingFor.patient_phone,
               date: writingFor.appointment_date,
-              slot: writingFor.slot_start,
+              slot: writingFor.slot_start || 'Walk-in',
               reason: writingFor.reason,
             }}
             initial={null}

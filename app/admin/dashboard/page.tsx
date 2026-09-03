@@ -32,6 +32,7 @@ import BookingSettingsEditor from '@/components/admin/BookingSettingsEditor';
 import AppointmentsView from '@/components/admin/AppointmentsView';
 import PrescriptionsListView from '@/components/admin/PrescriptionsListView';
 import PatientsView from '@/components/admin/PatientsView';
+import BillingListView from '@/components/admin/BillingListView';
 import IconPicker from '@/components/admin/IconPicker';
 import VariableReference from '@/components/admin/VariableReference';
 import { AdminInput, AdminTextarea, AdminSelect } from '@/components/admin/AdminField';
@@ -317,6 +318,20 @@ export default function AdminDashboard() {
       ),
     },
     {
+      id: 'billing',
+      name: 'Billing',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V6m0 10v2m9-8a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+        </svg>
+      ),
+    },
+    {
       id: 'patients',
       name: 'Patients',
       icon: (
@@ -374,8 +389,8 @@ export default function AdminDashboard() {
 
   return (
     <>
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
+      <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-6">
           {/* Sidebar */}
           <div className="lg:col-span-1">
             <nav
@@ -412,7 +427,7 @@ export default function AdminDashboard() {
           </div>
 
           {/* Main Content */}
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-4">
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 sm:p-6">
               {sectionLoading ? (
                 <div
@@ -480,6 +495,7 @@ export default function AdminDashboard() {
                     <PrescriptionsListView doctors={data.doctors?.items || []} />
                   )}
                   {activeSection === 'patients' && <PatientsView />}
+                  {activeSection === 'billing' && <BillingListView />}
                   {activeSection === 'templates' && (
                     <TemplatesEditor data={data.contact || {}} onSave={handleSave} saving={saving} />
                   )}

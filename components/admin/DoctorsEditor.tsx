@@ -19,9 +19,11 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { PencilSimple, TrashSimple, UserCircle, DotsSixVertical, Check } from '@phosphor-icons/react';
+import { Eye } from 'lucide-react';
 import ImageUpload from '@/components/ImageUpload';
 import { useToast } from '@/components/ToastProvider';
 import { AdminInput, AdminTextarea } from '@/components/admin/AdminField';
+import DoctorDetailsModal from '@/components/admin/DoctorDetailsModal';
 import type { CMSData } from '@/lib/cms';
 
 type Doctor = NonNullable<CMSData['doctors']>['items'][number];
@@ -39,6 +41,7 @@ function SortableDoctorItem({
   onUpdate,
   onDelete,
   onToggleExpand,
+  onViewDetails,
 }: {
   doctor: Doctor;
   index: number;
@@ -46,6 +49,7 @@ function SortableDoctorItem({
   onUpdate: (index: number, doctor: Doctor) => void;
   onDelete: (index: number) => void;
   onToggleExpand: (id: string) => void;
+  onViewDetails: () => void;
 }) {
   const id = doctor.id || `doctor-${index}`;
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
@@ -84,6 +88,14 @@ function SortableDoctorItem({
             {!doctor.isActive && ' · Hidden from booking'}
           </p>
         </div>
+        <button
+          type="button"
+          onClick={onViewDetails}
+          className="flex-shrink-0 text-gray-500 hover:text-primary-600 dark:hover:text-primary-400 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+          title="View details, consulted patients, and appointments"
+        >
+          <Eye className="w-4 h-4" />
+        </button>
         <button
           type="button"
           onClick={() => onToggleExpand(id)}
@@ -210,6 +222,7 @@ function SortableDoctorItem({
 export default function DoctorsEditor({ data, onSave, saving }: DoctorsEditorProps) {
   const [formData, setFormData] = useState<Partial<NonNullable<CMSData['doctors']>>>(data || {});
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const [viewingDoctor, setViewingDoctor] = useState<Doctor | null>(null);
   const { showToast } = useToast();
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -257,6 +270,7 @@ export default function DoctorsEditor({ data, onSave, saving }: DoctorsEditorPro
   };
 
   return (
+    <>
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="border-b border-gray-200 dark:border-gray-700 pb-4 mb-6">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Doctors</h2>
@@ -278,6 +292,7 @@ export default function DoctorsEditor({ data, onSave, saving }: DoctorsEditorPro
                 onUpdate={updateDoctor}
                 onDelete={deleteDoctor}
                 onToggleExpand={toggleExpand}
+                onViewDetails={() => setViewingDoctor(doctor)}
               />
             );
           })}
@@ -330,5 +345,13 @@ export default function DoctorsEditor({ data, onSave, saving }: DoctorsEditorPro
         </button>
       </div>
     </form>
+    {viewingDoctor && (
+      <DoctorDetailsModal
+        doctorId={viewingDoctor.id}
+        doctorName={viewingDoctor.name || 'Untitled doctor'}
+        onClose={() => setViewingDoctor(null)}
+      />
+    )}
+    </>
   );
 }

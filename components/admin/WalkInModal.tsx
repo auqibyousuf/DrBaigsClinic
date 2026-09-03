@@ -22,7 +22,7 @@ interface PatientSummary {
 interface WalkInModalProps {
   doctors: NonNullable<CMSData['doctors']>['items'];
   onClose: () => void;
-  onStarted: (appointmentId: string) => void;
+  onStarted: (appointmentId: string) => void | Promise<void>;
 }
 
 // "Start Walk-in Consultation" (MEDISRAY_AUDIT.md finding #1): search or add
@@ -70,7 +70,7 @@ export default function WalkInModal({ doctors, onClose, onStarted }: WalkInModal
       });
       const result = await res.json();
       if (!res.ok) throw new Error(result.error || 'Failed to start consultation');
-      onStarted(result.appointment.id);
+      await onStarted(result.appointment.id);
     } catch (err) {
       showToast('error', err instanceof Error ? err.message : 'Failed to start consultation');
     } finally {

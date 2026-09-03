@@ -7,6 +7,7 @@ import { useCMSData } from '@/lib/cms-client';
 import { getConfiguredSlots } from '@/lib/appointments';
 import PrescriptionEditor from '@/components/admin/PrescriptionEditor';
 import BillingPanel from '@/components/admin/BillingPanel';
+import DropdownMenu from '@/components/admin/DropdownMenu';
 import Button from '@/components/Button';
 import { AdminInput, AdminTextarea, AdminSelect } from '@/components/admin/AdminField';
 import type { VitalsReading } from '@/components/admin/VitalsPanel';
@@ -72,12 +73,17 @@ interface AppointmentDetailsPanelProps {
   appointment: Appointment;
   doctorName: string;
   onChanged: () => void;
+  // Jumps straight into the prescription/consultation editor — used when a
+  // walk-in was just started, matching Medisray's "Consult" click going
+  // directly into the Digital-Rx screen instead of a separate step.
+  autoPrescribe?: boolean;
 }
 
 export default function AppointmentDetailsPanel({
   appointment: appt,
   doctorName,
   onChanged,
+  autoPrescribe = false,
 }: AppointmentDetailsPanelProps) {
   const { showToast } = useToast();
   const { data: bookingSettingsData } = useCMSData('bookingSettings');
@@ -93,7 +99,7 @@ export default function AppointmentDetailsPanel({
   const [editSlot, setEditSlot] = useState(appt.slot_start || '');
   const [savingDetails, setSavingDetails] = useState(false);
 
-  const [prescribing, setPrescribing] = useState(false);
+  const [prescribing, setPrescribing] = useState(autoPrescribe);
   const [showHistory, setShowHistory] = useState(false);
   const [historyVisits, setHistoryVisits] = useState<HistoryVisit[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
@@ -273,45 +279,35 @@ export default function AppointmentDetailsPanel({
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <Button onClick={saveDetails} disabled={savingDetails} variant="primary" size="sm">
           {savingDetails ? 'Saving...' : 'Save Details'}
         </Button>
-        {appt.status === 'confirmed' && (
-          <>
-            <Button
-              onClick={handleFinish}
-              variant="outline"
-              size="sm"
-              title="Mark this visit finished — moves it out of the Queue (also happens automatically when a prescription is saved)"
-            >
-              Finish Visit
-            </Button>
-            <Button
-              onClick={handleCancel}
-              variant="outline"
-              size="sm"
-              className="!text-red-600 !border-red-300"
-              title="Mark as cancelled and notify the patient — keeps a record"
-            >
-              Cancel Appointment
-            </Button>
-          </>
-        )}
-        <Button
-          onClick={handleDelete}
-          variant="outline"
-          size="sm"
-          className="!text-red-700 !border-red-400"
-          title="Permanently remove this appointment and its prescription — no record kept"
-        >
-          Delete
-        </Button>
-        {appt.patient_id && (
-          <Button onClick={toggleHistory} variant="outline" size="sm">
-            {showHistory ? 'Hide History' : 'View Patient History'}
-          </Button>
-        )}
+        <DropdownMenu
+          actions={[
+            {
+              label: 'Finish Visit',
+              hidden: appt.status !== 'confirmed',
+              onClick: handleFinish,
+            },
+            {
+              label: showHistory ? 'Hide Patient History' : 'View Patient History',
+              hidden: !appt.patient_id,
+              onClick: toggleHistory,
+            },
+            {
+              label: 'Cancel Appointment',
+              hidden: appt.status !== 'confirmed',
+              danger: true,
+              onClick: handleCancel,
+            },
+            {
+              label: 'Delete Permanently',
+              danger: true,
+              onClick: handleDelete,
+            },
+          ]}
+        />
       </div>
 
       {/* Prescription section — only actionable once the appointment has started */}

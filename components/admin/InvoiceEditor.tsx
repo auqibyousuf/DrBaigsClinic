@@ -1,9 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Trash } from 'lucide-react';
+import { Plus, Trash, Receipt, Percent, Wallet } from 'lucide-react';
 import { useToast } from '@/components/ToastProvider';
 import { AdminInput, AdminSelect, AdminTextarea } from '@/components/admin/AdminField';
+import SectionCard from '@/components/admin/SectionCard';
 import type { DiscountType, InvoiceLineItem, Payment, Invoice } from '@/lib/invoices';
 
 interface InvoiceEditorProps {
@@ -120,7 +121,8 @@ export default function InvoiceEditor({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
+      <SectionCard icon={<Receipt className="w-4 h-4" />} title="Billing Items">
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
@@ -211,10 +213,10 @@ export default function InvoiceEditor({
         <Plus className="w-3.5 h-3.5" />
         Add Item
       </button>
+      </SectionCard>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
-        <div className="space-y-3">
-          <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Extra Discount</h4>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <SectionCard icon={<Percent className="w-4 h-4" />} title="Extra Discount">
           <div className="flex gap-2">
             <AdminInput
               type="number"
@@ -229,8 +231,9 @@ export default function InvoiceEditor({
               {extraDiscountType === 'percent' ? '%' : '₹'}
             </button>
           </div>
+        </SectionCard>
 
-          <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 pt-2">Payment</h4>
+        <SectionCard icon={<Wallet className="w-4 h-4" />} title="Payment">
           {payments.map((p, index) => (
             <div key={index} className="flex gap-2">
               <div className="flex-1">
@@ -258,37 +261,37 @@ export default function InvoiceEditor({
             <Plus className="w-3.5 h-3.5" />
             Payment mode
           </button>
+        </SectionCard>
+      </div>
 
-          <AdminTextarea label="Notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
+      <AdminTextarea label="Notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
+
+      <div className="p-4 rounded-xl bg-gray-50 dark:bg-gray-900/40 border border-gray-200 dark:border-gray-700 space-y-2 text-sm">
+        <div className="flex justify-between text-gray-600 dark:text-gray-400">
+          <span>Subtotal</span>
+          <span>₹{subtotal.toFixed(2)}</span>
         </div>
-
-        <div className="p-4 rounded-lg bg-gray-50 dark:bg-gray-900/40 border border-gray-200 dark:border-gray-700 space-y-2 text-sm h-fit">
+        <div className="flex justify-between text-gray-600 dark:text-gray-400">
+          <span>GST</span>
+          <span>₹{gstAmount.toFixed(2)}</span>
+        </div>
+        {extraDiscount > 0 && (
           <div className="flex justify-between text-gray-600 dark:text-gray-400">
-            <span>Subtotal</span>
-            <span>₹{subtotal.toFixed(2)}</span>
+            <span>Extra Discount</span>
+            <span>-₹{extraDiscount.toFixed(2)}</span>
           </div>
-          <div className="flex justify-between text-gray-600 dark:text-gray-400">
-            <span>GST</span>
-            <span>₹{gstAmount.toFixed(2)}</span>
-          </div>
-          {extraDiscount > 0 && (
-            <div className="flex justify-between text-gray-600 dark:text-gray-400">
-              <span>Extra Discount</span>
-              <span>-₹{extraDiscount.toFixed(2)}</span>
-            </div>
-          )}
-          <div className="flex justify-between font-semibold text-gray-900 dark:text-white pt-2 border-t border-gray-200 dark:border-gray-700">
-            <span>Total Payable</span>
-            <span>₹{totalPayable.toFixed(2)}</span>
-          </div>
-          <div className="flex justify-between text-gray-600 dark:text-gray-400">
-            <span>Paid Amount</span>
-            <span>₹{paidAmount.toFixed(2)}</span>
-          </div>
-          <div className={`flex justify-between font-semibold rounded-lg px-3 py-2 ${due > 0 ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400' : 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400'}`}>
-            <span>{due > 0 ? 'Due' : 'Fully Paid'}</span>
-            <span>₹{Math.max(due, 0).toFixed(2)}</span>
-          </div>
+        )}
+        <div className="flex justify-between font-semibold text-gray-900 dark:text-white pt-2 border-t border-gray-200 dark:border-gray-700">
+          <span>Total Payable</span>
+          <span>₹{totalPayable.toFixed(2)}</span>
+        </div>
+        <div className="flex justify-between text-gray-600 dark:text-gray-400">
+          <span>Paid Amount</span>
+          <span>₹{paidAmount.toFixed(2)}</span>
+        </div>
+        <div className={`flex justify-between font-semibold rounded-lg px-3 py-2 ${due > 0 ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400' : 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400'}`}>
+          <span>{due > 0 ? 'Due' : 'Fully Paid'}</span>
+          <span>₹{Math.max(due, 0).toFixed(2)}</span>
         </div>
       </div>
 

@@ -8,7 +8,6 @@ import { DataTable, type DataTableFilter } from '@/components/ui/data-table';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import AppointmentDetailsPanel, { type Appointment } from '@/components/admin/AppointmentDetailsPanel';
 import WalkInModal from '@/components/admin/WalkInModal';
-import { useToast } from '@/components/ToastProvider';
 
 interface AppointmentsViewProps {
   doctors: NonNullable<CMSData['doctors']>['items'];
@@ -24,7 +23,7 @@ export default function AppointmentsView({ doctors }: AppointmentsViewProps) {
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('queue');
   const [showWalkIn, setShowWalkIn] = useState(false);
-  const { showToast } = useToast();
+  const [autoOpenId, setAutoOpenId] = useState<string | null>(null);
 
   const fetchAppointments = async () => {
     setLoading(true);
@@ -57,63 +56,60 @@ export default function AppointmentsView({ doctors }: AppointmentsViewProps) {
 
   const columns: ColumnDef<Appointment>[] = [
     {
-      id: 'when',
-      header: 'Date & Time',
-      accessorFn: (row) => `${row.appointment_date} ${row.slot_start || ''}`,
-      cell: ({ row }) => (
-        <span className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-          {row.original.appointment_date}
-          {row.original.slot_start ? ` at ${row.original.slot_start}` : ''}
-          {row.original.is_walk_in && (
-            <span className="ml-2 px-1.5 py-0.5 rounded bg-accent-100 dark:bg-accent-900/40 text-accent-700 dark:text-accent-300 text-[10px] font-semibold uppercase align-middle">
-              Walk-in
-            </span>
-          )}
-        </span>
-      ),
-    },
-    {
       accessorKey: 'patient_name',
       header: 'Patient',
       cell: ({ row }) => (
-        <div>
-          <div className="font-medium text-gray-900 dark:text-white">{row.original.patient_name}</div>
-          <div className="text-xs text-gray-500 dark:text-gray-400">{row.original.patient_phone}</div>
+        <div className="text-xs">
+          <div className="font-medium text-gray-900 dark:text-white text-sm">{row.original.patient_name}</div>
+          <div className="text-gray-500 dark:text-gray-400">{row.original.patient_phone}</div>
         </div>
       ),
     },
     {
-      id: 'doctor',
-      header: 'Doctor',
-      accessorFn: (row) => doctorName(row.doctor_id),
-      cell: ({ row }) => <span className="whitespace-nowrap">{doctorName(row.original.doctor_id)}</span>,
+      id: 'when',
+      header: 'Visit',
+      accessorFn: (row) => `${row.appointment_date} ${row.slot_start || ''}`,
+      cell: ({ row }) => (
+        <div className="text-xs whitespace-nowrap">
+          <div className="text-gray-900 dark:text-white">
+            {row.original.appointment_date}
+            {row.original.slot_start ? ` · ${row.original.slot_start}` : ''}
+          </div>
+          <div className="text-gray-500 dark:text-gray-400">{doctorName(row.original.doctor_id)}</div>
+        </div>
+      ),
     },
     {
       accessorKey: 'reason',
       header: 'Reason',
-      cell: ({ row }) => <span className="block max-w-xs truncate">{row.original.reason}</span>,
+      cell: ({ row }) => <span className="block max-w-[10rem] truncate text-xs">{row.original.reason}</span>,
       enableSorting: false,
     },
     {
-      id: 'rx',
-      header: 'Status',
-      cell: ({ row }) =>
-        row.original.prescription ? (
-          <span className="px-1.5 py-0.5 rounded bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 text-[10px] font-semibold uppercase">
-            Rx on file
-          </span>
-        ) : null,
+      id: 'status',
+      header: '',
+      cell: ({ row }) => (
+        <div className="flex flex-wrap gap-1 justify-end">
+          {row.original.is_walk_in && (
+            <span className="px-1.5 py-0.5 rounded bg-accent-100 dark:bg-accent-900/40 text-accent-700 dark:text-accent-300 text-[10px] font-semibold uppercase">
+              Walk-in
+            </span>
+          )}
+          {row.original.prescription && (
+            <span className="px-1.5 py-0.5 rounded bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 text-[10px] font-semibold uppercase">
+              Rx
+            </span>
+          )}
+        </div>
+      ),
       enableSorting: false,
     },
   ];
 
-  const filters: DataTableFilter[] = [
-    {
-      columnId: 'doctor',
-      placeholder: 'All doctors',
-      options: doctors.map((d) => ({ value: d.name, label: d.name })),
-    },
-  ];
+  // Doctor is embedded in the "Visit" column rather than its own column now
+  // (fewer, denser columns) — search already matches doctor name, so a
+  // separate non-functional dropdown filter isn't worth keeping.
+  const filters: DataTableFilter[] = [];
 
   if (loading) {
     return (
@@ -157,11 +153,14 @@ export default function AppointmentsView({ doctors }: AppointmentsViewProps) {
             searchPlaceholder="Search by patient name..."
             filters={filters}
             emptyMessage={`No ${tab === 'queue' ? 'appointments in the queue' : tab} right now.`}
+            getRowId={(appt) => appt.id}
+            autoExpandRowId={autoOpenId}
             renderExpandedRow={(appt) => (
               <AppointmentDetailsPanel
                 appointment={appt}
                 doctorName={doctorName(appt.doctor_id)}
                 onChanged={fetchAppointments}
+                autoPrescribe={appt.id === autoOpenId}
               />
             )}
           />
@@ -172,11 +171,11 @@ export default function AppointmentsView({ doctors }: AppointmentsViewProps) {
         <WalkInModal
           doctors={doctors}
           onClose={() => setShowWalkIn(false)}
-          onStarted={() => {
+          onStarted={async (appointmentId) => {
             setShowWalkIn(false);
             setTab('queue');
-            fetchAppointments();
-            showToast('success', 'Consultation started — open the new row in the Queue to add symptoms and a prescription.');
+            await fetchAppointments();
+            setAutoOpenId(appointmentId);
           }}
         />
       )}

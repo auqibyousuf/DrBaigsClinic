@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { type ColumnDef, type Row } from '@tanstack/react-table';
-import { TrashSimple, Copy, PencilSimple, Plus } from '@phosphor-icons/react';
+import { Copy, Eye, Pencil, Trash } from 'lucide-react';
+import { Plus } from '@phosphor-icons/react';
 import { useToast } from '@/components/ToastProvider';
 import { DataTable } from '@/components/ui/data-table';
 import Modal from '@/components/Modal';
 import Button from '@/components/Button';
+import PatientDetailsModal from '@/components/admin/PatientDetailsModal';
 import PatientProfileForm, {
   emptyPatientProfile,
   type PatientProfileFormState,
@@ -136,6 +138,7 @@ export default function PatientsView() {
   const [addingPatient, setAddingPatient] = useState(false);
   const [newPatient, setNewPatient] = useState<PatientProfileFormState>(emptyPatientProfile);
   const [creating, setCreating] = useState(false);
+  const [detailsPatientId, setDetailsPatientId] = useState<string | null>(null);
   const { showToast } = useToast();
 
   const fetchPatients = async () => {
@@ -222,11 +225,19 @@ export default function PatientsView() {
         <div className="flex items-center gap-1">
           <button
             type="button"
+            onClick={() => setDetailsPatientId(row.original.id)}
+            className="text-gray-500 hover:text-primary-600 dark:hover:text-primary-400 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+            title="View details, history, prescriptions and billing"
+          >
+            <Eye className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
             onClick={() => row.toggleExpanded()}
-            className="text-primary-600 hover:text-primary-700 dark:text-primary-400 p-2 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/20"
+            className="text-primary-600 hover:text-primary-700 dark:text-primary-400 p-2 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/20 cursor-pointer"
             title="Edit patient"
           >
-            <PencilSimple className="w-4 h-4" />
+            <Pencil className="w-4 h-4" />
           </button>
           <button
             type="button"
@@ -242,10 +253,10 @@ export default function PatientsView() {
                 showToast('error', err instanceof Error ? err.message : 'Failed to delete patient');
               }
             }}
-            className="text-red-600 hover:text-red-700 dark:text-red-400 p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20"
+            className="text-red-600 hover:text-red-700 dark:text-red-400 p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 cursor-pointer"
             title="Delete patient"
           >
-            <TrashSimple className="w-4 h-4" />
+            <Trash className="w-4 h-4" />
           </button>
         </div>
       ),
@@ -298,6 +309,10 @@ export default function PatientsView() {
           </div>
         </div>
       </Modal>
+
+      {detailsPatientId && (
+        <PatientDetailsModal patientId={detailsPatientId} onClose={() => setDetailsPatientId(null)} />
+      )}
     </div>
   );
 }

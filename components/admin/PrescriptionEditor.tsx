@@ -1,12 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, Stethoscope, ClipboardCheck, ScanSearch, Pill, FlaskConical, MessageSquareText, CalendarClock, StickyNote } from 'lucide-react';
 import { useToast } from '@/components/ToastProvider';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { AdminInput, AdminTextarea } from '@/components/admin/AdminField';
 import AutocompleteTagInput from '@/components/admin/AutocompleteTagInput';
 import VitalsPanel, { type VitalsReading } from '@/components/admin/VitalsPanel';
+import SectionCard from '@/components/admin/SectionCard';
 import type { SymptomEntry, Medication } from '@/lib/prescriptions';
 
 interface PrescriptionEditorProps {
@@ -158,39 +159,31 @@ export default function PrescriptionEditor({
           <TabsTrigger value="notes">Private Notes</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="consultation" className="space-y-4 pb-4">
-          <AutocompleteTagInput
-            label="Symptoms"
-            category="symptom"
-            values={symptoms.map((s) => s.value)}
-            onChange={(values) =>
-              setSymptoms(values.map((v) => symptoms.find((s) => s.value === v) || { value: v }))
-            }
-          />
+        <TabsContent value="consultation" className="space-y-3 pb-4">
+          <SectionCard icon={<Stethoscope className="w-4 h-4" />} title="Symptoms">
+            <AutocompleteTagInput
+              category="symptom"
+              values={symptoms.map((s) => s.value)}
+              onChange={(values) =>
+                setSymptoms(values.map((v) => symptoms.find((s) => s.value === v) || { value: v }))
+              }
+            />
+          </SectionCard>
 
-          <AutocompleteTagInput
-            label="Examinations"
-            category="examination"
-            values={examinations}
-            onChange={setExaminations}
-          />
+          <SectionCard icon={<ScanSearch className="w-4 h-4" />} title="Examinations">
+            <AutocompleteTagInput category="examination" values={examinations} onChange={setExaminations} />
+          </SectionCard>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Diagnosis
-            </label>
+          <SectionCard icon={<ClipboardCheck className="w-4 h-4" />} title="Diagnosis">
             <AutocompleteTagInput
               category="diagnosis"
               values={diagnosis ? [diagnosis] : []}
               onChange={(values) => setDiagnosis(values[values.length - 1] || '')}
               placeholder="Search or add a diagnosis"
             />
-          </div>
+          </SectionCard>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Medications
-            </label>
+          <SectionCard icon={<Pill className="w-4 h-4" />} title="Medications">
             {medications.map((med, index) => (
               <div key={index} className="flex gap-2 mb-2 items-start">
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 flex-1">
@@ -219,22 +212,18 @@ export default function PrescriptionEditor({
               <Plus className="w-3.5 h-3.5" />
               Add Medication
             </button>
-          </div>
+          </SectionCard>
 
-          <AutocompleteTagInput
-            label="Lab Investigation"
-            category="investigation"
-            values={investigations}
-            onChange={setInvestigations}
-          />
+          <SectionCard icon={<FlaskConical className="w-4 h-4" />} title="Lab Investigation">
+            <AutocompleteTagInput category="investigation" values={investigations} onChange={setInvestigations} />
+          </SectionCard>
 
-          <AutocompleteTagInput label="Advices" category="advice" values={advices} onChange={setAdvices} />
+          <SectionCard icon={<MessageSquareText className="w-4 h-4" />} title="Advices">
+            <AutocompleteTagInput category="advice" values={advices} onChange={setAdvices} />
+          </SectionCard>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Follow-up
-              </label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <SectionCard icon={<CalendarClock className="w-4 h-4" />} title="Follow-up">
               <AdminInput type="date" value={followUpDate} onChange={(e) => setFollowUpDate(e.target.value)} />
               <div className="flex gap-2 mt-2">
                 {FOLLOW_UP_PRESETS.map((preset) => (
@@ -248,29 +237,33 @@ export default function PrescriptionEditor({
                   </button>
                 ))}
               </div>
-            </div>
-            <AdminTextarea
-              label="Additional Notes"
-              value={additionalNotes}
-              onChange={(e) => setAdditionalNotes(e.target.value)}
-              rows={2}
-              placeholder="Visible to the patient on the prescription"
-            />
+            </SectionCard>
+            <SectionCard icon={<StickyNote className="w-4 h-4" />} title="Additional Notes">
+              <AdminTextarea
+                value={additionalNotes}
+                onChange={(e) => setAdditionalNotes(e.target.value)}
+                rows={2}
+                placeholder="Visible to the patient on the prescription"
+              />
+            </SectionCard>
           </div>
         </TabsContent>
 
         <TabsContent value="vitals" className="pb-4">
-          <VitalsPanel reading={vitals} onChange={setVitals} />
+          <SectionCard icon={<Stethoscope className="w-4 h-4" />} title="Vitals & Body Composition">
+            <VitalsPanel reading={vitals} onChange={setVitals} />
+          </SectionCard>
         </TabsContent>
 
         <TabsContent value="notes" className="pb-4">
-          <AdminTextarea
-            label="Private Notes"
-            value={privateNotes}
-            onChange={(e) => setPrivateNotes(e.target.value)}
-            rows={4}
-            hint="Only visible to you — never printed or shown to the patient."
-          />
+          <SectionCard icon={<StickyNote className="w-4 h-4" />} title="Private Notes">
+            <AdminTextarea
+              value={privateNotes}
+              onChange={(e) => setPrivateNotes(e.target.value)}
+              rows={4}
+              hint="Only visible to you — never printed or shown to the patient."
+            />
+          </SectionCard>
         </TabsContent>
       </Tabs>
 

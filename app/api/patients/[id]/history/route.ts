@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getPatientById } from '@/lib/patients';
 import { getAppointmentsForPatient } from '@/lib/appointments';
 import { getPrescriptionByAppointmentId } from '@/lib/prescriptions';
+import { listInvoicesForPatient } from '@/lib/invoices';
 import { getCMSData } from '@/lib/cms';
 
 function isAuthenticated(request: NextRequest): boolean {
@@ -22,7 +23,11 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: 'Patient not found' }, { status: 404 });
     }
 
-    const [visits, cmsData] = await Promise.all([getAppointmentsForPatient(patient.id), getCMSData()]);
+    const [visits, invoices, cmsData] = await Promise.all([
+      getAppointmentsForPatient(patient.id),
+      listInvoicesForPatient(patient.id),
+      getCMSData(),
+    ]);
     const doctors = cmsData.doctors?.items || [];
 
     const visitsWithPrescriptions = await Promise.all(
@@ -42,7 +47,16 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       })
     );
 
-    return NextResponse.json({ patient, visits: visitsWithPrescriptions });
+    const billing = invoices.map((inv) => ({
+      id: inv.id,
+      invoiceNumber: inv.invoice_number,
+      billDate: inv.bill_date,
+      totalPayable: inv.total_payable,
+      paidAmount: inv.paid_amount,
+      pdfUrl: inv.pdf_url,
+    }));
+
+    return NextResponse.json({ patient, visits: visitsWithPrescriptions, billing });
   } catch (error) {
     console.error('Patient history error:', error);
     return NextResponse.json(
