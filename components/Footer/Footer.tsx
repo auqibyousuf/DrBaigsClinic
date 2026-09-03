@@ -49,7 +49,7 @@ const Footer = () => {
     : {
         address: '123 Health Street\nCity, State 12345',
         phone: '+1 (234) 567-890',
-        email: 'info@glowclinic.com',
+        email: 'info@drbaigsclinic.com',
       };
   // One branch per line as "Label: street details" — split into distinct
   // labeled entries instead of one run-on block of text.

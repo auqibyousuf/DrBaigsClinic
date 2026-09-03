@@ -1,7 +1,11 @@
 import { MetadataRoute } from 'next';
+import { getCMSData } from '@/lib/cms';
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://glowclinic.com';
+const baseUrl = 'https://drbaigsclinic.com';
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const cmsData = await getCMSData().catch(() => null);
+  const services = cmsData?.services?.items || [];
 
   return [
     {
@@ -10,29 +14,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'monthly',
       priority: 1,
     },
-    {
-      url: `${baseUrl}/services/hair`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/services/skin`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/services/transplantation`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/services/hijama`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
+    ...services
+      .filter((s) => s.id)
+      .map((service) => ({
+        url: `${baseUrl}/services/${service.id}`,
+        lastModified: new Date(),
+        changeFrequency: 'monthly' as const,
+        priority: 0.8,
+      })),
   ];
 }
