@@ -7,6 +7,7 @@ import ThemeProvider from '@/components/ThemeProvider';
 import ToastProvider from '@/components/ToastProvider';
 import PageTransition from '@/components/PageTransition';
 import BookingModalProvider from '@/components/BookingModalProvider';
+import SiteReadyGate from '@/components/SiteReadyGate';
 import { cn } from '@/lib/utils';
 import { getCMSData } from '@/lib/cms';
 
@@ -162,6 +163,16 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className={cn(plusJakarta.variable, sora.variable, 'font-sans')}>
       <head>
+        {/* Runs before hydration/first paint so the page never renders in
+            the wrong theme and then flips — ThemeProvider's own effect runs
+            too late (after mount) to prevent that flash, this is what
+            actually eliminates it. Mirrors ThemeProvider's own logic
+            exactly: 'theme' key, 'light' | 'dark' | 'auto' (default). */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('theme');var d=t==='dark'||((!t||t==='auto')&&window.matchMedia('(prefers-color-scheme: dark)').matches);if(d)document.documentElement.classList.add('dark');}catch(e){}})();`,
+          }}
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
@@ -178,11 +189,13 @@ export default async function RootLayout({
               >
                 Skip to main content
               </a>
-              <Header />
-              <main id="main-content" role="main">
-                <PageTransition>{children}</PageTransition>
-              </main>
-              <Footer />
+              <SiteReadyGate>
+                <Header />
+                <main id="main-content" role="main">
+                  <PageTransition>{children}</PageTransition>
+                </main>
+                <Footer />
+              </SiteReadyGate>
             </BookingModalProvider>
           </ToastProvider>
         </ThemeProvider>
