@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { checkLoginLockout, getClientIp, recordFailedLogin } from '@/lib/login-attempts';
 
 export async function GET(request: NextRequest) {
   const sessionToken = request.cookies.get('cms-auth')?.value;
@@ -26,12 +27,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const ip = getClientIp(request);
+    const lockedForMinutes = await checkLoginLockout(ip);
+    if (lockedForMinutes !== null) {
+      return NextResponse.json(
+        { error: `Too many failed attempts. Try again in ${lockedForMinutes} minutes.` },
+        { status: 429 }
+      );
+    }
+
     // Simple password check (in production, use proper authentication)
     const correctPassword = process.env.CMS_PASSWORD || 'admin123';
     const authToken = process.env.CMS_AUTH_TOKEN || 'dev-token';
-
-    console.log('Auth attempt - Password provided:', !!password);
-    console.log('Expected password:', correctPassword);
 
     if (password === correctPassword) {
       const response = NextResponse.json({ success: true });
@@ -45,11 +52,10 @@ export async function POST(request: NextRequest) {
         path: '/',
       });
 
-      console.log('Auth successful - Cookie set');
       return response;
     }
 
-    console.log('Auth failed - Invalid password');
+    await recordFailedLogin(ip);
     return NextResponse.json(
       { error: 'Invalid password' },
       { status: 401 }
