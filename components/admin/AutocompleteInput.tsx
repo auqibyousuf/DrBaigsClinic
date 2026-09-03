@@ -89,6 +89,11 @@ export default function AutocompleteInput({ category, value, onChange, placehold
     onChange(v);
     setOpen(false);
     persistTerm(v);
+    // Optimistic — the value doesn't change if it was already fully typed
+    // (e.g. via "+ Add"), so the suggestions-fetch effect (keyed on value)
+    // never re-runs on its own, and this field would otherwise keep
+    // thinking a term it just added doesn't exist yet.
+    setSuggestions((prev) => (prev.some((s) => s.toLowerCase() === v.toLowerCase()) ? prev : [...prev, v]));
   };
 
   return (
