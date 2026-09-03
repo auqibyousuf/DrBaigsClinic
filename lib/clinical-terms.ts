@@ -27,7 +27,15 @@ function getClient() {
   if (!url || !key) {
     throw new Error('Supabase is not configured. Please set SUPABASE_URL and SUPABASE_ANON_KEY.');
   }
-  return createClient(url, key);
+  return createClient(url, key, {
+    global: {
+      // Same fix as lib/supabase.ts — without this, Next.js's fetch cache
+      // can serve a stale term list, so a custom term just added via
+      // "+ Add custom" doesn't show up as a suggestion until the cache
+      // happens to expire.
+      fetch: (input, init) => fetch(input, { ...init, cache: 'no-store' }),
+    },
+  });
 }
 
 export async function searchClinicalTerms(

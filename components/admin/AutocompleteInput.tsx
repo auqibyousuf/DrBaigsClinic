@@ -81,7 +81,6 @@ export default function AutocompleteInput({ category, value, onChange, placehold
     }
   };
 
-  const filtered = suggestions.filter((s) => s.toLowerCase() !== value.trim().toLowerCase());
   const trimmedValue = value.trim();
   const exactMatch = suggestions.some((s) => s.toLowerCase() === trimmedValue.toLowerCase());
 
@@ -114,7 +113,7 @@ export default function AutocompleteInput({ category, value, onChange, placehold
         className={fieldClasses()}
       />
       {open &&
-        (filtered.length > 0 || (trimmedValue && !exactMatch)) &&
+        (suggestions.length > 0 || (trimmedValue && !exactMatch)) &&
         rect &&
         createPortal(
           <div
@@ -122,13 +121,17 @@ export default function AutocompleteInput({ category, value, onChange, placehold
             style={{ position: 'absolute', top: rect.top, left: rect.left, width: rect.width }}
             className="z-50 max-h-48 overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg"
           >
-            {filtered.map((s) => (
+            {suggestions.map((s) => (
               <button
                 key={s}
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => confirmValue(s)}
-                className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-primary-50 dark:hover:bg-primary-900/30 cursor-pointer"
+                className={`w-full text-left px-3 py-2 text-sm cursor-pointer ${
+                  s.toLowerCase() === trimmedValue.toLowerCase()
+                    ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 font-medium'
+                    : 'text-gray-700 dark:text-gray-200 hover:bg-primary-50 dark:hover:bg-primary-900/30'
+                }`}
               >
                 {s}
               </button>
