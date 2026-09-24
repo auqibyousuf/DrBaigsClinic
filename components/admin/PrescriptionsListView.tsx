@@ -119,7 +119,8 @@ export default function PrescriptionsListView({ doctors }: PrescriptionsListView
         <div>
           <div className="font-medium text-gray-900 dark:text-white">{row.original.patientName}</div>
           <div className="text-xs text-gray-500 dark:text-gray-400">
-            {row.original.patientCode} {row.original.patientPhone && `· ${row.original.patientPhone}`}
+            {row.original.patientCode && <span className="font-mono text-[11px] font-semibold text-primary-700 dark:text-primary-300 mr-1.5">{row.original.patientCode}</span>}
+            {row.original.patientPhone && `· ${row.original.patientPhone}`}
           </div>
         </div>
       ),

@@ -16,6 +16,11 @@ module.exports = {
       '2xl': '1536px',
     },
     extend: {
+      fontFamily: {
+        sans: ['var(--font-body)', 'sans-serif'],
+        heading: ['var(--font-heading)', 'var(--font-body)', 'sans-serif'],
+        mono: ['var(--font-mono)', 'monospace'],
+      },
       colors: {
         // 2026 health-tech indigo — vivid, saturated, distinctly modern (not the
         // generic Tailwind "sky" blue, and not the safe teal we tried before).
