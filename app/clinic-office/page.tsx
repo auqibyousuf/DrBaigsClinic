@@ -92,8 +92,8 @@ export default function AdminLogin() {
           <FloatingLabelInput
             id="username"
             name="username"
-            type="text"
-            placeholder="Username *"
+            type="email"
+            placeholder="Email *"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             onKeyDown={(e) => {
