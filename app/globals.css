@@ -24,7 +24,7 @@
   h1, h2, h3, h4, h5, h6 {
     @apply font-bold;
     letter-spacing: -0.02em;
-    font-family: var(--font-heading), var(--font-body), sans-serif;
+    font-family: var(--font-body), sans-serif;
   }
 
   /* Fluid typography — clamps instead of breakpoint jumps, and a more

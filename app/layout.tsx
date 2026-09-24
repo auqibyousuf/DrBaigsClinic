@@ -170,7 +170,7 @@ export default async function RootLayout({
   };
 
   return (
-    <html lang="en" suppressHydrationWarning className={cn(plusJakarta.variable, sora.variable, 'font-sans')}>
+    <html lang="en" suppressHydrationWarning className={cn(plusJakarta.variable, jetbrainsMono.variable, 'font-sans')}>
       <head>
         {/* Runs before hydration/first paint so the page never renders in
             the wrong theme and then flips — ThemeProvider's own effect runs
