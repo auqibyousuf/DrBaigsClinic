@@ -234,12 +234,12 @@ export default function Home() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 px-4 sm:px-0">
           {aboutFeatures.map((feature: any, index: number) => (
             <ScrollReveal key={feature.id} direction="up" delay={index * 100}>
-              <article className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-rest hover:shadow-hover transition-shadow duration-300 border border-gray-100 dark:border-gray-700 hover:border-primary-200 dark:hover:border-primary-700 h-full">
-                <div className="w-16 h-16 bg-primary-600 rounded-2xl flex items-center justify-center mb-6" aria-hidden="true">
+              <article className="bg-white dark:bg-gray-800 p-6 sm:p-7 rounded-2xl shadow-rest hover:shadow-hover transition-shadow duration-300 border border-gray-100 dark:border-gray-700 hover:border-primary-200 dark:hover:border-primary-700 h-full">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 bg-primary-600 rounded-xl flex items-center justify-center mb-4 sm:mb-5" aria-hidden="true">
                   {iconMap[feature.icon] || iconMap.shield}
                 </div>
-                <h3 className="text-lg sm:text-xl font-bold mb-2 sm:mb-3 text-gray-900 dark:text-gray-100">{feature.title}</h3>
-                <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 leading-relaxed">
+                <h3 className="text-base sm:text-lg font-bold mb-2 text-gray-900 dark:text-gray-100">{feature.title}</h3>
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
                   {feature.description}
                 </p>
               </article>

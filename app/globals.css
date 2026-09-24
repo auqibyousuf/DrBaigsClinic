@@ -54,10 +54,10 @@
     font-size: var(--text-lg);
   }
 
-  /* 17px baseline — a notch above the WCAG-minimum 16px for stronger mobile legibility */
+  /* 15px baseline for a refined, modern scale across desktop and mobile */
   body {
-    font-size: 17px;
-    line-height: 1.65;
+    font-size: 15px;
+    line-height: 1.6;
   }
 
   p {
@@ -108,15 +108,15 @@
     --space-xl: clamp(2rem, 1.5rem + 2vw, 3.5rem);
     --space-2xl: clamp(2.5rem, 1.8rem + 2.8vw, 5rem);
 
-    --text-xs: clamp(0.75rem, 0.72rem + 0.1vw, 0.8125rem);
-    --text-sm: clamp(0.8125rem, 0.78rem + 0.15vw, 0.9375rem);
-    --text-base: clamp(0.9375rem, 0.88rem + 0.25vw, 1.0625rem);
-    --text-lg: clamp(1.0625rem, 0.98rem + 0.35vw, 1.25rem);
-    --text-xl: clamp(1.25rem, 1.1rem + 0.6vw, 1.625rem);
-    --text-2xl: clamp(1.5rem, 1.3rem + 0.9vw, 2rem);
-    --text-3xl: clamp(1.75rem, 1.45rem + 1.3vw, 2.5rem);
-    --text-4xl: clamp(2rem, 1.6rem + 1.8vw, 3rem);
-    --text-5xl: clamp(2.25rem, 1.7rem + 2.5vw, 3.75rem);
+    --text-xs: clamp(0.7rem, 0.68rem + 0.1vw, 0.75rem);
+    --text-sm: clamp(0.75rem, 0.73rem + 0.1vw, 0.8125rem);
+    --text-base: clamp(0.875rem, 0.84rem + 0.15vw, 0.9375rem);
+    --text-lg: clamp(0.9375rem, 0.9rem + 0.2vw, 1.0625rem);
+    --text-xl: clamp(1.0625rem, 1rem + 0.35vw, 1.25rem);
+    --text-2xl: clamp(1.25rem, 1.15rem + 0.5vw, 1.5rem);
+    --text-3xl: clamp(1.5rem, 1.35rem + 0.75vw, 1.875rem);
+    --text-4xl: clamp(1.75rem, 1.5rem + 1vw, 2.25rem);
+    --text-5xl: clamp(2rem, 1.6rem + 1.5vw, 2.75rem);
 
     --modal-w-sm: clamp(22rem, 55vw, 32rem);
     --modal-w-md: clamp(24rem, 70vw, 44rem);

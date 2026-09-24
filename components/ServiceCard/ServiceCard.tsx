@@ -22,11 +22,11 @@ const ServiceCard = ({ service, index = 0 }: ServiceCardProps) => {
 
             {service.price && (
               <div
-                className="absolute bottom-2 left-2 sm:bottom-3 sm:left-3 px-2 sm:px-3 py-1 sm:py-1.5 bg-white dark:bg-gray-900 rounded-lg shadow-rest flex items-center space-x-1 z-10"
+                className="absolute bottom-2 left-2 sm:bottom-3 sm:left-3 px-2 sm:px-2.5 py-0.5 sm:py-1 bg-white dark:bg-gray-900 rounded-lg shadow-rest flex items-center space-x-1 z-10"
                 aria-label={`Price: ${service.price}`}
               >
                 <svg
-                  className="w-3 h-3 sm:w-4 sm:h-4 text-primary-600 dark:text-primary-400 flex-shrink-0"
+                  className="w-3 h-3 text-primary-600 dark:text-primary-400 flex-shrink-0"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -38,7 +38,7 @@ const ServiceCard = ({ service, index = 0 }: ServiceCardProps) => {
                     d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                   />
                 </svg>
-                <span className="text-xs sm:text-sm font-bold text-primary-600 dark:text-primary-400 whitespace-nowrap">
+                <span className="text-xs font-bold text-primary-600 dark:text-primary-400 whitespace-nowrap">
                   {service.price}
                 </span>
               </div>
@@ -59,21 +59,21 @@ const ServiceCard = ({ service, index = 0 }: ServiceCardProps) => {
             </div>
           </div>
 
-          <div className="p-4 sm:p-5 lg:p-6">
-            <h3 className="text-base sm:text-lg lg:text-xl font-bold text-gray-900 dark:text-gray-100 mb-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors line-clamp-1">
+          <div className="p-3.5 sm:p-4 lg:p-4.5">
+            <h3 className="text-sm sm:text-base font-bold text-gray-900 dark:text-gray-100 mb-1.5 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors line-clamp-1">
               {service.title}
             </h3>
-            <p className="text-xs sm:text-sm lg:text-base text-gray-600 dark:text-gray-300 leading-relaxed line-clamp-2 sm:line-clamp-3 mb-3">
+            <p className="text-xs sm:text-[13px] text-gray-600 dark:text-gray-300 leading-normal line-clamp-2 sm:line-clamp-3 mb-2.5">
               {service.description}
             </p>
 
             <div
-              className="flex items-center text-primary-600 dark:text-primary-400 text-xs sm:text-sm font-semibold group-hover:text-primary-700 dark:group-hover:text-primary-500 transition-colors"
+              className="flex items-center text-primary-600 dark:text-primary-400 text-xs font-semibold group-hover:text-primary-700 dark:group-hover:text-primary-500 transition-colors"
               aria-hidden="true"
             >
               <span>Learn more</span>
               <svg
-                className="w-3 h-3 sm:w-4 sm:h-4 ml-1 group-hover:translate-x-1 transition-transform"
+                className="w-3 h-3 ml-1 group-hover:translate-x-1 transition-transform"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"

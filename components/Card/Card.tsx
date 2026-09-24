@@ -18,9 +18,9 @@ const Card: React.FC<CardProps> = ({ title, description, image, children, classN
           />
         </div>
       )}
-      <div className="p-6">
-        <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">{title}</h3>
-        <p className="text-gray-600 dark:text-gray-300 mb-4">{description}</p>
+      <div className="p-4 sm:p-5">
+        <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-gray-100 mb-1.5">{title}</h3>
+        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 mb-3">{description}</p>
         {children}
       </div>
     </article>

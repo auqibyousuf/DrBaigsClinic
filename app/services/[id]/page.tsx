@@ -126,8 +126,8 @@ export default async function ServicePage({ params }: { params: { id: string } }
               </div>
             </ScrollReveal>
             <ScrollReveal direction="right">
-              <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">Treatment Overview</h2>
-              <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-4">Treatment Overview</h2>
+              <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
                 {service.overview ||
                   `Our ${service.title.toLowerCase()} service combines expert knowledge with advanced technology ` +
                     `to deliver exceptional results. Each treatment is customized to meet your specific needs ` +
