@@ -80,7 +80,7 @@ export default function CustomSelect({
                   borderRadius: 'var(--field-radius)',
                 }
           }
-          className={`w-full !h-auto cursor-pointer bg-white dark:bg-gray-800 transition-colors duration-150 data-open:bg-white dark:data-open:bg-gray-800 focus-visible:outline-none ${
+          className={`w-full !h-auto cursor-pointer font-mono bg-white dark:bg-gray-800 transition-colors duration-150 data-open:bg-white dark:data-open:bg-gray-800 focus-visible:outline-none ${
             compact ? 'py-1.5 px-3 text-sm' : ''
           } ${
             error
@@ -96,16 +96,16 @@ export default function CustomSelect({
             </div>
           )}
           <span
-            className={`truncate flex-1 text-left ${
+            className={`truncate flex-1 text-left font-mono ${
               selectedOption ? 'text-gray-900 dark:text-gray-100' : 'text-gray-400 dark:text-gray-500'
             }`}
           >
             {selectedOption ? selectedOption.label : placeholder}
           </span>
         </SelectTrigger>
-        <SelectContent className={`w-[var(--anchor-width)] p-1.5 ${compact ? 'min-w-0' : ''}`}>
+        <SelectContent className={`w-[var(--anchor-width)] p-1.5 font-mono ${compact ? 'min-w-0' : ''}`}>
           {selectableOptions.length === 0 ? (
-            <div className="px-3 py-4 text-sm text-gray-500 dark:text-gray-400 text-center">
+            <div className="px-3 py-4 text-sm font-mono text-gray-500 dark:text-gray-400 text-center">
               No options available
             </div>
           ) : (
@@ -113,7 +113,7 @@ export default function CustomSelect({
               <SelectItem
                 key={option.value}
                 value={option.value}
-                className="cursor-pointer text-sm rounded-lg"
+                className="cursor-pointer text-sm rounded-lg font-mono"
                 style={{ paddingBlock: 'var(--field-py)', paddingInline: 'var(--field-px)' }}
               >
                 {option.label}

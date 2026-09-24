@@ -48,11 +48,15 @@ export default function ThemeProvider({ children }: { children: React.ReactNode 
   useEffect(() => {
     setMounted(true);
 
-    // Load saved theme preference from localStorage
+    // Read current applied DOM class first to align state with the inline script
+    const isDomDark = document.documentElement.classList.contains('dark');
     const savedTheme = localStorage.getItem('theme') as Theme | null;
-    const initialTheme: Theme = (savedTheme && ['light', 'dark', 'auto'].includes(savedTheme)) ? savedTheme : 'auto';
+    const initialTheme: Theme = savedTheme && ['light', 'dark', 'auto'].includes(savedTheme)
+      ? savedTheme
+      : (isDomDark ? 'dark' : 'light');
 
     setTheme(initialTheme);
+    setActualTheme(isDomDark ? 'dark' : 'light');
     updateTheme(initialTheme);
 
     // Listen for system theme changes (only if auto mode)

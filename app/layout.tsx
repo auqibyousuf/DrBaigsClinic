@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Plus_Jakarta_Sans, Sora } from 'next/font/google';
+import { Plus_Jakarta_Sans, Sora, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -27,6 +27,15 @@ const sora = Sora({
   display: 'swap',
   variable: '--font-heading',
   weight: ['500', '600', '700', '800'],
+});
+
+// Precision accents: JetBrains Mono — used deliberately for timestamps, time-slots,
+// currency badges, vitals readings, and structured clinical tags.
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-mono',
+  weight: ['400', '500', '600', '700'],
 });
 
 const staticMetadata: Metadata = {
@@ -161,7 +170,7 @@ export default async function RootLayout({
   };
 
   return (
-    <html lang="en" suppressHydrationWarning className={cn(plusJakarta.variable, sora.variable, 'font-sans')}>
+    <html lang="en" suppressHydrationWarning className={cn(plusJakarta.variable, jetbrainsMono.variable, 'font-sans')}>
       <head>
         {/* Runs before hydration/first paint so the page never renders in
             the wrong theme and then flips — ThemeProvider's own effect runs
@@ -178,7 +187,7 @@ export default async function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
         />
       </head>
-      <body className={`${plusJakarta.className} font-sans overflow-x-hidden`}>
+      <body className={`${plusJakarta.className} ${plusJakarta.variable} ${sora.variable} ${jetbrainsMono.variable} font-sans overflow-x-hidden`}>
         <ThemeProvider>
           <ToastProvider>
             <BookingModalProvider>

@@ -24,7 +24,11 @@
   h1, h2, h3, h4, h5, h6 {
     @apply font-bold;
     letter-spacing: -0.02em;
-    font-family: var(--font-heading), var(--font-body), sans-serif;
+    font-family: var(--font-mono), monospace;
+  }
+
+  button, select, option, optgroup, input[type="button"], input[type="submit"], input[type="reset"] {
+    font-family: var(--font-mono), monospace;
   }
 
   /* Fluid typography — clamps instead of breakpoint jumps, and a more
@@ -205,11 +209,11 @@
 }
 
 @layer utilities {
-  /* Typographic "eyebrow" accent — small tracked uppercase label used above
-     section headings for a distinct, font-driven UI moment. */
+  /* Typographic "eyebrow" accent — architectural label using JetBrains Mono
+     with wide letter-spacing for high-craft precision like Axelerant/Specbee. */
   .eyebrow {
-    font-family: var(--font-body), sans-serif;
-    @apply inline-block text-xs sm:text-sm font-bold uppercase tracking-[0.15em] text-primary-600 dark:text-primary-400 mb-2 sm:mb-3;
+    font-family: var(--font-mono), monospace;
+    @apply inline-block text-[11px] sm:text-xs font-semibold uppercase tracking-[0.2em] text-primary-600 dark:text-primary-400 mb-2 sm:mb-3;
   }
 }
 

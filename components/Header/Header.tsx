@@ -68,7 +68,7 @@ const Header = () => {
     // toggles.
     <div className="fixed top-0 inset-x-0 z-50 flex justify-center pointer-events-none">
       <header
-        className={`relative pointer-events-auto w-full transition-[margin,border-radius,box-shadow,background-color] duration-500 ease-out ${
+        className={`font-mono relative pointer-events-auto w-full transition-[margin,border-radius,box-shadow,background-color] duration-500 ease-out ${
           isScrolled
             ? 'max-w-[1366px] mt-3 sm:mt-4 mx-4 rounded-full shadow-hover bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800'
             : 'max-w-none mt-0 mx-0 rounded-none bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800'

@@ -68,7 +68,7 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-accent-50 dark:from-gray-900 dark:to-gray-800 px-4">
+    <div className="font-mono min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-accent-50 dark:from-gray-900 dark:to-gray-800 px-4">
       {RECAPTCHA_SITE_KEY && (
         <Script src="https://www.google.com/recaptcha/api.js" strategy="afterInteractive" />
       )}

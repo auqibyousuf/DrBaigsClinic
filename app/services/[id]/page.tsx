@@ -93,15 +93,15 @@ export default async function ServicePage({ params }: { params: { id: string } }
               </p>
               <div className="flex flex-wrap gap-4">
                 {service.duration && (
-                  <div className="bg-white dark:bg-gray-800 px-6 py-3 rounded-lg shadow-rest">
-                    <span className="text-sm text-gray-600 dark:text-gray-400">Duration:</span>
-                    <p className="font-semibold text-gray-900 dark:text-white">{service.duration}</p>
+                  <div className="bg-white dark:bg-gray-800 px-5 py-2.5 rounded-lg shadow-rest">
+                    <span className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 font-mono">Duration:</span>
+                    <p className="font-mono font-semibold text-gray-900 dark:text-white text-sm">{service.duration}</p>
                   </div>
                 )}
                 {service.price && (
-                  <div className="bg-white dark:bg-gray-800 px-6 py-3 rounded-lg shadow-rest">
-                    <span className="text-sm text-gray-600 dark:text-gray-400">Starting from:</span>
-                    <p className="font-semibold text-primary-600 dark:text-primary-400">{service.price}</p>
+                  <div className="bg-white dark:bg-gray-800 px-5 py-2.5 rounded-lg shadow-rest">
+                    <span className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 font-mono">Starting from:</span>
+                    <p className="font-mono font-semibold text-primary-600 dark:text-primary-400 text-sm">{service.price}</p>
                   </div>
                 )}
               </div>

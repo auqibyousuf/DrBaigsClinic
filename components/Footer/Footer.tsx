@@ -107,7 +107,7 @@ const Footer = () => {
 
   return (
     <footer
-      className="relative bg-gray-50 dark:bg-gray-950 text-gray-600 dark:text-gray-400 border-t border-gray-200 dark:border-transparent overflow-hidden"
+      className="font-mono relative bg-gray-50 dark:bg-gray-950 text-gray-600 dark:text-gray-400 border-t border-gray-200 dark:border-transparent overflow-hidden"
       role="contentinfo"
       aria-label="Site footer"
     >
@@ -158,7 +158,7 @@ const Footer = () => {
           {/* Services */}
           {services.length > 0 && (
           <nav aria-label="Service links" className="lg:col-span-1 w-full">
-            <h4 className="text-gray-900 dark:text-white font-bold text-lg mb-4">Services</h4>
+            <h4 className="text-gray-900 dark:text-white font-bold text-sm uppercase tracking-[0.15em] mb-4">Services</h4>
             <div className="flex flex-row gap-x-4" role="list">
               {Array.from({ length: Math.ceil(services.length / 6) }).map((_, columnIndex) => {
                 const columnServices = services.slice(columnIndex * 6, (columnIndex + 1) * 6);
@@ -205,7 +205,7 @@ const Footer = () => {
             aria-label="Quick links"
             className="lg:col-span-1 w-full flex flex-col items-start lg:ml-12"
           >
-            <h4 className="text-gray-900 dark:text-white font-bold text-lg mb-4 text-left w-full">
+            <h4 className="text-gray-900 dark:text-white font-bold text-sm uppercase tracking-[0.15em] mb-4 text-left w-full">
               Quick Links
             </h4>
             <ul className="space-y-2 w-full" role="list">
@@ -242,7 +242,7 @@ const Footer = () => {
 
           {/* Contact Info */}
           <address className="not-italic lg:col-span-1 w-full">
-            <h4 className="text-gray-900 dark:text-white font-bold text-lg mb-4">Contact</h4>
+            <h4 className="text-gray-900 dark:text-white font-bold text-sm uppercase tracking-[0.15em] mb-4">Contact</h4>
             <ul className="space-y-3 lg:space-y-3" role="list">
               {addressBranches.length > 0 && (
                 <li className="flex items-start text-gray-600 dark:text-gray-400">

@@ -51,9 +51,9 @@ export default function VitalsPanel({ reading, onChange }: VitalsPanelProps) {
                 value={reading[key] || ''}
                 onChange={(e) => onChange({ ...reading, [key]: e.target.value })}
                 placeholder="Enter"
-                className="flex-1 min-w-0 px-3 py-2 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white outline-none focus-visible:outline-none"
+                className="flex-1 min-w-0 px-3 py-2 text-sm font-mono bg-white dark:bg-gray-800 text-gray-900 dark:text-white outline-none focus-visible:outline-none"
               />
-              <span className="flex items-center justify-center w-14 flex-shrink-0 text-xs text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-900/40 border-l border-gray-200 dark:border-gray-700">
+              <span className="flex items-center justify-center w-14 flex-shrink-0 text-xs font-mono text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/40 border-l border-gray-200 dark:border-gray-700">
                 {unit}
               </span>
             </div>

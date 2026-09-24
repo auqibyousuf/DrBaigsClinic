@@ -136,20 +136,20 @@ export default function DashboardHome({ doctors }: DashboardHomeProps) {
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
-          <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Today</p>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{counts.total}</p>
+          <p className="text-[11px] font-mono font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Today</p>
+          <p className="text-2xl font-mono font-bold text-gray-900 dark:text-white mt-1">{counts.total}</p>
         </div>
         <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
-          <p className="text-xs font-medium text-amber-600 dark:text-amber-400 uppercase tracking-wide">In Queue</p>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{counts.queue}</p>
+          <p className="text-[11px] font-mono font-medium text-amber-600 dark:text-amber-400 uppercase tracking-wider">In Queue</p>
+          <p className="text-2xl font-mono font-bold text-gray-900 dark:text-white mt-1">{counts.queue}</p>
         </div>
         <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
-          <p className="text-xs font-medium text-emerald-600 dark:text-emerald-400 uppercase tracking-wide">Finished</p>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{counts.finished}</p>
+          <p className="text-[11px] font-mono font-medium text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Finished</p>
+          <p className="text-2xl font-mono font-bold text-gray-900 dark:text-white mt-1">{counts.finished}</p>
         </div>
         <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
-          <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Cancelled</p>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{counts.cancelled}</p>
+          <p className="text-[11px] font-mono font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Cancelled</p>
+          <p className="text-2xl font-mono font-bold text-gray-900 dark:text-white mt-1">{counts.cancelled}</p>
         </div>
       </div>
 

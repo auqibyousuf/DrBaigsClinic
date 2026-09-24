@@ -269,29 +269,29 @@ export default function InvoiceEditor({
       <div className="p-4 rounded-xl bg-gray-50 dark:bg-gray-900/40 border border-gray-200 dark:border-gray-700 space-y-2 text-sm">
         <div className="flex justify-between text-gray-600 dark:text-gray-400">
           <span>Subtotal</span>
-          <span>₹{subtotal.toFixed(2)}</span>
+          <span className="font-mono">₹{subtotal.toFixed(2)}</span>
         </div>
         <div className="flex justify-between text-gray-600 dark:text-gray-400">
           <span>GST</span>
-          <span>₹{gstAmount.toFixed(2)}</span>
+          <span className="font-mono">₹{gstAmount.toFixed(2)}</span>
         </div>
         {extraDiscount > 0 && (
           <div className="flex justify-between text-gray-600 dark:text-gray-400">
             <span>Extra Discount</span>
-            <span>-₹{extraDiscount.toFixed(2)}</span>
+            <span className="font-mono">-₹{extraDiscount.toFixed(2)}</span>
           </div>
         )}
         <div className="flex justify-between font-semibold text-gray-900 dark:text-white pt-2 border-t border-gray-200 dark:border-gray-700">
           <span>Total Payable</span>
-          <span>₹{totalPayable.toFixed(2)}</span>
+          <span className="font-mono">₹{totalPayable.toFixed(2)}</span>
         </div>
         <div className="flex justify-between text-gray-600 dark:text-gray-400">
           <span>Paid Amount</span>
-          <span>₹{paidAmount.toFixed(2)}</span>
+          <span className="font-mono">₹{paidAmount.toFixed(2)}</span>
         </div>
         <div className={`flex justify-between font-semibold rounded-lg px-3 py-2 ${due > 0 ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400' : 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400'}`}>
           <span>{due > 0 ? 'Due' : 'Fully Paid'}</span>
-          <span>₹{Math.max(due, 0).toFixed(2)}</span>
+          <span className="font-mono">₹{Math.max(due, 0).toFixed(2)}</span>
         </div>
       </div>
 

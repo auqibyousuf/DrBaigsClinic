@@ -130,13 +130,13 @@ export default function AutocompleteTagInput({
       />
 
       {open && (filteredSuggestions.length > 0 || query.trim()) && (
-        <div className="absolute z-20 mt-1 w-full max-h-56 overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg">
+        <div className="absolute z-20 mt-1 w-full max-h-56 overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg font-mono">
           {filteredSuggestions.map((s) => (
             <button
               key={s}
               type="button"
               onClick={() => addValue(s)}
-              className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-primary-50 dark:hover:bg-primary-900/30 cursor-pointer"
+              className="w-full text-left px-3 py-2 text-sm font-mono text-gray-700 dark:text-gray-200 hover:bg-primary-50 dark:hover:bg-primary-900/30 cursor-pointer"
             >
               {s}
             </button>
@@ -145,7 +145,7 @@ export default function AutocompleteTagInput({
             <button
               type="button"
               onClick={() => addValue(query)}
-              className="w-full flex items-center gap-1.5 text-left px-3 py-2 text-xs font-medium text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/30 cursor-pointer border-t border-gray-100 dark:border-gray-700"
+              className="w-full flex items-center gap-1.5 text-left px-3 py-2 text-xs font-mono font-medium text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/30 cursor-pointer border-t border-gray-100 dark:border-gray-700"
             >
               <Plus className="w-3.5 h-3.5 flex-shrink-0" />
               Add &ldquo;{query.trim()}&rdquo;

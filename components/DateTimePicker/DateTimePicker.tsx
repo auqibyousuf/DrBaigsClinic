@@ -141,7 +141,7 @@ export default function DateTimePicker({
               }`}
             >
               <span className="text-[9px] uppercase tracking-wide">{weekday}</span>
-              <span className="text-sm font-bold leading-tight">{day}</span>
+              <span className="text-sm font-mono font-bold leading-tight">{day}</span>
               <span className="text-[9px]">{month}</span>
             </button>
           );
@@ -178,7 +178,7 @@ export default function DateTimePicker({
                     type="button"
                     disabled={taken}
                     onClick={() => selectSlot(s)}
-                    className={`px-2 py-2 rounded-lg border-2 text-xs sm:text-sm font-medium transition-all duration-200 ${
+                    className={`px-2 py-2 rounded-lg border-2 text-xs sm:text-sm font-mono font-medium transition-all duration-200 ${
                       taken
                         ? 'opacity-40 cursor-not-allowed border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-600 line-through'
                         : isSelected
