@@ -33,7 +33,7 @@ export default function AdminLayout({
   return (
     <ToastProvider>
     <SiteReadyGate>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="font-mono min-h-screen bg-gray-50 dark:bg-gray-900">
         {/* Admin Header */}
         <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50" role="banner">
           <div className="w-full px-3 sm:px-4 lg:px-6 xl:px-8">

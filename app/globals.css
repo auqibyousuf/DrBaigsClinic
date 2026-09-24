@@ -27,6 +27,10 @@
     font-family: var(--font-mono), monospace;
   }
 
+  button, input[type="button"], input[type="submit"], input[type="reset"] {
+    font-family: var(--font-mono), monospace;
+  }
+
   /* Fluid typography — clamps instead of breakpoint jumps, and a more
      restrained ceiling than before (h1 used to reach text-7xl/112px on
      desktop, which read as oversized and left excess whitespace around it). */

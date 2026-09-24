@@ -9,7 +9,7 @@ import { ButtonProps } from '@/types/component.types';
 // rather than shadcn's generic default look — migrating the architecture,
 // not the visual identity we already designed.
 const buttonVariants = cva(
-  'inline-flex items-center justify-center font-bold tracking-tight rounded-full transition-shadow duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-rest hover:shadow-hover',
+  'inline-flex items-center justify-center font-mono font-bold tracking-tight rounded-full transition-shadow duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-rest hover:shadow-hover',
   {
     variants: {
       variant: {
