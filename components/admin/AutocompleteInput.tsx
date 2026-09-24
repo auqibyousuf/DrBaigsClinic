@@ -125,7 +125,7 @@ export default function AutocompleteInput({ category, value, onChange, placehold
           <div
             ref={dropdownRef}
             style={{ position: 'absolute', top: rect.top, left: rect.left, width: rect.width }}
-            className="z-50 max-h-48 overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg"
+            className="z-50 max-h-48 overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg font-mono"
           >
             {suggestions.map((s) => (
               <button
@@ -133,7 +133,7 @@ export default function AutocompleteInput({ category, value, onChange, placehold
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => confirmValue(s)}
-                className={`w-full text-left px-3 py-2 text-sm cursor-pointer ${
+                className={`w-full text-left px-3 py-2 text-sm font-mono cursor-pointer ${
                   s.toLowerCase() === trimmedValue.toLowerCase()
                     ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 font-medium'
                     : 'text-gray-700 dark:text-gray-200 hover:bg-primary-50 dark:hover:bg-primary-900/30'
@@ -147,7 +147,7 @@ export default function AutocompleteInput({ category, value, onChange, placehold
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => confirmValue(trimmedValue)}
-                className="w-full flex items-center gap-1.5 text-left px-3 py-2 text-xs font-medium text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/30 cursor-pointer border-t border-gray-100 dark:border-gray-700"
+                className="w-full flex items-center gap-1.5 text-left px-3 py-2 text-xs font-mono font-medium text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/30 cursor-pointer border-t border-gray-100 dark:border-gray-700"
               >
                 <Plus className="w-3.5 h-3.5 flex-shrink-0" />
                 Add &ldquo;{trimmedValue}&rdquo;

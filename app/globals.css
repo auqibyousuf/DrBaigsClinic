@@ -27,7 +27,7 @@
     font-family: var(--font-mono), monospace;
   }
 
-  button, input[type="button"], input[type="submit"], input[type="reset"] {
+  button, select, option, optgroup, input[type="button"], input[type="submit"], input[type="reset"] {
     font-family: var(--font-mono), monospace;
   }
 
