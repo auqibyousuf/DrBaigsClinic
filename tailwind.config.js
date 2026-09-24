@@ -18,7 +18,7 @@ module.exports = {
     extend: {
       fontFamily: {
         sans: ['var(--font-body)', 'sans-serif'],
-        heading: ['var(--font-body)', 'sans-serif'],
+        heading: ['var(--font-mono)', 'monospace'],
         mono: ['var(--font-mono)', 'monospace'],
       },
       colors: {
